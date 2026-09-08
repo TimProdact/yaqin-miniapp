@@ -1,0 +1,14 @@
+.env
+**/.env
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/*.sqlite3
+**/bot.log
+**/miniapp.log
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.webp
+opencode_mcp_config.json
