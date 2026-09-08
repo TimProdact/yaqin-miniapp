@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import secrets
 from dataclasses import dataclass
 
 import aiosqlite
@@ -19,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 DB_PATH = os.getenv("DB_PATH", "dating_bot.sqlite3")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "")
+MODERATOR_IDS = {int(value) for value in os.getenv("MODERATOR_IDS", "").split(",") if value.strip().isdigit()}
 router = Router()
 
 
@@ -27,6 +29,10 @@ class ProfileForm(StatesGroup):
     age = State()
     city = State()
     about = State()
+    photo = State()
+
+
+class VerificationForm(StatesGroup):
     photo = State()
 
 
@@ -49,6 +55,7 @@ async def db_init() -> None:
                 user_id INTEGER PRIMARY KEY,
                 is_adult INTEGER NOT NULL DEFAULT 0,
                 is_active INTEGER NOT NULL DEFAULT 1,
+                verification_status TEXT NOT NULL DEFAULT 'pending',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS profiles (
@@ -77,8 +84,20 @@ async def db_init() -> None:
                 reason TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS verification_requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                code TEXT NOT NULL,
+                photo_id TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                reviewed_at TEXT
+            );
             """
         )
+        columns = {row[1] for row in await db.execute_fetchall("PRAGMA table_info(users)")}
+        if "verification_status" not in columns:
+            await db.execute("ALTER TABLE users ADD COLUMN verification_status TEXT NOT NULL DEFAULT 'pending'")
         await db.commit()
 
 
@@ -101,6 +120,7 @@ async def save_profile(profile: Profile) -> None:
             "INSERT OR REPLACE INTO profiles(user_id,name,age,city,about,photo_id) VALUES(?,?,?,?,?,?)",
             (profile.user_id, profile.name, profile.age, profile.city, profile.about, profile.photo_id),
         )
+        await db.execute("UPDATE users SET verification_status='pending' WHERE user_id=?", (profile.user_id,))
         await db.commit()
 
 
@@ -124,6 +144,7 @@ async def next_candidate(user_id: int) -> Profile | None:
               AND p.user_id NOT IN (SELECT to_user FROM likes WHERE from_user=?)
               AND p.user_id NOT IN (SELECT blocked_user FROM blocks WHERE user_id=?)
               AND p.user_id NOT IN (SELECT user_id FROM blocks WHERE blocked_user=?)
+              AND u.verification_status='approved'
             ORDER BY p.user_id DESC LIMIT 1
             """,
             (user_id, user_id, user_id, user_id),
@@ -157,6 +178,17 @@ def app_keyboard() -> ReplyKeyboardMarkup | None:
     )
 
 
+def moderation_keyboard(request_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ Одобрить", callback_data=f"verify:approve:{request_id}"), InlineKeyboardButton(text="❌ Отклонить", callback_data=f"verify:reject:{request_id}")]])
+
+
+async def is_verified(user_id: int) -> bool:
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT verification_status FROM users WHERE user_id=?", (user_id,))
+        row = await cursor.fetchone()
+        return bool(row and row[0] == "approved")
+
+
 async def send_profile(message: Message, profile: Profile) -> None:
     text = f"<b>{profile.name}, {profile.age}</b>\n📍 {profile.city}\n\n{profile.about}"
     if profile.photo_id:
@@ -171,7 +203,15 @@ async def start(message: Message, state: FSMContext) -> None:
     if not await is_adult(message.from_user.id):
         await message.answer("Бот предназначен только для пользователей 18+. Подтвердите возраст.", reply_markup=adult_keyboard())
         return
+    if await get_profile(message.from_user.id) and not await is_verified(message.from_user.id):
+        await message.answer("Ваша анкета ожидает проверки. Отправьте заявку командой /verify.")
+        return
     await message.answer("Добро пожаловать. Откройте приложение или используйте /profile для анкеты.", reply_markup=app_keyboard())
+
+
+@router.message(Command("myid"))
+async def my_id(message: Message) -> None:
+    await message.answer(f"Ваш Telegram ID: {message.from_user.id}")
 
 
 @router.callback_query(F.data == "adult:yes")
@@ -236,7 +276,7 @@ async def profile_photo(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     await save_profile(Profile(message.from_user.id, data["name"], data["age"], data["city"], data["about"], message.photo[-1].file_id))
     await state.clear()
-    await message.answer("Анкета сохранена. Ищите анкеты командой /search.")
+    await message.answer("Анкета сохранена. Для доступа к знакомствам отправьте заявку: /verify")
 
 
 @router.message(ProfileForm.photo, Command("skip_photo"))
@@ -244,7 +284,68 @@ async def profile_skip_photo(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     await save_profile(Profile(message.from_user.id, data["name"], data["age"], data["city"], data["about"], None))
     await state.clear()
-    await message.answer("Анкета сохранена без фото. Ищите анкеты командой /search.")
+    await message.answer("Анкета сохранена без фото. Для доступа к знакомствам отправьте заявку: /verify")
+
+
+@router.message(Command("verify"))
+async def verify_start(message: Message, state: FSMContext) -> None:
+    if not await is_adult(message.from_user.id):
+        await message.answer("Сначала подтвердите, что вам 18+.", reply_markup=adult_keyboard())
+        return
+    if not await get_profile(message.from_user.id):
+        await message.answer("Сначала создайте анкету: /profile")
+        return
+    code = str(secrets.randbelow(900000) + 100000)
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("UPDATE users SET verification_status='pending' WHERE user_id=?", (message.from_user.id,))
+        await db.execute("INSERT INTO verification_requests(user_id,code,photo_id) VALUES(?,?,?)", (message.from_user.id, code, "pending"))
+        await db.commit()
+    await state.update_data(verification_code=code)
+    await state.set_state(VerificationForm.photo)
+    await message.answer(f"Отправьте обычное селфи с написанным на бумаге кодом: {code}\n\nНе отправляйте документы или интимные материалы.")
+
+
+@router.message(VerificationForm.photo, F.photo)
+async def verify_photo(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    code = data.get("verification_code")
+    if (message.caption or "").strip() != code:
+        await message.answer("Добавьте в подпись к фото только выданный код.")
+        return
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("UPDATE verification_requests SET photo_id=? WHERE user_id=? AND code=? AND status='pending'", (message.photo[-1].file_id, message.from_user.id, code))
+        cursor = await db.execute("SELECT id FROM verification_requests WHERE user_id=? AND code=? AND status='pending' ORDER BY id DESC LIMIT 1", (message.from_user.id, code))
+        request = await cursor.fetchone()
+        await db.commit()
+    await state.clear()
+    await message.answer("Заявка отправлена на ручную проверку. Мы уведомим вас о решении.")
+    if request:
+        profile = await get_profile(message.from_user.id)
+        for moderator_id in MODERATOR_IDS:
+            await message.bot.send_photo(moderator_id, message.photo[-1].file_id, caption=f"Заявка #{request[0]}\n{profile.name}, {profile.age}, {profile.city}\n{profile.about}\nКод: {code}", reply_markup=moderation_keyboard(request[0]))
+
+
+@router.callback_query(F.data.startswith("verify:"))
+async def review_verification(callback: CallbackQuery) -> None:
+    if callback.from_user.id not in MODERATOR_IDS:
+        await callback.answer("Нет доступа", show_alert=True)
+        return
+    _, action, request_id = callback.data.split(":")
+    status = "approved" if action == "approve" else "rejected"
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT user_id FROM verification_requests WHERE id=? AND status='pending'", (request_id,))
+        row = await cursor.fetchone()
+        if not row:
+            await callback.answer("Заявка уже обработана", show_alert=True)
+            return
+        user_id = row[0]
+        await db.execute("UPDATE verification_requests SET status=?, reviewed_at=CURRENT_TIMESTAMP WHERE id=?", (status, request_id))
+        await db.execute("UPDATE users SET verification_status=?, is_active=? WHERE user_id=?", (status, 1 if status == "approved" else 0, user_id))
+        await db.commit()
+    await callback.message.edit_reply_markup(reply_markup=None)
+    notification = "✅ Ваша анкета одобрена. Теперь можно пользоваться Yaqin." if status == "approved" else "Заявка отклонена. После исправления анкеты отправьте /verify снова."
+    await callback.bot.send_message(user_id, notification)
+    await callback.answer("Готово")
 
 
 @router.message(Command("search"))

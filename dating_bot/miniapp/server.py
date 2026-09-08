@@ -70,7 +70,8 @@ def me(x_telegram_init_data: Optional[str] = Header(default=None)):
     user_id = telegram_user(x_telegram_init_data)
     with db() as connection:
         row = connection.execute("SELECT user_id,name,age,city,about,photo_id FROM profiles WHERE user_id=?", (user_id,)).fetchone()
-    return {"user_id": user_id, "profile": profile_json(row)}
+        status = connection.execute("SELECT verification_status FROM users WHERE user_id=?", (user_id,)).fetchone()
+    return {"user_id": user_id, "verification_status": status[0] if status else "pending", "profile": profile_json(row)}
 
 
 @app.put("/api/me")
@@ -78,6 +79,7 @@ def update_me(payload: ProfileUpdate, x_telegram_init_data: Optional[str] = Head
     user_id = telegram_user(x_telegram_init_data)
     with db() as connection:
         connection.execute("UPDATE users SET is_adult=1,is_active=1 WHERE user_id=?", (user_id,))
+        connection.execute("UPDATE users SET verification_status='pending' WHERE user_id=?", (user_id,))
         connection.execute(
             "INSERT OR REPLACE INTO profiles(user_id,name,age,city,about,photo_id) VALUES(?,?,?,?,?,COALESCE((SELECT photo_id FROM profiles WHERE user_id=?),NULL))",
             (user_id, payload.name.strip(), payload.age, payload.city.strip(), payload.about.strip(), user_id),
@@ -98,6 +100,7 @@ def discover(x_telegram_init_data: Optional[str] = Header(default=None)):
               AND p.user_id NOT IN (SELECT to_user FROM likes WHERE from_user=?)
               AND p.user_id NOT IN (SELECT blocked_user FROM blocks WHERE user_id=?)
               AND p.user_id NOT IN (SELECT user_id FROM blocks WHERE blocked_user=?)
+              AND u.verification_status='approved'
             ORDER BY p.user_id DESC LIMIT 20
             """,
             (user_id, user_id, user_id, user_id),

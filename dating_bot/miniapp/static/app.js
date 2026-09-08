@@ -17,6 +17,9 @@ function nav() { document.querySelectorAll(".tabbar button").forEach(button => b
 function esc(value) { return String(value ?? "").replace(/[&<>\"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch])); }
 
 async function renderDiscover() {
+  const me = await api("/api/me");
+  if (!me.profile) { view.innerHTML = '<div class="empty"><h1>Создайте профиль</h1><p class="muted">Заполните анкету в разделе «Профиль».</p></div>'; return; }
+  if (me.verification_status !== "approved") { view.innerHTML = '<div class="empty"><h1>Профиль на проверке</h1><p class="muted">После ручной проверки вы получите уведомление в Telegram и сможете смотреть анкеты.</p><button class="button like" onclick="currentTab=\'profile\';render()">Открыть профиль</button></div>'; return; }
   const data = await api("/api/discover");
   if (!data.items.length) { view.innerHTML = '<div class="empty"><h1>Пока тихо</h1><p class="muted">Новых анкет нет. Загляните позже.</p></div>'; return; }
   const person = data.items[0];
