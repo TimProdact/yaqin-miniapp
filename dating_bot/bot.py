@@ -302,18 +302,15 @@ async def verify_start(message: Message, state: FSMContext) -> None:
         await db.commit()
     await state.update_data(verification_code=code)
     await state.set_state(VerificationForm.photo)
-    await message.answer(f"Отправьте обычное селфи с написанным на бумаге кодом: {code}\n\nНе отправляйте документы или интимные материалы.")
+    await message.answer(f"Запишите видеосообщение-кружок на 5–10 секунд:\n1. Назовите себя и произнесите код {code}.\n2. Покажите жест ✌️, затем 👍.\n\nНе отправляйте документы или интимные материалы.")
 
 
-@router.message(VerificationForm.photo, F.photo)
-async def verify_photo(message: Message, state: FSMContext) -> None:
+@router.message(VerificationForm.photo, F.video_note)
+async def verify_video_note(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     code = data.get("verification_code")
-    if (message.caption or "").strip() != code:
-        await message.answer("Добавьте в подпись к фото только выданный код.")
-        return
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("UPDATE verification_requests SET photo_id=? WHERE user_id=? AND code=? AND status='pending'", (message.photo[-1].file_id, message.from_user.id, code))
+        await db.execute("UPDATE verification_requests SET photo_id=? WHERE user_id=? AND code=? AND status='pending'", (message.video_note.file_id, message.from_user.id, code))
         cursor = await db.execute("SELECT id FROM verification_requests WHERE user_id=? AND code=? AND status='pending' ORDER BY id DESC LIMIT 1", (message.from_user.id, code))
         request = await cursor.fetchone()
         await db.commit()
@@ -322,7 +319,13 @@ async def verify_photo(message: Message, state: FSMContext) -> None:
     if request:
         profile = await get_profile(message.from_user.id)
         for moderator_id in MODERATOR_IDS:
-            await message.bot.send_photo(moderator_id, message.photo[-1].file_id, caption=f"Заявка #{request[0]}\n{profile.name}, {profile.age}, {profile.city}\n{profile.about}\nКод: {code}", reply_markup=moderation_keyboard(request[0]))
+            await message.bot.send_video_note(moderator_id, message.video_note.file_id)
+            await message.bot.send_message(moderator_id, f"Заявка #{request[0]}\n{profile.name}, {profile.age}, {profile.city}\n{profile.about}\nПроверьте код и жесты на видеосообщении.", reply_markup=moderation_keyboard(request[0]))
+
+
+@router.message(VerificationForm.photo)
+async def verify_wrong_media(message: Message) -> None:
+    await message.answer("Нужно отправить именно видеосообщение-кружок: 5–10 секунд, код и два жеста.")
 
 
 @router.callback_query(F.data.startswith("verify:"))
