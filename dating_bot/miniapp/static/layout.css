@@ -1,0 +1,2 @@
+html,body{overflow:hidden}.app{padding-top:max(env(safe-area-inset-top,0px),var(--tg-content-safe-area-inset-top,0px))}.brand-footer{display:none}.nav{bottom:0!important;padding-bottom:max(18px,env(safe-area-inset-bottom,18px))!important}
+body.profile-open .view{height:calc(100dvh - env(safe-area-inset-top,0px) - 76px)!important}
