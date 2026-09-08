@@ -1,88 +1,27 @@
 const tg = window.Telegram?.WebApp;
-tg?.ready();
-tg?.expand();
-
+tg?.ready(); tg?.expand();
 const DEMO = window.YAQIN_DEMO_MODE === true;
 const API_BASE = window.YAQIN_API_URL || "";
 const initData = tg?.initData || "";
-const headers = { "Content-Type": "application/json", "X-Telegram-Init-Data": initData };
+const headers = {"Content-Type":"application/json","X-Telegram-Init-Data":initData};
 const view = document.querySelector("#view");
-let currentTab = "discover";
-let demoIndex = 0;
-const demoProfiles = [
-  { user_id: 1, name: "Алина", age: 24, city: "Ташкент", about: "Люблю кофе, прогулки и живые концерты.", photo_id: true },
-  { user_id: 2, name: "Малика", age: 26, city: "Самарканд", about: "Ищу приятное общение и интересные знакомства.", photo_id: true },
-  { user_id: 3, name: "Диана", age: 23, city: "Ташкент", about: "Кино, путешествия и хороший юмор.", photo_id: false }
+const header = document.querySelector("#header");
+let currentTab = "discover", index = 0, drag = null;
+const profiles = [
+  {user_id:1,name:"Лера",age:26,city:"Ташкент",about:"Ищу компанию для длинных прогулок, новых кофеен и воскресной йоги.",tags:["походы на матчу","прогулки с собакой","йога","вино"],photo:"https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=800&q=80"},
+  {user_id:2,name:"Мила",age:27,city:"Ташкент",about:"Йога, матча и новые места в городе.",tags:["йога","матча"],photo:"https://images.pexels.com/photos/4531546/pexels-photo-4531546.jpeg?auto=compress&cs=tinysrgb&w=800&q=80"},
+  {user_id:3,name:"Аня",age:24,city:"Самарканд",about:"Люблю вино, керамику и спокойные разговоры.",tags:["вино","керамика"],photo:"https://images.pexels.com/photos/9148018/pexels-photo-9148018.jpeg?auto=compress&cs=tinysrgb&w=800&q=80"}
 ];
-
-function demoState() { return JSON.parse(localStorage.getItem("yaqin-demo") || '{"profile":null,"liked":[],"blocked":[]}'); }
-function saveDemoState(state) { localStorage.setItem("yaqin-demo", JSON.stringify(state)); }
-function esc(value) { return String(value ?? "").replace(/[&<>\"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
-function nav() { document.querySelectorAll(".tabbar button").forEach(button => button.classList.toggle("active", button.dataset.tab === currentTab)); }
-
-async function api(path, options = {}) {
-  if (DEMO) throw new Error("Demo mode");
-  const response = await fetch(`${API_BASE}${path}`, { headers, ...options });
-  if (!response.ok) throw new Error((await response.json().catch(() => ({}))).detail || "Ошибка запроса");
-  return response.json();
-}
-
-function profileCard(person) {
-  return `<div class="card"><div class="hero ${person.photo_id ? "" : "no-photo"}"><div><div class="pill">${esc(person.city)}</div><h2>${esc(person.name)}, ${person.age}</h2></div></div><p class="muted">${esc(person.about)}</p><div class="actions"><button class="button secondary" data-action="skip" data-id="${person.user_id}">Пропустить</button><button class="button like" data-action="like" data-id="${person.user_id}">♡ Нравится</button></div><button class="button secondary" style="width:100%;margin-top:10px" data-action="report" data-id="${person.user_id}">Пожаловаться / заблокировать</button></div>`;
-}
-
-async function renderDiscover() {
-  if (DEMO) {
-    const state = demoState();
-    const available = demoProfiles.filter(person => !state.blocked.includes(person.user_id));
-    if (!available.length) { view.innerHTML = '<div class="empty"><h1>Пока тихо</h1><p class="muted">Вы посмотрели все демо-анкеты.</p></div>'; return; }
-    const person = available[demoIndex % available.length];
-    view.innerHTML = `<span class="pill">ДЕМО-РЕЖИМ</span>${profileCard(person)}`;
-    return;
-  }
-  const me = await api("/api/me");
-  if (!me.profile) { view.innerHTML = '<div class="empty"><h1>Создайте профиль</h1><p class="muted">Заполните анкету в разделе «Профиль».</p></div>'; return; }
-  if (me.verification_status !== "approved") { view.innerHTML = '<div class="empty"><h1>Профиль на проверке</h1><p class="muted">После ручной проверки вы получите уведомление в Telegram.</p></div>'; return; }
-  const data = await api("/api/discover");
-  view.innerHTML = data.items.length ? profileCard(data.items[0]) : '<div class="empty"><h1>Пока тихо</h1><p class="muted">Новых анкет нет.</p></div>';
-}
-
-async function renderMatches() {
-  const items = DEMO ? demoState().liked.map(id => demoProfiles.find(person => person.user_id === id)).filter(Boolean) : (await api("/api/matches")).items;
-  view.innerHTML = `<h1>Мэтчи</h1><p class="muted">Люди, с которыми у вас взаимная симпатия.</p>${items.length ? items.map(person => `<div class="match"><div class="avatar">${esc(person.name[0])}</div><div><b>${esc(person.name)}, ${person.age}</b><div class="muted">${esc(person.city)}</div></div></div>`).join("") : '<div class="empty"><p class="muted">Взаимных симпатий пока нет.</p></div>'}`;
-}
-
-async function renderProfile() {
-  const state = DEMO ? demoState() : await api("/api/me");
-  const p = DEMO ? (state.profile || { name: "", age: 18, city: "", about: "" }) : (state.profile || { name: "", age: 18, city: "", about: "" });
-  view.innerHTML = `<h1>Мой профиль</h1><p class="muted">Анкета видна только совершеннолетним пользователям.</p><div class="notice">Демо-режим: данные сохраняются только в этом браузере.</div><div class="card form"><input class="input" id="name" placeholder="Имя или псевдоним" value="${esc(p.name)}"><input class="input" id="age" type="number" min="18" max="100" placeholder="Возраст" value="${p.age}"><input class="input" id="city" placeholder="Город" value="${esc(p.city)}"><textarea class="textarea" id="about" maxlength="500" placeholder="О себе">${esc(p.about)}</textarea><button class="button like" id="save">Сохранить профиль</button></div>`;
-  document.querySelector("#save").onclick = saveProfile;
-}
-
-async function saveProfile() {
-  const payload = { name: document.querySelector("#name").value, age: Number(document.querySelector("#age").value), city: document.querySelector("#city").value, about: document.querySelector("#about").value };
-  if (DEMO) { const state = demoState(); state.profile = payload; saveDemoState(state); renderProfile(); return; }
-  await api("/api/me", { method: "PUT", body: JSON.stringify(payload) });
-}
-
-async function render() {
-  nav();
-  try { if (currentTab === "discover") await renderDiscover(); if (currentTab === "matches") await renderMatches(); if (currentTab === "profile") await renderProfile(); }
-  catch (error) { view.innerHTML = `<div class="empty"><h2>Не удалось загрузить</h2><p class="muted">${esc(error.message)}</p><button class="button secondary" onclick="render()">Повторить</button></div>`; }
-}
-
-document.querySelectorAll(".tabbar button").forEach(button => button.onclick = () => { currentTab = button.dataset.tab; render(); });
-view.addEventListener("click", async event => {
-  const button = event.target.closest("[data-action]");
-  if (!button) return;
-  const id = Number(button.dataset.id);
-  if (DEMO) {
-    const state = demoState();
-    if (button.dataset.action === "like") state.liked = [...new Set([...state.liked, id])];
-    if (button.dataset.action === "skip" || button.dataset.action === "report") state.blocked = [...new Set([...state.blocked, id])];
-    saveDemoState(state); demoIndex += 1; renderDiscover(); return;
-  }
-  try { if (button.dataset.action === "like") await api(`/api/like/${id}`, { method: "POST" }); if (button.dataset.action === "report") await api(`/api/report/${id}`, { method: "POST" }); if (button.dataset.action === "skip") await api(`/api/block/${id}`, { method: "POST" }); await renderDiscover(); }
-  catch (error) { tg?.showAlert?.(error.message); }
-});
-render();
+function state(){return JSON.parse(localStorage.getItem("yaqin-demo")||'{"liked":[],"blocked":[],"profile":null,"pending":false}')}function save(s){localStorage.setItem("yaqin-demo",JSON.stringify(s))}function esc(v){return String(v??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+async function api(path,options={}){if(DEMO)throw Error("demo");const r=await fetch(`${API_BASE}${path}`,{headers,...options});if(!r.ok)throw Error((await r.json().catch(()=>({}))).detail||"Ошибка запроса");return r.json()}
+function setHeader(title,sub=""){header.innerHTML=`<div class="app-header"><div><h1>${title}</h1>${sub?`<p>${sub}</p>`:""}</div><button class="theme-button" onclick="document.documentElement.classList.toggle('dark')"><i class="ti ti-moon"></i></button></div>`}
+function personCard(p){return `<div class="profile-card" data-card="${p.user_id}"><img src="${p.photo}" alt="${esc(p.name)}"><div class="scrim"></div><div class="swipe-hint"><i class="ti ti-arrows-move-horizontal"></i> Тяни в сторону</div><div class="caption"><h2>${esc(p.name)}, ${p.age}</h2><p>${esc(p.about)}</p><div class="chips">${p.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div></div></div>`}
+async function discover(){setHeader("Лента");const s=state();const list=profiles.filter(p=>!s.blocked.includes(p.user_id));if(!list.length){view.innerHTML='<div class="empty"><div class="empty-icon"><i class="ti ti-stack-2"></i></div><h1>Анкеты пока закончились</h1><p>Загляните сюда позже.</p></div>';return}const p=list[index%list.length];view.innerHTML=`<p class="demo-label">${DEMO?"Демо-режим":"Лента"}</p><div class="swipe-stage"><div class="next-edge"></div>${personCard(p)}<div class="decision-row"><div><button class="decision" data-action="skip" data-id="${p.user_id}"><i class="ti ti-x"></i></button><span class="decision-label">Пропустить</span></div><div><button class="decision like" data-action="like" data-id="${p.user_id}"><i class="ti ti-heart-filled"></i></button><span class="decision-label">Отправить симпатию</span></div></div></div>`;enableSwipe();}
+function enableSwipe(){const card=document.querySelector(".profile-card");if(!card)return;card.onpointerdown=e=>{drag={x:e.clientX,card};card.setPointerCapture(e.pointerId)};card.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x;card.style.transform=`translateX(${dx}px) rotate(${dx/70}deg)`};card.onpointerup=e=>{if(!drag)return;const dx=e.clientX-drag.x;drag=null;if(Math.abs(dx)>90){perform(dx>0?"like":"skip",card.dataset.card,true)}else{card.style.transform=""}};}
+function matches(){setHeader("Мэтчи","Взаимные симпатии · 0");const s=state(), items=profiles.filter(p=>s.liked.includes(p.user_id));view.innerHTML=`<div class="empty" style="padding:24px 4px 10px;text-align:left"><div class="empty-icon" style="margin:0;width:72px;height:72px"><i class="ti ti-heart-filled"></i></div><h1>Пока нет мэтчей</h1><p>Взаимные симпатии появятся здесь.</p><button class="button" onclick="currentTab='discover';render()">Смотреть ленту <i class="ti ti-arrow-right"></i></button></div>${items.length?items.map(p=>`<div class="match-row"><img class="match-photo" src="${p.photo}"><div class="match-info"><b>${p.name}, ${p.age}</b><span>${p.tags.join(" · ")}</span></div><i class="ti ti-message-circle"></i></div>`).join(""):""}`}
+function profile(){setHeader("Моя анкета","Так вашу анкету видят другие");const s=state(),p=s.profile||{name:"Соня",age:24,city:"Ташкент",about:"Люблю рассветную йогу, собак и тихие кофейни. Ищу подругу для прогулок.",tags:["йога","прогулки с собакой","матча"]};view.innerHTML=`<div class="profile-photo"><img src="${p.photo||profiles[0].photo}"><div class="profile-caption"><h2>${esc(p.name)}, ${p.age}</h2><p>${esc(p.about)}</p><div class="chips">${(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div></div></div><div class="profile-actions"><button class="button" id="edit">Редактировать в боте <i class="ti ti-external-link"></i></button><small>${s.pending?"Профиль проверяется модератором":"Изменения подтвердит модератор"}</small></div>`;document.querySelector("#edit").onclick=()=>{currentTab="profile-edit";render()}}
+function editProfile(){setHeader("Моя анкета");const p=state().profile||{name:"Соня",age:24,city:"Ташкент",about:""};view.innerHTML=`<div class="form"><input class="input" id="name" value="${esc(p.name)}" placeholder="Имя"><input class="input" id="age" type="number" min="18" value="${p.age}"><input class="input" id="city" value="${esc(p.city)}" placeholder="Город"><textarea class="textarea" id="about" placeholder="О себе">${esc(p.about)}</textarea><button class="button" id="save">Сохранить</button></div>`;document.querySelector("#save").onclick=()=>{const s=state();s.profile={name:document.querySelector("#name").value,age:Number(document.querySelector("#age").value),city:document.querySelector("#city").value,about:document.querySelector("#about").value,tags:["йога","прогулки"]};save(s);currentTab="profile";render()}}
+async function perform(action,id,swipe=false){const s=state();id=Number(id);if(action==="like")s.liked=[...new Set([...s.liked,id])];else s.blocked=[...new Set([...s.blocked,id])];save(s);index++;if(swipe){const card=document.querySelector(".profile-card");card.style.transition="transform .25s ease,opacity .25s ease";card.style.transform=`translateX(${action==="like"?500:-500}px) rotate(${action==="like"?8:-8}deg)`;card.style.opacity="0";setTimeout(discover,260)}else discover()}
+async function render(){nav();if(currentTab==="discover")return discover();if(currentTab==="matches")return matches();if(currentTab==="profile")return profile();if(currentTab==="profile-edit")return editProfile()}
+function nav(){document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===currentTab))}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{currentTab=b.dataset.tab;render()});view.addEventListener("click",e=>{const b=e.target.closest("[data-action]");if(b)perform(b.dataset.action,b.dataset.id)});render();
