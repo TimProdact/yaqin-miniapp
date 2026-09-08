@@ -1,2 +1,2 @@
 // Set this to the public HTTPS URL of the FastAPI backend.
-window.YAQIN_API_URL = "";
+window.YAQIN_API_URL = "https://olive-snakes-find.loca.lt";
