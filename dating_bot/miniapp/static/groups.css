@@ -2250,3 +2250,7 @@ body[data-route='create-event'] .view { padding: 0 !important; background: #fff;
 }
 .leave-sheet .danger { background: #ff3b30; color: #fff; }
 .leave-sheet #cancelLeave { background: #f2f2f7; color: #171719; }
+
+.hub-room-copy { display: grid; gap: 2px; text-align: left; }
+.hub-room-copy span { color: #8e8e93; font-size: 13px; font-weight: 400; }
+.hub-label i { font-size: 12px; vertical-align: middle; }
