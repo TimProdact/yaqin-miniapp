@@ -7,7 +7,11 @@ const initialState = {
   profile: null,
   onboarded: true,
   filters: { ageMin: 18, ageMax: 40, distance: 50 },
-  theme: { dark: false, followSystem: true }
+  theme: { dark: false, followSystem: true },
+  email: '',
+  notifications: { dm: true, reactions: true },
+  announcements: true,
+  shakeFeedback: true
 };
 
 export function getState() {

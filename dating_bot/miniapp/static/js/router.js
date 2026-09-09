@@ -12,7 +12,11 @@ const FULL_SCREEN_ROUTES = new Set([
   'create-group',
   'join-group',
   'blocked',
-  'dark-mode'
+  'dark-mode',
+  'notifications',
+  'account',
+  'announcements',
+  'share-profile'
 ]);
 const SHEET_ROUTES = new Set(['person', 'group', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me', 'events']);

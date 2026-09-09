@@ -733,3 +733,430 @@ body[data-route='dark-mode'] .view {
 .settings-row.toggle input:disabled {
   opacity: 0.45;
 }
+
+/* Settings subpages — notifications, account, announcements, share, feedback */
+body[data-route='notifications'] .nav,
+body[data-route='account'] .nav,
+body[data-route='announcements'] .nav,
+body[data-route='share-profile'] .nav {
+  display: none;
+}
+body[data-route='notifications'] .view,
+body[data-route='account'] .view,
+body[data-route='announcements'] .view,
+body[data-route='share-profile'] .view {
+  padding: 0 !important;
+  background: #fff;
+}
+
+.settings-hint {
+  padding: 16px 8px;
+  color: #8e8e93;
+  font-size: 14px;
+}
+.notif-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.settings-row.group-notif {
+  align-items: center;
+}
+.settings-row.stacked-btn {
+  align-items: center;
+}
+.settings-row.stacked-btn span {
+  flex: 1;
+  text-align: left;
+}
+.settings-row.stacked-btn small,
+.settings-row.stacked small,
+.account-row small {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #8e8e93;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.account-row {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #f0f0f2;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  text-align: left;
+  color: #171719;
+}
+.account-row > div {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.account-row b {
+  font-size: 15px;
+  font-weight: 700;
+}
+.account-row span {
+  font-size: 14px;
+  color: #55555c;
+}
+.account-row span.link {
+  color: #3b6ef5;
+  font-weight: 600;
+}
+.account-row > button {
+  border: 0;
+  background: none;
+  color: #8e8e93;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+}
+.settings-icon.square {
+  border-radius: 8px;
+}
+.danger-block {
+  margin-top: 28px;
+  border-top: 8px solid #f2f2f7;
+  padding-top: 4px;
+}
+
+.share-page {
+  min-height: 100%;
+  background: #f5f5f7;
+  padding: 8px 20px 40px;
+  display: flex;
+  flex-direction: column;
+}
+.share-card {
+  margin: 36px auto 0;
+  width: min(100%, 300px);
+  background: #fff;
+  border-radius: 24px;
+  padding: 22px 18px 18px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.06);
+  text-align: center;
+}
+.share-card h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
+}
+.share-visual {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f2f2f7;
+}
+.share-photo {
+  display: block;
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  filter: blur(1px) saturate(0.85);
+}
+.share-qr {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  padding: 18px;
+}
+.share-actions {
+  margin-top: auto;
+  padding-top: 28px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.share-primary {
+  flex: 1;
+  border: 0;
+  border-radius: 16px;
+  background: #3b6ef5;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.share-gear {
+  width: 54px;
+  height: 54px;
+  border: 0;
+  border-radius: 16px;
+  background: #e5e5ea;
+  color: #171719;
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+}
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0,0,0,.42);
+  padding: 0 0 max(0px, env(safe-area-inset-bottom));
+}
+.settings-overlay.dialog-overlay {
+  align-items: center;
+  padding: 24px;
+}
+.feedback-sheet,
+.email-sheet,
+.announce-sheet {
+  width: min(100%, 430px);
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 28px;
+}
+.feedback-sheet h2,
+.announce-body h2 {
+  margin: 8px 0 16px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.feedback-sheet textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1.5px solid #e5e5ea;
+  border-radius: 16px;
+  padding: 14px;
+  resize: none;
+  font: inherit;
+  font-size: 15px;
+  outline: 0;
+}
+.feedback-shake {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 18px;
+  font-size: 15px;
+}
+.feedback-shake span { flex: 1; }
+.feedback-shake input,
+.feedback-sheet .settings-row.toggle input {
+  appearance: none;
+  width: 51px;
+  height: 31px;
+  border-radius: 999px;
+  background: #e5e5ea;
+  position: relative;
+  flex: 0 0 auto;
+}
+.feedback-shake input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: transform .15s ease;
+}
+.feedback-shake input:checked {
+  background: #007aff;
+}
+.feedback-shake input:checked::after {
+  transform: translateX(20px);
+}
+.feedback-submit {
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  background: #c7c7cc;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 16px;
+}
+.feedback-submit.on {
+  background: #007aff;
+}
+.feedback-skip {
+  display: block;
+  margin: 14px auto 0;
+  border: 0;
+  background: none;
+  color: #007aff;
+  font-size: 16px;
+  font-weight: 500;
+}
+.email-sheet .modal-head {
+  margin: 0 -8px 18px;
+}
+.email-input {
+  display: block;
+  width: 100%;
+  border: 1.5px solid #d1d1d6;
+  border-radius: 999px;
+  padding: 16px 18px;
+  text-align: center;
+  font-size: 17px;
+  outline: 0;
+}
+.email-note {
+  margin: 16px 8px 8px;
+  text-align: center;
+  font-size: 13px;
+  color: #8e8e93;
+  line-height: 1.4;
+}
+.delete-dialog {
+  width: min(100%, 300px);
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 16px 0;
+  text-align: center;
+}
+.delete-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.delete-dialog p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #55555c;
+  line-height: 1.35;
+}
+.delete-dialog input {
+  width: 100%;
+  border: 1px solid #d1d1d6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  outline: 0;
+  margin-bottom: 14px;
+}
+.delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid #e5e5ea;
+}
+.delete-actions button {
+  border: 0;
+  background: none;
+  padding: 14px;
+  font-size: 17px;
+}
+.delete-actions button:first-child {
+  border-right: 1px solid #e5e5ea;
+  font-weight: 600;
+}
+.delete-actions button:last-child {
+  color: #ff3b30;
+  font-weight: 600;
+}
+.delete-actions button:disabled {
+  opacity: 0.4;
+}
+.announce-sheet {
+  padding: 8px 0 0;
+  max-height: 92vh;
+  overflow: auto;
+}
+.announce-hero {
+  position: relative;
+  height: 220px;
+  background: #fff4b0;
+  display: grid;
+  place-items: center;
+}
+.announce-hero > img {
+  width: 150px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 18px;
+  transform: rotate(-6deg);
+  box-shadow: 0 10px 24px rgba(0,0,0,.12);
+}
+.announce-hero .bubble {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  color: #171719;
+}
+.announce-hero .wave {
+  left: 28px;
+  bottom: 28px;
+  background: #ff5aa5;
+}
+.announce-hero .filters {
+  right: 28px;
+  top: 28px;
+  background: #ffb6d9;
+}
+.announce-body {
+  padding: 22px 22px 28px;
+}
+.announce-body time {
+  display: block;
+  margin-bottom: 10px;
+  color: #8e8e93;
+  font-size: 15px;
+  font-weight: 600;
+}
+.announce-body > p {
+  margin: 0 0 18px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.announce-feature {
+  margin-bottom: 22px;
+}
+.announce-feature b {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 17px;
+}
+.announce-feature p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #333;
+}
+.announce-cta {
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  background: #171719;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 16px;
+}
+.announce-legal {
+  margin: 14px 8px 0;
+  text-align: center;
+  font-size: 12px;
+  color: #8e8e93;
+  line-height: 1.35;
+}
+body[data-route='notifications'] .settings-row.toggle input:checked,
+body[data-route='announcements'] .settings-row.toggle input:checked {
+  background: #007aff;
+}

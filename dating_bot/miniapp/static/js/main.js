@@ -30,6 +30,15 @@ import {
   onboardingScreen,
   blockedScreen,
   darkModeScreen,
+  notificationsScreen,
+  accountScreen,
+  announcementsScreen,
+  shareProfileScreen,
+  showFeedbackSheet,
+  showAddEmailSheet,
+  showDeleteAccountDialog,
+  showAnnouncementLatest,
+  closeSettingsOverlay,
   applyStoredTheme
 } from './screens/me.js';
 
@@ -58,6 +67,10 @@ registerScreens({
   settings: settingsScreen,
   blocked: blockedScreen,
   'dark-mode': darkModeScreen,
+  notifications: notificationsScreen,
+  account: accountScreen,
+  announcements: announcementsScreen,
+  'share-profile': shareProfileScreen,
   edit: editScreen,
   friends: friendsScreen,
   prompts: promptsScreen,
@@ -89,7 +102,11 @@ async function handleAction(target) {
   if (action === 'like' || action === 'skip') return decide(action, id);
   if (action === 'back') return goBack();
   if (action === 'save-profile') return submitProfile();
-  if (action === 'close-sheet') return closeSafetyOverlay();
+  if (action === 'close-sheet') {
+    closeSafetyOverlay();
+    closeSettingsOverlay();
+    return;
+  }
   if (action === 'person-menu' && person) return showPersonMenu(person);
   if (action === 'block-confirm' && person) return showBlockConfirm(person);
   if (action === 'block-user') return blockPerson(id);
@@ -104,6 +121,10 @@ async function handleAction(target) {
     startVerification();
     return;
   }
+  if (action === 'feedback') return showFeedbackSheet();
+  if (action === 'add-email') return showAddEmailSheet();
+  if (action === 'delete-account') return showDeleteAccountDialog();
+  if (action === 'announcement-latest') return showAnnouncementLatest();
   return navigate(action, id === undefined ? undefined : Number(id));
 }
 
