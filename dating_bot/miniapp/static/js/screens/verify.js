@@ -2,6 +2,7 @@ import { view, esc, clearHeader, showLoading, showError } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
 import { loadVerification, saveDemoVerification } from '../repository.js';
 import { isLive } from '../api.js';
+import { getState, saveState } from '../state.js';
 
 const STEPS = [
   'Заполните анкету: имя, возраст, город и пару слов о себе.',
@@ -66,8 +67,20 @@ export function resolveView({ status, stage }) {
   return VIEWS.none;
 }
 
+function verifyStep() {
+  return getState().verifyStep || 'status';
+}
+
+function setVerifyStep(step) {
+  saveState({ ...getState(), verifyStep: step });
+}
+
 export async function verifyScreen(_id, token) {
   clearHeader();
+  const step = verifyStep();
+  if (step === 'identity') return renderIdentity();
+  if (step === 'capture') return renderCapture();
+
   showLoading('Проверяем статус...');
 
   let verification;
@@ -103,10 +116,66 @@ export async function verifyScreen(_id, token) {
       </div>
       <h1>${esc(state.title)}</h1>
       <p class="verify-lead">${esc(state.text)}</p>
-      <ol class="verify-steps">${STEPS.map(step => `<li>${esc(step)}</li>`).join('')}</ol>
+      <ol class="verify-steps">${STEPS.map(item => `<li>${esc(item)}</li>`).join('')}</ol>
       <p class="verify-note">Видео нужно для подтверждения подлинности анкеты, а не для автоматического определения пола по внешности.</p>
-      <button class="verify-cta" data-action="${state.actionRoute}">${esc(state.action)}</button>
+      <button class="verify-cta" id="verifyBegin">${esc(state.action)}</button>
     </div>`;
+
+  view.querySelector('#verifyBegin').onclick = () => {
+    if (state.actionRoute === 'verify-start') startVerification();
+    else navigate(state.actionRoute);
+  };
+}
+
+function renderIdentity() {
+  view.innerHTML = `
+    <div class="verify-identity">
+      <button class="verify-close" type="button" id="identityBack" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+      <div class="verify-shield"><i class="ti ti-shield-check"></i></div>
+      <h1>Подтвердите личность</h1>
+      <p>Мы попросим короткое селфи или видеокружок. Это быстро и нужно, чтобы Yaqin оставался безопасным.</p>
+      <button class="verify-cta" id="identityGo">Поехали!</button>
+      <p class="verify-note">Сессия может записываться для модерации. Подробности — в политике конфиденциальности.</p>
+    </div>`;
+  view.querySelector('#identityBack').onclick = () => {
+    setVerifyStep('status');
+    navigate('verify');
+  };
+  view.querySelector('#identityGo').onclick = () => {
+    setVerifyStep('capture');
+    navigate('verify');
+  };
+}
+
+function renderCapture() {
+  view.innerHTML = `
+    <div class="verify-capture">
+      <button class="verify-close light" type="button" id="captureBack" aria-label="Назад"><i class="ti ti-x"></i></button>
+      <div class="capture-frame">
+        <div class="capture-oval">
+          <div class="capture-scan"></div>
+        </div>
+      </div>
+      <h1>Сделаем кадр автоматически</h1>
+      <p>Держите лицо в овале. Если сложно — можно вручную.</p>
+      <button class="verify-cta ghost" id="captureManual">Проблемы? Сделать вручную</button>
+      <button class="verify-cta" id="captureDone">Готово</button>
+    </div>`;
+
+  view.querySelector('#captureBack').onclick = () => {
+    setVerifyStep('identity');
+    navigate('verify');
+  };
+  const finish = () => {
+    saveDemoVerification({ status: 'pending', stage: 'in_review' });
+    setVerifyStep('status');
+    navigate('verify');
+  };
+  view.querySelector('#captureManual').onclick = finish;
+  view.querySelector('#captureDone').onclick = finish;
+  setTimeout(() => {
+    if (verifyStep() === 'capture') finish();
+  }, 2800);
 }
 
 export function startVerification() {
@@ -114,7 +183,7 @@ export function startVerification() {
   const username = window.YAQIN_BOT_USERNAME || '';
 
   if (!isLive) {
-    saveDemoVerification({ status: 'pending', stage: 'in_review' });
+    setVerifyStep('identity');
     navigate('verify');
     return;
   }

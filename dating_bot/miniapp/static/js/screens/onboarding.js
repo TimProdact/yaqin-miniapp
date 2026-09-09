@@ -35,10 +35,14 @@ function draft() {
   return {
     location: false,
     notifications: false,
+    phone: '',
+    code: '',
     firstName: '',
     lastName: '',
     birthday: '',
     gender: 'woman',
+    genderDetail: '',
+    showGenderOnProfile: true,
     photos: [null, null, null, null, null, null],
     answers: ['', '', '', ''],
     ...(state.onboardingDraft || {})
@@ -99,9 +103,12 @@ export function onboardingScreen() {
 
   if (step === 'start') return renderStart(data);
   if (step === 'privacy') return renderPrivacy();
+  if (step === 'phone') return renderPhone(data);
+  if (step === 'sms') return renderSms(data);
   if (step === 'name') return renderName(data);
   if (step === 'birthday') return renderBirthday(data);
   if (step === 'gender') return renderGender(data);
+  if (step === 'gender-more') return renderGenderMore(data);
   if (step === 'photos') return renderPhotos(data);
   if (step === 'tags') return renderTags(data);
   if (step.startsWith('q')) return renderQuestion(data, Number(step.slice(1)) - 1);
@@ -158,16 +165,96 @@ function renderPrivacy() {
       <h1>Мы ценим вашу<br>конфиденциальность</h1>
       <p>Мы храним и обрабатываем данные с устройства, чтобы показывать релевантные знакомства и улучшать Yaqin.</p>
       <p>Согласие можно отозвать в любое время. Подробнее в <u>политике конфиденциальности</u>.</p>
-      <button class="ob-next on blue" data-step="name">Далее</button>
+      <button class="ob-next on blue" data-step="phone">Далее</button>
     </div>`;
-  view.querySelector('[data-step]').onclick = () => go('name');
+  view.querySelector('[data-step]').onclick = () => go('phone');
+}
+
+function formatPhone(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 12);
+  if (digits.length <= 2) return digits ? `+${digits}` : '';
+  if (digits.length <= 5) return `+${digits.slice(0, 2)} (${digits.slice(2)}`;
+  if (digits.length <= 8) return `+${digits.slice(0, 2)} (${digits.slice(2, 5)}) ${digits.slice(5)}`;
+  return `+${digits.slice(0, 2)} (${digits.slice(2, 5)}) ${digits.slice(5, 8)}-${digits.slice(8)}`;
+}
+
+function renderPhone(data) {
+  const digits = data.phone.replace(/\D/g, '');
+  const ready = digits.length >= 11;
+  view.innerHTML = `
+    <div class="ob-form">
+      <button class="ob-back" type="button" data-back="privacy"><i class="ti ti-chevron-left"></i></button>
+      <h1>Ваш номер телефона?</h1>
+      <p class="ob-sub">Нужен для входа и безопасности. В Telegram можно пропустить.</p>
+      <input class="ob-input" id="phone" inputmode="tel" placeholder="+998 (90) 123-45-67" value="${esc(data.phone)}">
+      <button class="ob-link soft" type="button" id="skipPhone">Продолжить без номера</button>
+      <button class="ob-next ${ready ? 'on' : ''}" id="phoneNext" ${ready ? '' : 'disabled'}>Далее</button>
+      <p class="ob-legal">Нажимая «Далее», вы соглашаетесь с условиями и политикой Yaqin.</p>
+    </div>`;
+
+  view.querySelector('#phone').oninput = event => {
+    const phone = formatPhone(event.target.value);
+    event.target.value = phone;
+    const ok = phone.replace(/\D/g, '').length >= 11;
+    saveDraft({ ...data, phone });
+    const btn = view.querySelector('#phoneNext');
+    btn.disabled = !ok;
+    btn.classList.toggle('on', ok);
+  };
+  view.querySelector('#phoneNext').onclick = () => {
+    if (view.querySelector('#phoneNext').disabled) return;
+    go('sms');
+  };
+  view.querySelector('#skipPhone').onclick = () => {
+    saveDraft({ ...data, phone: '' });
+    go('name');
+  };
+  view.querySelector('[data-back]').onclick = () => go('privacy');
+  view.querySelector('#phone').focus();
+}
+
+function renderSms(data) {
+  const code = data.code || '';
+  const ready = code.replace(/\D/g, '').length >= 6;
+  view.innerHTML = `
+    <div class="ob-form">
+      <button class="ob-back" type="button" data-back="phone"><i class="ti ti-chevron-left"></i></button>
+      <h1>Введите код</h1>
+      <p class="ob-sub">Мы отправили код на ${esc(data.phone || 'ваш номер')}</p>
+      <input class="ob-input code" id="smsCode" inputmode="numeric" maxlength="7" placeholder="000-000" value="${esc(code)}">
+      <button class="ob-link soft" type="button" id="resendCode">Не пришёл код? Отправить снова</button>
+      <button class="ob-next ${ready ? 'on' : ''}" id="smsNext" ${ready ? '' : 'disabled'}>Далее</button>
+      <p class="ob-toast" id="smsToast" hidden>Код отправлен</p>
+    </div>`;
+
+  view.querySelector('#smsCode').oninput = event => {
+    let digits = event.target.value.replace(/\D/g, '').slice(0, 6);
+    const formatted = digits.length > 3 ? `${digits.slice(0, 3)}-${digits.slice(3)}` : digits;
+    event.target.value = formatted;
+    const ok = digits.length >= 6;
+    saveDraft({ ...data, code: formatted });
+    const btn = view.querySelector('#smsNext');
+    btn.disabled = !ok;
+    btn.classList.toggle('on', ok);
+  };
+  view.querySelector('#resendCode').onclick = () => {
+    const toast = view.querySelector('#smsToast');
+    toast.hidden = false;
+    setTimeout(() => { toast.hidden = true; }, 1400);
+  };
+  view.querySelector('#smsNext').onclick = () => {
+    if (view.querySelector('#smsNext').disabled) return;
+    go('name');
+  };
+  view.querySelector('[data-back]').onclick = () => go('phone');
+  view.querySelector('#smsCode').focus();
 }
 
 function renderName(data) {
   const ready = data.firstName.trim().length > 1;
   view.innerHTML = `
     <div class="ob-form">
-      <button class="ob-back" type="button" data-back="privacy"><i class="ti ti-chevron-left"></i></button>
+      <button class="ob-back" type="button" data-back="${data.phone ? 'sms' : 'phone'}"><i class="ti ti-chevron-left"></i></button>
       <h1>Как тебя зовут?</h1>
       <p class="ob-sub">Будет видно только имя.</p>
       <input class="ob-input" id="firstName" placeholder="Имя" maxlength="40" value="${esc(data.firstName)}">
@@ -190,7 +277,7 @@ function renderName(data) {
     if (view.querySelector('#nameNext').disabled) return;
     go('birthday');
   };
-  view.querySelector('[data-back]').onclick = () => go('privacy');
+  view.querySelector('[data-back]').onclick = () => go(data.phone ? 'sms' : 'phone');
   view.querySelector('#firstName').focus();
 }
 
@@ -235,33 +322,81 @@ function renderBirthday(data) {
 }
 
 function renderGender(data) {
+  const ready = data.gender === 'woman';
   view.innerHTML = `
     <div class="ob-form">
       <button class="ob-back" type="button" data-back="birthday"><i class="ti ti-chevron-left"></i></button>
       <h1>Как вы опишете<br>свой гендер?</h1>
-      <p class="ob-sub">Yaqin — сообщество для женщин. Можно изменить позже в анкете.</p>
+      <p class="ob-sub">Можно изменить позже в анкете. Yaqin — сообщество для женщин.</p>
       <div class="ob-choices">
-        ${[
-          ['woman', 'Женщина'],
-          ['man', 'Мужчина'],
-          ['nonbinary', 'Небинарный']
-        ].map(([value, label]) => `
-          <button type="button" class="ob-choice ${data.gender === value ? 'on' : ''}" data-gender="${value}">${label}</button>`).join('')}
+        <button type="button" class="ob-choice stacked ${data.gender === 'woman' ? 'on' : ''}" data-gender="woman">
+          <b>Женщина</b>
+          <small id="openGenderMore">${esc(data.genderDetail || 'Добавить подробнее')}</small>
+        </button>
+        <label class="ob-toggle-row">
+          <span>Показывать гендер в профиле</span>
+          <input type="checkbox" id="showGender" ${data.showGenderOnProfile ? 'checked' : ''}>
+        </label>
+        <button type="button" class="ob-choice ${data.gender === 'man' ? 'on' : ''}" data-gender="man">Мужчина</button>
+        <button type="button" class="ob-choice ${data.gender === 'nonbinary' ? 'on' : ''}" data-gender="nonbinary">Небинарный</button>
       </div>
-      <button class="ob-next ${data.gender === 'woman' ? 'on' : ''}" id="genderNext" ${data.gender === 'woman' ? '' : 'disabled'}>Далее</button>
+      ${data.gender && data.gender !== 'woman' ? '<p class="ob-warn">Сейчас Yaqin открыт только для женщин. Выберите «Женщина», чтобы продолжить.</p>' : ''}
+      <button class="ob-next ${ready ? 'on' : ''}" id="genderNext" ${ready ? '' : 'disabled'}>Далее</button>
     </div>`;
 
   view.querySelectorAll('[data-gender]').forEach(button => {
-    button.onclick = () => {
+    button.onclick = event => {
+      if (event.target.closest('#openGenderMore') && button.dataset.gender === 'woman') {
+        saveDraft({ ...data, gender: 'woman' });
+        go('gender-more');
+        return;
+      }
       saveDraft({ ...data, gender: button.dataset.gender });
       go('gender');
     };
   });
+  view.querySelector('#openGenderMore')?.addEventListener('click', event => {
+    event.stopPropagation();
+    saveDraft({ ...data, gender: 'woman' });
+    go('gender-more');
+  });
+  view.querySelector('#showGender').onchange = event => {
+    saveDraft({ ...data, showGenderOnProfile: event.target.checked });
+  };
   view.querySelector('#genderNext').onclick = () => {
     if (data.gender !== 'woman') return;
     go('photos');
   };
   view.querySelector('[data-back]').onclick = () => go('birthday');
+}
+
+function renderGenderMore(data) {
+  const options = [
+    'Женщина',
+    'Интерсекс-женщина',
+    'Транс-женщина',
+    'Трансфеминная',
+    'Женщина и небинарная',
+    'Цис-женщина'
+  ];
+  view.innerHTML = `
+    <div class="ob-form">
+      <button class="ob-back" type="button" data-back="gender"><i class="ti ti-chevron-left"></i></button>
+      <h1>Добавить подробнее<br>о гендере</h1>
+      <div class="ob-choices">
+        ${options.map(item => `
+          <button type="button" class="ob-choice ${data.genderDetail === item ? 'on' : ''}" data-detail="${esc(item)}">${esc(item)}</button>`).join('')}
+      </div>
+      <button class="ob-next on" id="genderMoreNext">Далее</button>
+    </div>`;
+  view.querySelectorAll('[data-detail]').forEach(button => {
+    button.onclick = () => {
+      saveDraft({ ...data, gender: 'woman', genderDetail: button.dataset.detail });
+      go('gender-more');
+    };
+  });
+  view.querySelector('#genderMoreNext').onclick = () => go('gender');
+  view.querySelector('[data-back]').onclick = () => go('gender');
 }
 
 function renderPhotos(data) {
