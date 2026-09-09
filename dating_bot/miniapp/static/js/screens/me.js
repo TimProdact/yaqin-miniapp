@@ -411,8 +411,16 @@ export async function friendsScreen(_id, token) {
     </div>`;
 }
 
-export function promptsScreen() {
+export function promptsScreen(idOrForce = '') {
   clearHeader();
+  const filled = String(idOrForce) === 'filled' || String(idOrForce) === '1';
+  const prompts = [
+    { id: 'concert', title: 'Мой последний концерт<br>(или мечта о нём)' },
+    { id: 'hyper', title: 'Недавняя гиперфиксация' },
+    { id: 'place', title: 'Любимое место в городе' }
+  ];
+  const photo = promptPhoto;
+
   view.innerHTML = `
     <div class="prompts-page">
       <header class="filters-head">
@@ -422,24 +430,72 @@ export function promptsScreen() {
       </header>
       <p class="prompts-lead">Добавьте кадры, которые расскажут о вас — селфи не обязательны.</p>
 
-      <article class="prompt-life-card">
-        <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
-        <h2>Мой последний концерт<br>(или мечта о нём)</h2>
-        <button class="prompt-add" type="button" data-action="camera-roll"><i class="ti ti-camera"></i>Добавить фото</button>
-      </article>
-      <article class="prompt-life-card">
-        <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
-        <h2>Недавняя гиперфиксация</h2>
-        <button class="prompt-add" type="button" data-action="camera-roll"><i class="ti ti-camera"></i>Добавить фото</button>
-      </article>
-      <article class="prompt-life-card">
-        <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
-        <h2>Любимое место в городе</h2>
-        <button class="prompt-add" type="button" data-action="camera-roll"><i class="ti ti-camera"></i>Добавить фото</button>
-      </article>
+      ${prompts.map((item, index) => {
+        if (filled && index === 0) {
+          return `
+            <article class="prompt-filled-card">
+              <img src="${esc(photo)}" alt="">
+              <button class="prompt-edit" type="button" data-action="prompt-picker" data-id="${item.id}" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+            </article>`;
+        }
+        return `
+          <article class="prompt-life-card" data-prompt="${item.id}">
+            <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+            <h2>${item.title}</h2>
+            <button class="prompt-add" type="button" data-action="prompt-picker" data-id="${item.id}"><i class="ti ti-camera"></i>Добавить фото</button>
+          </article>`;
+      }).join('')}
 
       <button class="photos-save" data-action="back">Далее</button>
     </div>`;
+
+  view.querySelectorAll('.prompt-dismiss').forEach(button => {
+    button.onclick = () => button.closest('.prompt-life-card')?.remove();
+  });
+}
+
+export function promptPickerScreen(id = 'food') {
+  clearHeader();
+  const labels = {
+    concert: 'Мой последний концерт (или мечта о нём)',
+    hyper: 'Недавняя гиперфиксация',
+    place: 'Любимое место в городе',
+    food: 'Недавние фото еды из вашей галереи'
+  };
+  const title = labels[id] || labels.food;
+  const filled = id === 'filled' || id === '1';
+  const slots = filled
+    ? [promptPhoto, null, null, null, null, null]
+    : [null, null, null, null, null, null];
+
+  view.innerHTML = `
+    <div class="prompt-picker-page">
+      <header class="picker-head">
+        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+      </header>
+      <div class="prompt-title-pill">
+        <span>${esc(title)}</span>
+        <i class="ti ti-pencil"></i>
+      </div>
+      <div class="prompt-pick-grid">
+        ${slots.map((photo, index) => photo
+          ? `<button type="button" class="pick-slot filled" data-clear="${index}">
+              <img src="${esc(photo)}" alt="">
+              ${index === 0 ? '<span class="pick-main">Главное</span>' : ''}
+              <i class="ti ti-x clear"></i>
+            </button>`
+          : `<button type="button" class="pick-slot empty" data-add="${index}"><i class="ti ti-plus"></i></button>`
+        ).join('')}
+      </div>
+      <button class="photos-save" data-action="back">Сохранить</button>
+    </div>`;
+
+  view.querySelectorAll('[data-add]').forEach(button => {
+    button.onclick = () => promptPickerScreen('filled');
+  });
+  view.querySelectorAll('[data-clear]').forEach(button => {
+    button.onclick = () => promptPickerScreen(id === 'filled' ? 'food' : id);
+  });
 }
 
 export function cameraRollScreen() {
@@ -448,7 +504,7 @@ export function cameraRollScreen() {
     <div class="camera-roll-page">
       <button class="ob-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
       <div class="roll-visual">
-        <div class="roll-card back"><img src="${esc(promptPhoto)}" alt=""><span>Моё любимое место</span></div>
+        <div class="roll-card back"><img src="${esc(promptPhoto)}" alt=""><span class="top">Моё любимое место</span></div>
         <div class="roll-card front"><img src="${esc(defaultProfile.photo)}" alt=""><span>Прошлые выходные</span></div>
       </div>
       <h1>Поделитесь фото<br>из галереи</h1>

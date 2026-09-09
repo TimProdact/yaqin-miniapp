@@ -75,7 +75,14 @@ export const groups = [
     members: 1240,
     active: 'Сейчас онлайн',
     photo: PHOTOS.palms,
-    joined: true
+    joined: true,
+    online: 11,
+    joinQuestion: 'Что вам больше всего нравится в Ташкенте?',
+    arrivals: [
+      { name: 'Аня', photo: people[2].photo, time: '56 мин', answer: 'Кофейни и прогулки по Мирабаду' },
+      { name: 'Мила', photo: people[1].photo, time: '1 ч', answer: 'Йога в парке и субботние рынки' },
+      { name: 'Малика', photo: people[0].photo, time: '2 ч', answer: 'Книжные и вечерние набережные' }
+    ]
   },
   {
     id: 1,
@@ -175,9 +182,16 @@ export const chats = [
       {
         from: 'them',
         name: 'Малика',
-        text: 'привет! 🤣',
+        text: 'привет! 🤣\nсейчас на пляже hehe',
         time: 'только что',
-        replyTo: 'Мило, у нас похожие вкусы!'
+        replyTo: 'Мило, у нас похожие вкусы!',
+        image: PHOTOS.palms
+      },
+      {
+        from: 'them',
+        name: 'Малика',
+        time: 'только что',
+        audio: { duration: '0:10' }
       }
     ]
   },

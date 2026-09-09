@@ -1,4 +1,4 @@
-import { groups, events } from '../data.js';
+import { groups, events, people, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { navigate } from '../router.js';
 
@@ -84,10 +84,98 @@ export function groupScreen(id) {
       <p class="group-about">${esc(group.about)}</p>
       <span class="group-city"><i class="ti ti-map-pin"></i>${esc(group.city)}</span>
       <p class="group-members">${group.members.toLocaleString('ru-RU')} участниц</p>
-      <button class="group-join" data-action="${group.joined ? 'groups' : 'join-group'}" data-id="${group.id}">
+      <button class="group-join" data-action="${group.joined ? 'group-chat' : 'join-group'}" data-id="${group.id}">
         ${group.joined ? 'Открыть чат' : 'Вступить в группу'}
       </button>
     </article>`;
+}
+
+export function groupChatScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  const arrivals = group.arrivals || [];
+  const question = group.joinQuestion || 'Расскажите немного о себе';
+  let welcome = true;
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="group-chat-page">
+        <header class="gchat-top">
+          <button class="gchat-back" data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <img class="gchat-avatar" src="${esc(group.photo)}" alt="">
+          <div class="gchat-peer">
+            <h1>Чат группы <i class="ti ti-chevron-down"></i></h1>
+            <p><i class="online"></i> ${group.online || 3} онлайн</p>
+          </div>
+          <button data-action="group" data-id="${group.id}" aria-label="Участницы"><i class="ti ti-users"></i></button>
+        </header>
+
+        ${welcome ? `
+          <div class="gchat-newbar">
+            <span>1 новое сообщение</span>
+            <button type="button" id="closeNew" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          </div>` : ''}
+
+        <main class="gchat-thread">
+          ${arrivals.map(item => `
+            <article class="gchat-join">
+              <img src="${esc(item.photo)}" alt="">
+              <div>
+                <div class="gchat-join-head">
+                  <b>${esc(item.name)}</b>
+                  <span class="just-joined"><i class="ti ti-hand-stop"></i> Только вступила</span>
+                  <time>${esc(item.time)}</time>
+                </div>
+                <p class="gchat-join-body">
+                  Присоединилась и ответила:<br>
+                  <em>В: ${esc(question)}</em><br>
+                  <em>О: ${esc(item.answer)}</em>
+                </p>
+              </div>
+            </article>`).join('')}
+
+          <article class="gchat-msg">
+            <img src="${esc(people[0].photo)}" alt="">
+            <div>
+              <div class="gchat-join-head">
+                <b>${esc(people[0].name)}</b>
+                <time>сегодня</time>
+              </div>
+              <p>Кто на кофе в субботу в Мирабаде?</p>
+              <button class="gchat-thread-link" type="button">1 ответ · Смотреть тред <i class="ti ti-chevron-right"></i></button>
+            </div>
+          </article>
+        </main>
+
+        ${welcome ? `
+          <div class="gchat-welcome">
+            <span>👋</span>
+            <p>Привет! Добро пожаловать в «${esc(group.title)}» 🌟 Напишите первое сообщение</p>
+            <button type="button" id="closeWelcome" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          </div>` : ''}
+
+        <div class="message-bar">
+          <button class="msg-add" aria-label="Вложение"><i class="ti ti-plus"></i></button>
+          <label class="msg-field">
+            <input placeholder="Написать сообщение">
+            <i class="ti ti-mood-smile"></i>
+          </label>
+          <button aria-label="GIF">GIF</button>
+          <button aria-label="Фото"><i class="ti ti-photo"></i></button>
+          <button aria-label="Голос"><i class="ti ti-microphone"></i></button>
+        </div>
+      </div>`;
+
+    view.querySelector('#closeWelcome')?.addEventListener('click', () => {
+      welcome = false;
+      render();
+    });
+    view.querySelector('#closeNew')?.addEventListener('click', () => {
+      view.querySelector('.gchat-newbar')?.remove();
+    });
+  };
+
+  render();
 }
 
 export function createGroupScreen() {
@@ -96,6 +184,8 @@ export function createGroupScreen() {
   let about = '';
   let city = '';
   let isPublic = true;
+  let cover = null;
+  let tag = '';
 
   const render = () => {
     const canCreate = name.trim().length > 1;
@@ -104,13 +194,12 @@ export function createGroupScreen() {
         <header class="modal-head">
           <button data-action="groups" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <h1>Создать группу</h1>
-          <button class="head-action ${canCreate ? 'on' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>Создать</button>
+          <button class="head-action ${canCreate ? 'on coral' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>Создать</button>
         </header>
 
-        <div class="create-cover">
-          <i class="ti ti-camera"></i>
-          <span>ФОТО</span>
-          <button type="button" class="cover-edit" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+        <div class="create-cover ${cover ? 'has-photo' : ''}">
+          ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ФОТО</span>`}
+          <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
         </div>
 
         <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}">
@@ -119,7 +208,7 @@ export function createGroupScreen() {
 
         <div class="create-chips">
           <button type="button" id="setCity"><i class="ti ti-map-pin"></i>${city ? esc(city) : 'Добавить локацию'}</button>
-          <button type="button"><i class="ti ti-tag"></i>Теги</button>
+          <button type="button" id="setTag"><i class="ti ti-tag"></i>${tag ? esc(tag) : 'Теги'}</button>
         </div>
 
         <h3 class="settings-label">Параметры</h3>
@@ -144,6 +233,7 @@ export function createGroupScreen() {
       const ready = name.trim().length > 1;
       btn.disabled = !ready;
       btn.classList.toggle('on', ready);
+      btn.classList.toggle('coral', ready);
     };
     view.querySelector('#groupAboutToggle').onclick = () => {
       view.querySelector('#groupAbout').classList.add('show');
@@ -155,8 +245,16 @@ export function createGroupScreen() {
     view.querySelector('#groupPublic').onchange = event => {
       isPublic = event.target.checked;
     };
+    view.querySelector('#setCover').onclick = () => {
+      cover = PHOTOS.palms;
+      render();
+    };
     view.querySelector('#setCity').onclick = () => {
       city = !city ? 'Ташкент' : city === 'Ташкент' ? 'Везде' : '';
+      render();
+    };
+    view.querySelector('#setTag').onclick = () => {
+      tag = tag ? '' : 'кофе';
       render();
     };
     view.querySelector('#createGroupBtn').onclick = () => {
@@ -210,7 +308,7 @@ export function joinGroupScreen(id) {
         return;
       }
       group.joined = true;
-      navigate('group', group.id);
+      navigate('group-chat', group.id);
     };
   };
 

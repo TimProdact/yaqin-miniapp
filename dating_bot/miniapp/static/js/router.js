@@ -11,6 +11,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'new-dm',
   'create-group',
   'join-group',
+  'group-chat',
   'blocked',
   'dark-mode',
   'notifications',
@@ -21,6 +22,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'group-notifications',
   'edit',
   'prompts',
+  'prompt-picker',
   'camera-roll'
 ]);
 const SHEET_ROUTES = new Set(['person', 'group', 'event']);

@@ -151,8 +151,8 @@ export function chatScreen(id) {
   const ui = getChatUi(chatId);
 
   const renderMessage = (message, index) => `
-    <button class="chat-bubble" type="button" data-action="message-menu" data-id="${chat.personId || 0}" data-msg="${index}" data-chat="${chatId}">
-      ${avatar(chat.photo, chat.team)}
+    <button class="chat-bubble ${message.from === 'me' ? 'mine' : ''}" type="button" data-action="message-menu" data-id="${chat.personId || 0}" data-msg="${index}" data-chat="${chatId}">
+      ${message.from === 'me' ? '' : avatar(chat.photo, chat.team)}
       <div class="bubble-body">
         <div class="bubble-head">
           <b class="${message.link ? 'accent' : ''}">${esc(message.name)}</b>
@@ -166,6 +166,15 @@ export function chatScreen(id) {
           </div>` : ''}
         ${message.text ? `<p>${message.text.split('\n').map(line => esc(line)).join('<br>')}</p>` : ''}
         ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
+        ${message.audio ? `
+          <div class="audio-bubble">
+            <i class="ti ti-player-play-filled"></i>
+            <div>
+              <span class="audio-track"></span>
+              <small>Аудиосообщение</small>
+            </div>
+            <time>${esc(message.audio.duration || '0:10')}</time>
+          </div>` : ''}
         ${message.link ? `
           <div class="link-card">
             <img src="${esc(message.link.image)}" alt="">
@@ -183,6 +192,10 @@ export function chatScreen(id) {
       </div>
     </button>`;
 
+  const recSecs = ui.recording?.secs || 0;
+  const recLabel = `00:${String(recSecs).padStart(2, '0')}/01:00`;
+  const hasDraft = Boolean(ui.draft.trim() || ui.attachPhoto || ui.attachAudio);
+
   view.innerHTML = `
     <div class="chat-page">
       <header class="chat-top">
@@ -194,8 +207,15 @@ export function chatScreen(id) {
           <h1>${esc(chat.name)}</h1>
           <p><i></i> Не в сети</p>
         </div>
-        ${chat.personId ? `<button data-action="report-flow" data-id="${chat.personId}" aria-label="Ещё"><i class="ti ti-dots"></i></button>` : '<span></span>'}
+        ${chat.personId ? `<button id="chatMenuBtn" aria-label="Ещё"><i class="ti ti-dots"></i></button>` : '<span></span>'}
       </header>
+
+      ${ui.menuOpen ? `
+        <div class="chat-menu-pop">
+          <button type="button" data-action="person" data-id="${chat.personId}">Смотреть профиль</button>
+          <button type="button" id="removeFriend">Удалить из подруг</button>
+          <button type="button" data-action="report-flow" data-id="${chat.personId}">Пожаловаться</button>
+        </div>` : ''}
 
       <main class="chat-thread ${empty ? 'start' : ''}">
         ${!empty || true ? `
@@ -241,6 +261,28 @@ export function chatScreen(id) {
           <button type="button" id="clearAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
         </div>` : ''}
 
+      ${ui.attachAudio ? `
+        <div class="draft-audio">
+          <i class="ti ti-player-play-filled"></i>
+          <div>
+            <span class="audio-track"></span>
+            <small>Аудиосообщение</small>
+          </div>
+          <time>0:${String(ui.attachAudio.secs || 10).padStart(2, '0')}</time>
+          <button type="button" id="clearAudio" aria-label="Убрать"><i class="ti ti-x"></i></button>
+        </div>` : ''}
+
+      ${ui.recording ? `
+        <div class="record-bar">
+          <div class="record-pill ${recSecs > 0 ? 'live' : ''}">
+            <i class="rec-dot"></i>
+            <span id="recTimer">${recLabel}</span>
+            ${recSecs > 0 ? '<span class="rec-wave" aria-hidden="true"></span>' : ''}
+          </div>
+          <button class="record-stop" id="stopRecord" aria-label="Стоп">
+            ${recSecs > 0 ? '<i class="stop-sq"></i>' : '<i class="stop-dot"></i>'}
+          </button>
+        </div>` : `
       <div class="message-bar">
         <button class="msg-add ${ui.attachOpen ? 'open' : ''}" id="toggleAttach" aria-label="Вложение">
           <i class="ti ti-${ui.attachOpen ? 'x' : 'plus'}"></i>
@@ -249,28 +291,38 @@ export function chatScreen(id) {
           <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
           <i class="ti ti-mood-smile"></i>
         </label>
-        ${ui.draft.trim() || ui.attachPhoto
+        ${hasDraft
           ? `<button class="msg-send" id="sendMsg" aria-label="Отправить"><i class="ti ti-arrow-up"></i></button>`
           : `<button id="openGif" aria-label="GIF">GIF</button>
              <button id="quickPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
-             <button aria-label="Голос"><i class="ti ti-microphone"></i></button>`}
-      </div>
+             <button id="startRecord" aria-label="Голос"><i class="ti ti-microphone"></i></button>`}
+      </div>`}
     </div>`;
 
   const input = view.querySelector('#msgInput');
   input?.addEventListener('input', () => {
     ui.draft = input.value;
     setChatUi(chatId, ui);
-    const has = ui.draft.trim() || ui.attachPhoto;
-    // lightweight toggle of send vs tools without full remount would be better; remount keeps focus issue
-    // remount only when crossing empty/nonempty boundary
+    const has = ui.draft.trim() || ui.attachPhoto || ui.attachAudio;
     const sendVisible = Boolean(view.querySelector('#sendMsg'));
     if (Boolean(has) !== sendVisible) chatScreen(chatId);
+  });
+
+  view.querySelector('#chatMenuBtn')?.addEventListener('click', () => {
+    ui.menuOpen = !ui.menuOpen;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+  view.querySelector('#removeFriend')?.addEventListener('click', () => {
+    ui.menuOpen = false;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
   });
 
   view.querySelector('#toggleAttach')?.addEventListener('click', () => {
     ui.attachOpen = !ui.attachOpen;
     ui.gifOpen = false;
+    ui.menuOpen = false;
     setChatUi(chatId, ui);
     chatScreen(chatId);
   });
@@ -298,9 +350,35 @@ export function chatScreen(id) {
     setChatUi(chatId, ui);
     chatScreen(chatId);
   });
+  const beginRecording = (secs = 0) => {
+    stopRecordTick();
+    ui.recording = { secs };
+    ui.attachOpen = false;
+    ui.gifOpen = false;
+    ui.menuOpen = false;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+    startRecordTick(chatId);
+  };
+  view.querySelector('#startRecord')?.addEventListener('click', () => beginRecording(0));
+  view.querySelector('#stopRecord')?.addEventListener('click', () => {
+    stopRecordTick();
+    const secs = Math.max(ui.recording?.secs || 0, 1);
+    ui.recording = null;
+    ui.attachAudio = { secs };
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
   view.querySelectorAll('[data-attach]').forEach(button => {
     button.onclick = () => {
-      if (button.dataset.attach === 'photo' || button.dataset.attach === 'camera') ui.attachPhoto = PHOTOS.palms;
+      const kind = button.dataset.attach;
+      if (kind === 'photo' || kind === 'camera') ui.attachPhoto = PHOTOS.palms;
+      if (kind === 'audio') {
+        ui.attachOpen = false;
+        setChatUi(chatId, ui);
+        beginRecording(0);
+        return;
+      }
       ui.attachOpen = false;
       setChatUi(chatId, ui);
       chatScreen(chatId);
@@ -316,8 +394,13 @@ export function chatScreen(id) {
     setChatUi(chatId, ui);
     chatScreen(chatId);
   });
+  view.querySelector('#clearAudio')?.addEventListener('click', () => {
+    ui.attachAudio = null;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
   view.querySelector('#sendMsg')?.addEventListener('click', () => {
-    if (!ui.draft.trim() && !ui.attachPhoto) return;
+    if (!ui.draft.trim() && !ui.attachPhoto && !ui.attachAudio) return;
     chat.messages = chat.messages || [];
     chat.messages.push({
       from: 'me',
@@ -325,16 +408,20 @@ export function chatScreen(id) {
       text: ui.draft.trim(),
       time: 'сейчас',
       image: ui.attachPhoto || undefined,
+      audio: ui.attachAudio ? { duration: `0:${String(ui.attachAudio.secs).padStart(2, '0')}` } : undefined,
       replyTo: ui.reply?.text
     });
-    chat.preview = ui.draft.trim() || 'Фото';
+    chat.preview = ui.draft.trim() || (ui.attachAudio ? 'Аудиосообщение' : 'Фото');
     ui.draft = '';
     ui.attachPhoto = null;
+    ui.attachAudio = null;
     ui.reply = null;
     ui.attachOpen = false;
     setChatUi(chatId, ui);
     chatScreen(chatId);
   });
+
+  if (ui.recording) startRecordTick(chatId);
 
   if (ui.draft) {
     input?.focus();
@@ -342,10 +429,51 @@ export function chatScreen(id) {
   }
 }
 
+let recordTimer = null;
+function stopRecordTick() {
+  if (recordTimer) {
+    clearInterval(recordTimer);
+    recordTimer = null;
+  }
+}
+function startRecordTick(chatId) {
+  stopRecordTick();
+  recordTimer = setInterval(() => {
+    const ui = getChatUi(chatId);
+    if (!ui.recording) {
+      stopRecordTick();
+      return;
+    }
+    const prev = ui.recording.secs || 0;
+    const next = Math.min(60, prev + 1);
+    ui.recording = { secs: next };
+    setChatUi(chatId, ui);
+    const el = document.querySelector('#recTimer');
+    if (el) el.textContent = `00:${String(next).padStart(2, '0')}/01:00`;
+    if (prev === 0 && next === 1) chatScreen(chatId);
+    if (next >= 60) {
+      stopRecordTick();
+      ui.recording = null;
+      ui.attachAudio = { secs: 60 };
+      setChatUi(chatId, ui);
+      chatScreen(chatId);
+    }
+  }, 1000);
+}
+
 const chatUiState = new Map();
 function getChatUi(id) {
   if (!chatUiState.has(id)) {
-    chatUiState.set(id, { attachOpen: false, gifOpen: false, reply: null, draft: '', attachPhoto: null });
+    chatUiState.set(id, {
+      attachOpen: false,
+      gifOpen: false,
+      menuOpen: false,
+      reply: null,
+      draft: '',
+      attachPhoto: null,
+      attachAudio: null,
+      recording: null
+    });
   }
   return { ...chatUiState.get(id) };
 }

@@ -105,6 +105,9 @@ export function onboardingScreen() {
   if (step === 'photos') return renderPhotos(data);
   if (step === 'tags') return renderTags(data);
   if (step.startsWith('q')) return renderQuestion(data, Number(step.slice(1)) - 1);
+  if (step === 'camera-roll') return renderCameraRoll(data);
+  if (step === 'prompts') return renderPrompts(data);
+  if (step === 'prompt-picker') return renderPromptPicker(data);
   if (step === 'processing') return renderProcessing(data);
   return renderReady(data);
 }
@@ -386,10 +389,120 @@ function renderQuestion(data, index) {
   });
   view.querySelector('#qNext').onclick = () => {
     if (view.querySelector('#qNext').disabled) return;
-    go(index < 3 ? `q${index + 2}` : 'processing');
+    go(index < 3 ? `q${index + 2}` : 'camera-roll');
   };
   view.querySelector('[data-back]').onclick = () => go(index === 0 ? 'tags' : `q${index}`);
   view.querySelector('#qAnswer').focus();
+}
+
+function renderCameraRoll(data) {
+  const photo = data.photos.find(Boolean) || defaultProfile.photo;
+  view.innerHTML = `
+    <div class="camera-roll-page">
+      <button class="ob-back" type="button" data-back="q4"><i class="ti ti-chevron-left"></i></button>
+      <div class="roll-visual">
+        <div class="roll-card back"><img src="${esc(promptPhoto)}" alt=""><span class="top">Моё любимое место</span></div>
+        <div class="roll-card front"><img src="${esc(photo)}" alt=""><span>Прошлые выходные</span></div>
+      </div>
+      <h1>Поделитесь фото<br>из галереи</h1>
+      <p>Несколько кадров, которые передают ваше настроение — селфи не нужны.</p>
+      <button class="ob-next on" id="rollNext">Далее</button>
+    </div>`;
+  view.querySelector('#rollNext').onclick = () => go('prompts');
+  view.querySelector('[data-back]').onclick = () => go('q4');
+}
+
+function renderPrompts(data) {
+  const filled = Boolean(data.promptPhoto);
+  const prompts = [
+    { id: 'hyper', title: 'Недавняя гиперфиксация' },
+    { id: 'food', title: 'Недавние фото еды<br>из вашей галереи' },
+    { id: 'place', title: 'Любимое место в городе' }
+  ];
+  view.innerHTML = `
+    <div class="prompts-page">
+      <button class="ob-back" type="button" data-back="camera-roll"><i class="ti ti-chevron-left"></i></button>
+      ${prompts.map((item, index) => {
+        if (filled && index === 0) {
+          return `
+            <article class="prompt-filled-card">
+              <img src="${esc(data.promptPhoto)}" alt="">
+              <button class="prompt-edit" type="button" data-pick="${item.id}" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+            </article>`;
+        }
+        return `
+          <article class="prompt-life-card">
+            <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+            <h2>${item.title}</h2>
+            <button class="prompt-add" type="button" data-pick="${item.id}"><i class="ti ti-camera"></i>Добавить фото</button>
+          </article>`;
+      }).join('')}
+      <button class="ob-next on" id="promptsNext">Далее</button>
+    </div>`;
+  view.querySelectorAll('.prompt-dismiss').forEach(button => {
+    button.onclick = () => button.closest('.prompt-life-card')?.remove();
+  });
+  view.querySelectorAll('[data-pick]').forEach(button => {
+    button.onclick = () => {
+      saveDraft({ ...data, promptPick: button.dataset.pick });
+      go('prompt-picker');
+    };
+  });
+  view.querySelector('#promptsNext').onclick = () => go('processing');
+  view.querySelector('[data-back]').onclick = () => go('camera-roll');
+}
+
+function renderPromptPicker(data) {
+  const titles = {
+    hyper: 'Недавняя гиперфиксация',
+    food: 'Недавние фото еды из вашей галереи',
+    place: 'Любимое место в городе',
+    concert: 'Мой последний концерт'
+  };
+  const title = titles[data.promptPick] || titles.food;
+  const slots = data.promptSlots || [null, null, null, null, null, null];
+  view.innerHTML = `
+    <div class="prompt-picker-page">
+      <header class="picker-head">
+        <button type="button" data-back="prompts"><i class="ti ti-x"></i></button>
+      </header>
+      <div class="prompt-title-pill">
+        <span>${esc(title)}</span>
+        <i class="ti ti-pencil"></i>
+      </div>
+      <div class="prompt-pick-grid">
+        ${slots.map((photo, index) => photo
+          ? `<button type="button" class="pick-slot filled" data-clear="${index}">
+              <img src="${esc(photo)}" alt="">
+              ${index === 0 ? '<span class="pick-main">Главное</span>' : ''}
+              <i class="ti ti-x clear"></i>
+            </button>`
+          : `<button type="button" class="pick-slot empty" data-add="${index}"><i class="ti ti-plus"></i></button>`
+        ).join('')}
+      </div>
+      <button class="photos-save" id="pickerSave">Сохранить</button>
+    </div>`;
+
+  view.querySelectorAll('[data-add]').forEach(button => {
+    button.onclick = () => {
+      const index = Number(button.dataset.add);
+      const next = [...slots];
+      next[index] = promptPhoto;
+      saveDraft({ ...data, promptSlots: next, promptPhoto: next.find(Boolean) || null });
+      go('prompt-picker');
+    };
+  });
+  view.querySelectorAll('[data-clear]').forEach(button => {
+    button.onclick = () => {
+      const index = Number(button.dataset.clear);
+      const next = [...slots];
+      next[index] = null;
+      saveDraft({ ...data, promptSlots: next, promptPhoto: next.find(Boolean) || null });
+      go('prompt-picker');
+    };
+  });
+  view.querySelector('#pickerSave').onclick = () => go('prompts');
+  view.querySelector('[data-back]').onclick = () => go('prompts');
 }
 
 function renderProcessing(data) {
@@ -426,7 +539,7 @@ function renderReady(data) {
       <button class="ob-next on" id="enterApp">Далее</button>
     </div>`;
   view.querySelector('#enterApp').onclick = () => navigate('people');
-  view.querySelector('[data-back]').onclick = () => go('q4');
+  view.querySelector('[data-back]').onclick = () => go('prompts');
 }
 
 export function startOnboardingFlow() {

@@ -386,6 +386,135 @@ body[data-route='camera-roll'] .view { padding: 0 !important; background: #fff; 
   gap: 8px;
 }
 
+.prompt-filled-card {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  aspect-ratio: 3 / 4;
+  background: #eee;
+}
+.prompt-filled-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.prompt-edit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #555;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}
+
+body[data-route='prompt-picker'] .nav { display: none; }
+body[data-route='prompt-picker'] .view { padding: 0 !important; background: #f7f7f8; }
+
+.prompt-picker-page {
+  min-height: 100%;
+  background: #f7f7f8;
+  padding: 12px 16px 110px;
+}
+.prompt-picker-page .photos-save {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
+}
+.picker-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.picker-head button {
+  border: 0;
+  background: none;
+  font-size: 24px;
+  color: #171719;
+}
+.prompt-title-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e5e5ea;
+  border-radius: 999px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.prompt-title-pill span {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.prompt-title-pill i { color: #8e8e93; }
+.prompt-pick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.pick-slot {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 20px;
+  border: 1.5px solid #d8d8de;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 0;
+}
+.pick-slot.empty i { font-size: 28px; color: #c7c7cc; }
+.pick-slot.filled img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pick-main {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #fff292;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pick-slot .clear {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.45);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.roll-card span.top {
+  position: absolute;
+  top: 18px;
+  right: 8px;
+  margin-top: 0;
+  z-index: 2;
+}
+.roll-card.back { position: absolute; }
+
 .camera-roll-page {
   min-height: 100%;
   background: #fff;

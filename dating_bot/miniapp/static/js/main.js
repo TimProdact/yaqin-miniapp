@@ -17,7 +17,8 @@ import {
   eventsScreen,
   eventScreen,
   createGroupScreen,
-  joinGroupScreen
+  joinGroupScreen,
+  groupChatScreen
 } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
@@ -28,6 +29,7 @@ import {
   editPhotosScreen,
   friendsScreen,
   promptsScreen,
+  promptPickerScreen,
   cameraRollScreen,
   basicInfoScreen,
   blockedScreen,
@@ -65,6 +67,7 @@ registerScreens({
   'new-dm': newDmScreen,
   'create-group': createGroupScreen,
   'join-group': joinGroupScreen,
+  'group-chat': groupChatScreen,
   activity: activityScreen,
   me: meScreen,
   settings: settingsScreen,
@@ -79,6 +82,7 @@ registerScreens({
   edit: editScreen,
   friends: friendsScreen,
   prompts: promptsScreen,
+  'prompt-picker': promptPickerScreen,
   'camera-roll': cameraRollScreen,
   basic: basicInfoScreen,
   onboarding: onboardingScreen,
