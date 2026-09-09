@@ -2221,3 +2221,12 @@ body[data-route='create-event'] .view { padding: 0 !important; background: #fff;
   font-weight: 500;
   margin-top: 8px;
 }
+
+.gchat-image {
+  width: 100%;
+  max-width: 260px;
+  border-radius: 16px;
+  margin-top: 8px;
+  display: block;
+  object-fit: cover;
+}

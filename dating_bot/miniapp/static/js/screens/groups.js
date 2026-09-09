@@ -172,6 +172,21 @@ export function groupChatScreen(id) {
               <button class="gchat-thread-link" type="button" data-action="group-thread" data-id="${group.id}">1 ответ · Смотреть тред <i class="ti ti-chevron-right"></i></button>
             </div>
           </article>
+          <article class="gchat-msg">
+            <img src="${esc(people[1].photo)}" alt="">
+            <div>
+              <div class="gchat-join-head">
+                <b>${esc(people[1].name)}</b>
+                <time>5 мин</time>
+              </div>
+              <p>Вот место у Moon — там тихо</p>
+              <img class="gchat-image" src="${esc(PHOTOS.coffee)}" alt="">
+              <div class="bubble-reactions">
+                <span>❤️ 2</span>
+                <i class="ti ti-mood-plus"></i>
+              </div>
+            </div>
+          </article>
         </main>
 
         ${welcome ? `
