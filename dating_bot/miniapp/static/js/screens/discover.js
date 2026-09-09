@@ -1,19 +1,35 @@
-import { people } from '../data.js';
-import { getState } from '../state.js';
-import { view, esc, setTitle, setBackTitle, chipList } from '../dom.js';
+import { view, esc, setTitle, setBackTitle, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
+import { isCurrentRender } from '../router.js';
+import { loadPeople } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
 
+let lastShown = [];
+
 function findPerson(id) {
-  return people.find(person => person.id === Number(id)) || people[0];
+  return lastShown.find(person => person.id === Number(id)) || lastShown[0];
 }
 
-export function peopleScreen() {
-  const state = getState();
-  const hidden = [...state.blocked, ...state.skipped];
-  const person = people.find(candidate => !hidden.includes(candidate.id)) || people[0];
+export async function peopleScreen(_id, token) {
+  setTitle('Ташкент');
+  showLoading('Ищем людей рядом...');
 
-  setTitle('Los Angeles, CA');
+  let candidates;
+  try {
+    candidates = await loadPeople();
+  } catch {
+    if (isCurrentRender(token)) showError('Не удалось загрузить анкеты.');
+    return;
+  }
+  if (!isCurrentRender(token)) return;
+
+  lastShown = candidates;
+  if (!candidates.length) {
+    showPlaceholder('✿', 'Пока никого рядом', 'Новые анкеты появятся после проверки модератором.');
+    return;
+  }
+
+  const person = candidates[0];
   view.innerHTML = `
     <div class="swipe-stage">
       <div class="next-edge"></div>
@@ -23,7 +39,7 @@ export function peopleScreen() {
         <div class="caption">
           <h2>${esc(person.name)}</h2>
           <p>${person.age} • ${esc(person.city)}</p>
-          <span class="say-hi">👋 Says hi!</span>
+          <span class="say-hi">👋 Передаёт привет!</span>
           <p>${esc(person.bio)}</p>
           <div class="chips">${person.tags.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
         </div>
@@ -38,6 +54,8 @@ export function peopleScreen() {
 
 export function personScreen(id) {
   const person = findPerson(id);
+  if (!person) return showPlaceholder('✿', 'Анкета недоступна');
+
   setBackTitle(person.name);
   view.innerHTML = `
     <div class="full-person">
@@ -48,31 +66,33 @@ export function personScreen(id) {
         <p>${esc(person.bio)}</p>
         <div class="big-chips">${chipList(person.tags)}</div>
       </div>
-      <button class="button" data-action="like" data-id="${person.id}">Send a hi</button>
+      <button class="button" data-action="like" data-id="${person.id}">Передать привет</button>
     </div>`;
 }
 
 export function filtersScreen() {
-  setBackTitle('Filters');
+  setBackTitle('Фильтры');
   view.innerHTML = `
     <div class="screen-content filter-screen">
-      <h2>Location</h2>
-      <button class="filter-select">Los Angeles, CA <i class="ti ti-chevron-down"></i></button>
-      <h2>Age range</h2>
+      <h2>Город</h2>
+      <button class="filter-select">Ташкент <i class="ti ti-chevron-down"></i></button>
+      <h2>Возраст</h2>
       <div class="range-values"><b>18</b><b>45</b></div>
       <input type="range" min="18" max="45" value="32">
-      <h2>Interests</h2>
-      <div class="big-chips">${chipList(['Coffee', 'Running', 'Yoga', 'Writing', 'Travel'])}</div>
-      <button class="button" data-action="people">Apply filters</button>
+      <h2>Интересы</h2>
+      <div class="big-chips">${chipList(['кофе', 'бег', 'йога', 'книги', 'путешествия'])}</div>
+      <button class="button" data-action="people">Применить</button>
     </div>`;
 }
 
 export function connectedScreen(id) {
   const person = findPerson(id);
+  if (!person) return showPlaceholder('✿', 'Анкета недоступна');
+
   view.innerHTML = `
     <div class="connected-page">
       <button class="connected-back" data-action="people">←</button>
-      <h1>You're connected<br>with ${esc(person.name.split(' ')[0])}</h1>
+      <h1>Вы познакомились<br>с ${esc(person.name.split(' ')[0])}</h1>
       <div class="connected-photo" data-action="chat" data-id="0">
         <img src="${esc(person.photo)}">
         <div class="connected-wave">👋</div>

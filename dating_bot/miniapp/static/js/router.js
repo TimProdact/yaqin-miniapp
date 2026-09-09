@@ -8,6 +8,7 @@ const TAB_ROUTES = new Set(['people', 'groups', 'chats', 'activity', 'me']);
 let currentRoute = 'people';
 let selectedId = null;
 let history = [];
+let renderToken = 0;
 
 export function registerScreens(definitions) {
   Object.entries(definitions).forEach(([route, screen]) => screens.set(route, screen));
@@ -41,7 +42,12 @@ export function render() {
   document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
   syncNav();
   const screen = screens.get(currentRoute);
-  if (screen) screen(selectedId);
+  if (screen) screen(selectedId, ++renderToken);
+}
+
+/** Async screens use this to drop results that arrived after the user moved on. */
+export function isCurrentRender(token) {
+  return token === renderToken;
 }
 
 function syncNav() {

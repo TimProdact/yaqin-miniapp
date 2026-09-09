@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import mimetypes
 import os
 import sqlite3
 import time
@@ -10,9 +11,10 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import parse_qsl
 
+import httpx
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -62,7 +64,24 @@ def telegram_user(init_data: Optional[str]) -> int:
 
 
 def profile_json(row):
-    return dict(row) if row else None
+    if not row:
+        return None
+    profile = dict(row)
+    profile["photo_url"] = f"/api/photo/{profile['photo_id']}" if profile.get("photo_id") else None
+    return profile
+
+
+def verification_stage(connection, user_id: int) -> str:
+    """Where the user is in the manual check: no request yet, video pending, or waiting for a moderator."""
+    row = connection.execute(
+        "SELECT status,photo_id FROM verification_requests WHERE user_id=? ORDER BY id DESC LIMIT 1",
+        (user_id,),
+    ).fetchone()
+    if not row:
+        return "none"
+    if row["status"] != "pending":
+        return "reviewed"
+    return "awaiting_video" if row["photo_id"] == "pending" else "in_review"
 
 
 @app.get("/api/me")
@@ -71,7 +90,13 @@ def me(x_telegram_init_data: Optional[str] = Header(default=None)):
     with db() as connection:
         row = connection.execute("SELECT user_id,name,age,city,about,photo_id FROM profiles WHERE user_id=?", (user_id,)).fetchone()
         status = connection.execute("SELECT verification_status FROM users WHERE user_id=?", (user_id,)).fetchone()
-    return {"user_id": user_id, "verification_status": status[0] if status else "pending", "profile": profile_json(row)}
+        stage = verification_stage(connection, user_id)
+    return {
+        "user_id": user_id,
+        "verification_status": status[0] if status else "pending",
+        "verification_stage": stage,
+        "profile": profile_json(row),
+    }
 
 
 @app.put("/api/me")
@@ -105,7 +130,7 @@ def discover(x_telegram_init_data: Optional[str] = Header(default=None)):
             """,
             (user_id, user_id, user_id, user_id),
         ).fetchall()
-    return {"items": [dict(row) for row in rows]}
+    return {"items": [profile_json(row) for row in rows]}
 
 
 @app.post("/api/like/{target_id}")
@@ -134,7 +159,7 @@ def matches(x_telegram_init_data: Optional[str] = Header(default=None)):
             """,
             (user_id,),
         ).fetchall()
-    return {"items": [dict(row) for row in rows]}
+    return {"items": [profile_json(row) for row in rows]}
 
 
 @app.post("/api/block/{target_id}")
@@ -154,6 +179,27 @@ def report(target_id: int, x_telegram_init_data: Optional[str] = Header(default=
         connection.execute("INSERT OR IGNORE INTO blocks(user_id,blocked_user) VALUES(?,?)", (user_id, target_id))
         connection.commit()
     return {"ok": True}
+
+
+@app.get("/api/photo/{file_id}")
+async def photo(file_id: str):
+    if not BOT_TOKEN:
+        raise HTTPException(404, "Photo storage unavailable")
+    with db() as connection:
+        known = connection.execute("SELECT 1 FROM profiles WHERE photo_id=?", (file_id,)).fetchone()
+    if not known:
+        raise HTTPException(404, "Unknown photo")
+    async with httpx.AsyncClient(timeout=15) as client:
+        info = await client.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getFile", params={"file_id": file_id})
+        payload = info.json()
+        if not payload.get("ok"):
+            raise HTTPException(404, "Photo not found")
+        file_path = payload["result"]["file_path"]
+        download = await client.get(f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}")
+    if download.status_code != 200:
+        raise HTTPException(404, "Photo not found")
+    media_type = mimetypes.guess_type(file_path)[0] or "image/jpeg"
+    return Response(download.content, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/")

@@ -2,12 +2,12 @@ import { groups, events } from '../data.js';
 import { view, esc, setTitle, setBackTitle } from '../dom.js';
 
 export function groupsScreen() {
-  setTitle('Groups');
+  setTitle('Группы');
   view.innerHTML = `
     <div class="screen-content">
       <div class="section-head">
-        <h2>Find your people</h2>
-        <button data-action="filters">Filters</button>
+        <h2>Найдите своих</h2>
+        <button data-action="filters">Фильтры</button>
       </div>
       <div class="group-grid">
         ${groups.map((group, index) => `
@@ -15,7 +15,7 @@ export function groupsScreen() {
             <img src="${esc(group.photo)}">
             <b>${esc(group.title)}</b>
             <span>${esc(group.subtitle)}</span>
-            <button>Join</button>
+            <button>Вступить</button>
           </div>`).join('')}
       </div>
     </div>`;
@@ -29,17 +29,17 @@ export function groupScreen(id) {
       <img src="${esc(group.photo)}">
       <h1>${esc(group.title)}</h1>
       <p>${esc(group.subtitle)}</p>
-      <button class="button">Join group</button>
-      <h2>About this group</h2>
-      <p>Meet people, share interests and find new friends.</p>
+      <button class="button">Вступить в группу</button>
+      <h2>О группе</h2>
+      <p>Знакомьтесь, делитесь интересами и находите новых подруг.</p>
     </div>`;
 }
 
 export function eventsScreen() {
-  setBackTitle('My events');
+  setBackTitle('Мои события');
   view.innerHTML = `
     <div class="screen-content">
-      <h1>My Events</h1>
+      <h1>Мои события</h1>
       ${events.map(event => `
         <div class="event-row">
           <b>${esc(event.title)}</b>

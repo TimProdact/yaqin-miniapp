@@ -31,3 +31,20 @@ export function clearHeader() {
 export function chipList(items) {
   return items.map(item => `<span>${esc(item)}</span>`).join('');
 }
+
+export function showPlaceholder(icon, title, text = '') {
+  view.innerHTML = `
+    <div class="empty">
+      <div class="empty-icon">${icon}</div>
+      <h1>${esc(title)}</h1>
+      ${text ? `<p>${esc(text)}</p>` : ''}
+    </div>`;
+}
+
+export function showLoading(title = 'Загружаем...') {
+  showPlaceholder('✿', title);
+}
+
+export function showError(text = 'Проверьте соединение и попробуйте ещё раз.') {
+  showPlaceholder('!', 'Что-то пошло не так', text);
+}

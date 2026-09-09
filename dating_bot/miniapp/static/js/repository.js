@@ -1,0 +1,70 @@
+import { api, isLive } from './api.js';
+import { people as demoPeople, defaultProfile } from './data.js';
+import { getState, saveState } from './state.js';
+
+const PLACEHOLDER_PHOTO =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800">' +
+      '<rect width="600" height="800" fill="#ece7ef"/>' +
+      '<text x="300" y="420" font-size="180" text-anchor="middle" fill="#b9aec4">✿</text></svg>'
+  );
+
+function toPerson(item) {
+  return {
+    id: item.user_id,
+    name: item.name,
+    age: item.age,
+    city: item.city,
+    bio: item.about,
+    tags: [],
+    photo: item.photo_url ? api.absoluteUrl(item.photo_url) : PLACEHOLDER_PHOTO
+  };
+}
+
+export async function loadPeople() {
+  const { blocked, skipped } = getState();
+  const hidden = [...blocked, ...skipped];
+  const candidates = isLive ? (await api.discover()).items.map(toPerson) : demoPeople;
+  return candidates.filter(person => !hidden.includes(person.id));
+}
+
+export async function loadMatches() {
+  if (!isLive) return demoPeople.slice(1);
+  const { items } = await api.matches();
+  return items.map(toPerson);
+}
+
+export async function loadProfile() {
+  if (!isLive) return { ...defaultProfile, ...(getState().profile || {}) };
+  const { profile } = await api.me();
+  if (!profile) return null;
+  return { ...toPerson(profile), tags: [], looking: [] };
+}
+
+export async function loadVerification() {
+  if (!isLive) {
+    const { verification } = getState();
+    return { status: verification?.status || 'pending', stage: verification?.stage || 'none' };
+  }
+  const { verification_status: status, verification_stage: stage } = await api.me();
+  return { status, stage };
+}
+
+export async function saveProfile({ name, age, city, about }) {
+  if (!isLive) {
+    const state = getState();
+    saveState({ ...state, profile: { ...(state.profile || {}), name, age, city, bio: about } });
+    return;
+  }
+  await api.updateMe({ name, age, city, about });
+}
+
+export function saveDemoVerification(verification) {
+  saveState({ ...getState(), verification });
+}
+
+export async function sendLike(id) {
+  if (!isLive) return { mutual: true };
+  return api.like(id);
+}

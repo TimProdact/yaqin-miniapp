@@ -6,24 +6,24 @@ function avatar(photo) {
 }
 
 export function chatsScreen() {
-  setTitle('My chats');
+  setTitle('Чаты');
   view.innerHTML = `
     <div class="screen-content">
       <div class="chats-title">
-        <h2>My chats</h2>
+        <h2>Мои чаты</h2>
         <button data-action="search"><i class="ti ti-search"></i></button>
       </div>
-      <h2>New Friends</h2>
-      <div class="new-friend"><img src="${esc(people[0].photo)}"><b>NEW</b></div>
+      <h2>Новые знакомства</h2>
+      <div class="new-friend"><img src="${esc(people[0].photo)}"><b>НОВОЕ</b></div>
       <div class="chat-tabs">
-        <button class="active">DMs <b>2</b></button>
-        <button>Threads</button>
-        <button>Events</button>
+        <button class="active">Личные <b>2</b></button>
+        <button>Группы</button>
+        <button>События</button>
       </div>
       ${chats.map((chat, index) => `
         <div class="chat-row" data-action="chat" data-id="${index}">
           ${avatar(chat.photo)}
-          <div><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)} · 1d</span></div>
+          <div><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)} · 1 д</span></div>
           <i></i>
         </div>`).join('')}
       <button class="compose">✈</button>
@@ -36,12 +36,12 @@ export function searchChatsScreen(query = '') {
     !term || chat.name.toLowerCase().includes(term) || chat.preview.toLowerCase().includes(term)
   );
 
-  setBackTitle('Search chats');
+  setBackTitle('Поиск по чатам');
   view.innerHTML = `
     <div class="search-page">
       <div class="search-box">
         <i class="ti ti-search"></i>
-        <input id="chatSearch" placeholder="Search conversations..." value="${esc(query)}">
+        <input id="chatSearch" placeholder="Найти переписку..." value="${esc(query)}">
         <button id="clearSearch">×</button>
       </div>
       <div class="search-results">
@@ -50,9 +50,9 @@ export function searchChatsScreen(query = '') {
             <div class="chat-row">
               ${avatar(chat.photo)}
               <div><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)}</span></div>
-              <time>1d</time>
+              <time>1 д</time>
             </div>`).join('')
-          : '<div class="search-empty"><div>♟</div><h2>Search chats</h2></div>'}
+          : '<div class="search-empty"><div>♟</div><h2>Поиск по чатам</h2></div>'}
       </div>
     </div>`;
 
@@ -68,20 +68,20 @@ export function chatScreen(id) {
     <div class="chat-page">
       <header>
         <button data-action="chats">←</button>
-        <div><h1>${esc(chat.name)}</h1><p>● Offline</p></div>
+        <div><h1>${esc(chat.name)}</h1><p>● Не в сети</p></div>
         <button>•••</button>
       </header>
       <main>
         <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}">
-        <p>This is the beginning of your chat history<br>with ${esc(chat.name)}</p>
-        <div class="chat-tags"><span>Photography</span><span>Coffee</span></div>
+        <p>Это начало вашей переписки<br>с ${esc(chat.name)}</p>
+        <div class="chat-tags"><span>фото</span><span>кофе</span></div>
       </main>
-      <div class="message-bar">＋ <span>Send a message</span> ☺ GIF ▣ 🎙</div>
+      <div class="message-bar">＋ <span>Написать сообщение</span> ☺ GIF ▣ 🎙</div>
     </div>`;
 }
 
 export function activityScreen() {
-  setTitle('Activity');
+  setTitle('Активность');
   view.innerHTML = `
     <div class="screen-content activity-list">
       <div class="activity-item">

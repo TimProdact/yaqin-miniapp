@@ -47,6 +47,8 @@ WEBAPP_URL=https://your-domain.example
 
 Пользователь создаёт профиль и запускает `/verify`. Бот выдаёт одноразовый код, принимает видеосообщение-кружок с произнесённым кодом и жестами, затем отправляет заявку модераторам.
 
+Из Mini App проверку можно начать на экране «Проверка анкеты» — кнопка открывает бота по ссылке `https://t.me/<bot>?start=verify`, что равнозначно команде `/verify`. Статус заявки Mini App берёт из `/api/me`: поле `verification_status` (`pending`, `approved`, `rejected`) и `verification_stage` (`none`, `awaiting_video`, `in_review`, `reviewed`).
+
 Узнайте свой Telegram ID командой `/myid`, добавьте его в `.env`:
 
 ```env

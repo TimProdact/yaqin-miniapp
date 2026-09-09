@@ -1,9 +1,11 @@
 import { registerScreens, navigate, goBack, render } from './router.js';
-import { view, header } from './dom.js';
+import { view, header, showError } from './dom.js';
 import { decide } from './actions.js';
+import { saveProfile } from './repository.js';
 import { peopleScreen, personScreen, filtersScreen, connectedScreen } from './screens/discover.js';
 import { groupsScreen, groupScreen, eventsScreen } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, activityScreen } from './screens/chats.js';
+import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
   settingsScreen,
@@ -35,8 +37,24 @@ registerScreens({
   friends: friendsScreen,
   prompts: promptsScreen,
   basic: basicInfoScreen,
-  onboarding: onboardingScreen
+  onboarding: onboardingScreen,
+  verify: verifyScreen
 });
+
+async function submitProfile() {
+  const value = id => view.querySelector(`#${id}`)?.value.trim() ?? '';
+  const age = Number(view.querySelector('#profileAge')?.value);
+  if (!value('profileName') || !Number.isInteger(age) || age < 18 || age > 100) {
+    showError('Проверьте имя и возраст: возраст должен быть от 18 до 100.');
+    return;
+  }
+  try {
+    await saveProfile({ name: value('profileName'), age, city: value('profileCity'), about: value('profileAbout') });
+    navigate('me');
+  } catch {
+    showError('Анкета не сохранилась. Попробуйте ещё раз.');
+  }
+}
 
 function handleAction(target) {
   const action = target.dataset.action;
@@ -45,6 +63,11 @@ function handleAction(target) {
   if (action === 'like' || action === 'skip') return decide(action, id);
   if (action === 'back') return goBack();
   if (action === 'search') return searchChatsScreen();
+  if (action === 'save-profile') return submitProfile();
+  if (action === 'verify-start') {
+    startVerification();
+    return navigate('verify');
+  }
   return navigate(action, id === undefined ? undefined : Number(id));
 }
 

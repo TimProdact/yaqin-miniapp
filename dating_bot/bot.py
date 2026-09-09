@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 import aiosqlite
 from aiogram import Bot, Dispatcher, F, Router
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
@@ -198,10 +198,13 @@ async def send_profile(message: Message, profile: Profile) -> None:
 
 
 @router.message(CommandStart())
-async def start(message: Message, state: FSMContext) -> None:
+async def start(message: Message, state: FSMContext, command: CommandObject) -> None:
     await ensure_user(message.from_user.id)
     if not await is_adult(message.from_user.id):
         await message.answer("Бот предназначен только для пользователей 18+. Подтвердите возраст.", reply_markup=adult_keyboard())
+        return
+    if command.args == "verify":
+        await verify_start(message, state)
         return
     if await get_profile(message.from_user.id) and not await is_verified(message.from_user.id):
         await message.answer("Ваша анкета ожидает проверки. Отправьте заявку командой /verify.")
