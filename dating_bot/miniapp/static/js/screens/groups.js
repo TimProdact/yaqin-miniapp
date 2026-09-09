@@ -395,7 +395,15 @@ export function groupHubScreen(id) {
                 <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
                 <b>${esc(room.title)}</b>
               </button>`).join('')}
-          </div>`}
+          </div>
+          <h3 class="hub-label">МУЗЫКА <i class="ti ti-chevron-down"></i></h3>
+          <button class="hub-room" type="button">
+            <span class="hub-room-icon"><i class="ti ti-music"></i></span>
+            <div class="hub-room-copy">
+              <b>Топ треков недели</b>
+              <span>Кидайте самый частый трек сюда</span>
+            </div>
+          </button>`}
         <button class="compose coral" data-action="create-post" data-id="${group.id}" aria-label="Создать"><i class="ti ti-plus"></i></button>
       </div>`;
     view.querySelector('#hubMenu').onclick = () => {
