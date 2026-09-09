@@ -1,8 +1,14 @@
 import { registerScreens, navigate, goBack, render } from './router.js';
 import { view, header, showError } from './dom.js';
-import { decide } from './actions.js';
+import { decide, blockPerson, reportPerson } from './actions.js';
 import { saveProfile } from './repository.js';
-import { peopleScreen, personScreen, filtersScreen, connectedScreen } from './screens/discover.js';
+import { peopleScreen, personScreen, filtersScreen, connectedScreen, getPersonById } from './screens/discover.js';
+import {
+  showPersonMenu,
+  showBlockConfirm,
+  showReportSent,
+  closeSafetyOverlay
+} from './screens/safety.js';
 import { groupsScreen, groupScreen, eventsScreen } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, activityScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
@@ -56,14 +62,24 @@ async function submitProfile() {
   }
 }
 
-function handleAction(target) {
+async function handleAction(target) {
   const action = target.dataset.action;
   const id = target.dataset.id;
+  const person = id !== undefined ? getPersonById(id) : null;
 
   if (action === 'like' || action === 'skip') return decide(action, id);
   if (action === 'back') return goBack();
   if (action === 'search') return searchChatsScreen();
   if (action === 'save-profile') return submitProfile();
+  if (action === 'close-sheet') return closeSafetyOverlay();
+  if (action === 'person-menu' && person) return showPersonMenu(person);
+  if (action === 'block-confirm' && person) return showBlockConfirm(person);
+  if (action === 'block-user') return blockPerson(id);
+  if (action === 'report-user' && person) {
+    const sent = await reportPerson(id);
+    if (sent) showReportSent(person);
+    return;
+  }
   if (action === 'verify-start') {
     startVerification();
     return navigate('verify');
@@ -75,7 +91,7 @@ document.querySelectorAll('.nav button').forEach(button => {
   button.onclick = () => navigate(button.dataset.tab);
 });
 
-[view, header].forEach(root => {
+[view, header, document.body].forEach(root => {
   root.addEventListener('click', event => {
     const target = event.target.closest('[data-action]');
     if (target) handleAction(target);

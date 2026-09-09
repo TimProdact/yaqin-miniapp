@@ -3,11 +3,18 @@ import { isCurrentRender, navigate } from '../router.js';
 import { loadPeople } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
+import { people as demoPeople } from '../data.js';
+import { closeSafetyOverlay } from './safety.js';
 
 let lastShown = [];
 
+export function getPersonById(id) {
+  const numericId = Number(id);
+  return lastShown.find(person => person.id === numericId) || demoPeople.find(person => person.id === numericId);
+}
+
 function findPerson(id) {
-  return lastShown.find(person => person.id === Number(id)) || lastShown[0];
+  return getPersonById(id) || lastShown[0];
 }
 
 export async function peopleScreen(_id, token) {
@@ -65,6 +72,7 @@ function chipGroup(label, items) {
 }
 
 export function personScreen(id) {
+  closeSafetyOverlay();
   const person = findPerson(id);
   if (!person) return showPlaceholder('✿', 'Анкета недоступна');
 
@@ -76,7 +84,7 @@ export function personScreen(id) {
       <div class="person-hero" data-photos="${photos.length}">
         <img class="person-hero-photo" src="${esc(photos[0])}">
         <button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <button class="hero-icon more" data-action="report" data-id="${person.id}" aria-label="Ещё"><i class="ti ti-dots"></i></button>
+        <button class="hero-icon more" data-action="person-menu" data-id="${person.id}" aria-label="Ещё"><i class="ti ti-dots"></i></button>
         <div class="hero-dots">${photos.map((_, index) => `<span class="${index ? '' : 'on'}" data-index="${index}"></span>`).join('')}</div>
       </div>
 
@@ -145,6 +153,10 @@ function bindPersonHero(photos) {
   hero.onpointercancel = () => {
     startX = null;
   };
+
+  dots.forEach((dot, dotIndex) => {
+    dot.onclick = () => show(dotIndex);
+  });
 }
 
 export function filtersScreen() {
