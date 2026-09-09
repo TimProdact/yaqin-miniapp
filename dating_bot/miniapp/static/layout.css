@@ -4,17 +4,26 @@ html, body {
   background: #e6e1e7;
 }
 
+:root {
+  /* Telegram injects --tg-safe-area-* and --tg-content-safe-area-*.
+     We also set --yaqin-safe-top from JS (sum + clamp + fallback). */
+  --yaqin-safe-top: max(
+    env(safe-area-inset-top, 0px),
+    var(--tg-safe-area-inset-top, 0px)
+  );
+  --yaqin-safe-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    var(--tg-safe-area-inset-bottom, 0px)
+  );
+}
+
 .app {
   width: 100%;
   max-width: 442px;
   height: 100dvh;
   min-height: 100dvh;
-  /* Не суммируем tg-content-safe-area с фиксированными 84px — в WebView Telegram
-     это выталкивает весь UI за экран (белый пустой мини-апп). */
-  padding-top: max(
-    env(safe-area-inset-top, 0px),
-    var(--tg-safe-area-inset-top, 0px)
-  );
+  /* device notch + Telegram header controls (close / more) */
+  padding-top: var(--yaqin-safe-top);
   display: flex;
   flex-direction: column;
   margin: auto;
@@ -23,7 +32,12 @@ html, body {
 }
 
 .brand-footer { display: none; }
-.app-header { flex: 0 0 auto; }
+.app-header {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+  background: #fff;
+}
 
 .view {
   flex: 1;
@@ -31,11 +45,14 @@ html, body {
   height: auto !important;
   overflow-y: auto;
   overscroll-behavior: contain;
+  position: relative;
+  z-index: 1;
 }
 
 .nav {
   bottom: 0 !important;
-  padding-bottom: max(32px, env(safe-area-inset-bottom, 32px)) !important;
+  z-index: 30 !important;
+  padding-bottom: max(32px, var(--yaqin-safe-bottom), env(safe-area-inset-bottom, 32px)) !important;
 }
 
 body:not(.full-screen) .view { padding-bottom: 108px; }
@@ -48,6 +65,45 @@ body.full-screen .view {
   height: 100% !important;
   flex: 1;
   padding-bottom: 0;
+}
+
+/* Page headers stay above scrolling content */
+.chats-head,
+.modal-head,
+.filters-head,
+.me-top,
+.gchat-top,
+.sheet-head,
+.picker-head {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: #fff;
+}
+
+.chats-head,
+.modal-head,
+.filters-head,
+.me-top,
+.gchat-top,
+.sheet-head {
+  flex-shrink: 0;
+}
+
+.me-tabs {
+  position: sticky;
+  top: 64px;
+  z-index: 14;
+  background: #fff;
+}
+
+.gchat-top {
+  border-bottom: 1px solid #f0f0f2;
+}
+
+/* Floating CTAs must not sit under Telegram chrome at top */
+.compose {
+  bottom: calc(108px + var(--yaqin-safe-bottom, 0px)) !important;
 }
 
 @media (max-width: 442px) {

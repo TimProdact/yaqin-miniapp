@@ -5,7 +5,7 @@ body.full-screen .nav {
   display: none;
 }
 body.full-screen .view {
-  height: calc(100dvh - env(safe-area-inset-top, 0px));
+  height: calc(100dvh - var(--yaqin-safe-top, env(safe-area-inset-top, 0px)));
   padding: 0;
   overflow: hidden;
 }
