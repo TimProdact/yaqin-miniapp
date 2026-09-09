@@ -68,13 +68,20 @@ export async function loadVerification() {
   return { status, stage };
 }
 
-export async function saveProfile({ name, age, city, about }) {
+export async function saveProfile(payload) {
   if (!isLive) {
     const state = getState();
-    saveState({ ...state, profile: { ...(state.profile || {}), name, age, city, bio: about } });
+    const prev = state.profile || {};
+    const next = {
+      ...prev,
+      ...payload,
+      bio: payload.about ?? payload.bio ?? prev.bio
+    };
+    if (payload.about !== undefined) delete next.about;
+    saveState({ ...state, profile: next });
     return;
   }
-  await api.updateMe({ name, age, city, about });
+  await api.updateMe(payload);
 }
 
 export function saveDemoVerification(verification) {

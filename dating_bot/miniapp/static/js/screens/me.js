@@ -1,8 +1,8 @@
-import { defaultProfile, groups, promptPhoto, people, events } from '../data.js';
+import { defaultProfile, groups, promptPhoto, people, events, PHOTOS } from '../data.js';
 import { getState, saveState } from '../state.js';
 import { view, esc, setBackTitle, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
-import { isCurrentRender } from '../router.js';
-import { loadMatches, loadProfile, loadVerification } from '../repository.js';
+import { isCurrentRender, navigate } from '../router.js';
+import { loadMatches, loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
 
 let closeOverlay = null;
@@ -113,7 +113,11 @@ export async function meScreen(_id, token) {
       </section>
       <section class="me-section">
         <h3>Основное</h3>
-        <div class="me-box" data-action="basic"><h4>Пол</h4><div class="big-chips"><span>Женщина</span></div></div>
+        <div class="me-box" data-action="basic">
+          <h4>Пол</h4><div class="big-chips"><span>${esc(profile.gender || 'Женщина')}</span></div>
+          ${profile.work ? `<h4>Работа</h4><div class="big-chips"><span>${esc(profile.work)}</span></div>` : ''}
+          ${profile.relationship ? `<h4>Отношения</h4><div class="big-chips"><span>${esc(profile.relationship)}</span></div>` : ''}
+        </div>
       </section>
     </div>`;
 }
@@ -285,35 +289,242 @@ export async function editScreen(_id, token) {
   }
   if (!isCurrentRender(token)) return;
 
-  view.innerHTML = `
-    <div class="edit-profile-page">
-      <div class="edit-hero">
-        <img src="${esc(profile.photo)}" alt="">
-        <button class="edit-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <button class="edit-done" data-action="save-profile">Готово</button>
-        <div class="me-dots"><span class="on"></span><span></span></div>
-        <button class="edit-photos-fab" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
-      </div>
-      <section class="edit-card">
-        <div class="edit-identity">
-          <input class="edit-name" id="profileName" maxlength="40" value="${esc(profile.name)}">
-          <p>
-            <input class="edit-age" id="profileAge" type="number" min="18" max="100" value="${profile.age}">
-            ·
-            <input class="edit-city" id="profileCity" maxlength="60" value="${esc(profile.city)}">
-            <i class="ti ti-pencil"></i>
-          </p>
+  const draft = {
+    name: profile.name || '',
+    age: profile.age || 25,
+    city: profile.city || '',
+    bio: profile.bio || '',
+    tags: [...(profile.tags || ['кофе', 'кино'])],
+    media: [...(profile.media || ['Sabrina Carpenter', 'Бриджертоны'])],
+    looking: [...(profile.looking || ['книжный клуб'])],
+    education: profile.education || '',
+    work: profile.work || '',
+    pronouns: profile.pronouns || '',
+    gender: profile.gender || 'Женщина',
+    sexuality: profile.sexuality || '',
+    relationship: profile.relationship || '',
+    instagram: profile.instagram || '',
+    tiktok: profile.tiktok || '',
+    website: profile.website || ''
+  };
+  let sheet = null; // tags | media | looking | relationship | gender
+  const tagPool = ['кофе', 'кино', 'йога', 'книги', 'бег', 'еда', 'фото', 'прогулки', 'музыка'];
+  const mediaPool = ['Sabrina Carpenter', 'Бриджертоны', 'подкасты', 'артхаус', 'плейлисты'];
+  const lookingPool = ['книжный клуб', 'кофе', 'прогулки', 'спорт', 'путешествия'];
+  const relationships = ['Не в отношениях', 'В отношениях', 'Помолвлена', 'Замужем', 'Всё сложно'];
+  const genders = ['Женщина', 'Небинарная', 'Предпочитаю не указывать'];
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="edit-profile-page">
+        <div class="edit-hero">
+          <img src="${esc(profile.photo || profile.photos?.[0] || promptPhoto)}" alt="">
+          <button class="edit-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <button class="edit-done" id="saveEdit">Готово</button>
+          <div class="me-dots"><span class="on"></span><span></span></div>
+          <button class="edit-photos-fab" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
         </div>
-        <textarea class="edit-motto" id="profileAbout" maxlength="120" placeholder="короткий девиз">${esc(profile.bio)}</textarea>
-        <h3 class="settings-label">О себе</h3>
-        <div class="me-box">
-          <h4>Чем увлекаюсь <i class="ti ti-pencil"></i></h4>
-          <div class="big-chips">${chipList(profile.tags || [])}</div>
-          <h4>Чего хочу <i class="ti ti-pencil"></i></h4>
-          <div class="big-chips">${chipList(profile.looking || [])}</div>
-        </div>
-      </section>
-    </div>`;
+        <section class="edit-card">
+          <div class="edit-identity">
+            <input class="edit-name" id="profileName" maxlength="40" value="${esc(draft.name)}">
+            <p>
+              <input class="edit-age" id="profileAge" type="number" min="18" max="100" value="${draft.age}">
+              ·
+              <input class="edit-city" id="profileCity" maxlength="60" value="${esc(draft.city)}">
+              <i class="ti ti-pencil"></i>
+            </p>
+          </div>
+          <textarea class="edit-motto" id="profileAbout" maxlength="120" placeholder="короткий девиз">${esc(draft.bio)}</textarea>
+
+          <h3 class="settings-label">О себе</h3>
+          <div class="me-box">
+            <button type="button" class="edit-block-head" data-sheet="tags">
+              <h4>Чем увлекаюсь</h4><i class="ti ti-pencil"></i>
+            </button>
+            <div class="big-chips">${chipList(draft.tags)}</div>
+            <button type="button" class="edit-block-head" data-sheet="media">
+              <h4>Сейчас смотрю / читаю / слушаю</h4><i class="ti ti-pencil"></i>
+            </button>
+            <div class="big-chips">${chipList(draft.media)}</div>
+            <button type="button" class="edit-block-head" data-sheet="looking">
+              <h4>Чего хочу</h4><i class="ti ti-pencil"></i>
+            </button>
+            <div class="big-chips">${chipList(draft.looking)}</div>
+          </div>
+
+          <h3 class="settings-label">Фотоответы</h3>
+          <button class="edit-prompt-card" type="button" data-action="prompts">
+            <img src="${esc(promptPhoto)}" alt="">
+            <div>
+              <b>Недавние кадры из галереи</b>
+              <span>Добавить фотоответ</span>
+            </div>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+
+          <h3 class="settings-label">Ваши группы</h3>
+          <div class="edit-groups">
+            ${groups.filter(group => group.joined !== false).slice(0, 2).map(group => `
+              <button type="button" data-action="profile-groups">
+                <img src="${esc(group.photo)}" alt="">
+                <span>${esc(group.title)}</span>
+              </button>`).join('')}
+          </div>
+
+          <h3 class="settings-label">Основное</h3>
+          <div class="edit-basic-list">
+            ${[
+              ['education', 'Образование', draft.education || 'Добавить'],
+              ['work', 'Работа', draft.work || 'Добавить'],
+              ['pronouns', 'Местоимения', draft.pronouns || 'Добавить'],
+              ['gender', 'Пол', draft.gender || 'Добавить'],
+              ['sexuality', 'Ориентация', draft.sexuality || 'Добавить'],
+              ['relationship', 'Отношения', draft.relationship || 'Добавить']
+            ].map(([key, label, value]) => `
+              <button type="button" class="edit-basic-row" data-field="${key}">
+                <span>${label}</span>
+                <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
+              </button>`).join('')}
+          </div>
+
+          <h3 class="settings-label">Ссылки</h3>
+          <div class="edit-basic-list">
+            ${[
+              ['instagram', 'Instagram', draft.instagram || 'Добавить'],
+              ['tiktok', 'TikTok', draft.tiktok || 'Добавить'],
+              ['website', 'Сайт', draft.website || 'Добавить']
+            ].map(([key, label, value]) => `
+              <button type="button" class="edit-basic-row" data-field="${key}">
+                <span>${label}</span>
+                <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
+              </button>`).join('')}
+          </div>
+        </section>
+
+        ${sheet === 'tags' || sheet === 'media' || sheet === 'looking' ? `
+          <div class="edit-sheet">
+            <header>
+              <h2>${sheet === 'tags' ? 'Увлечения' : sheet === 'media' ? 'Сейчас в медиа' : 'Чего хочу'}</h2>
+              <button type="button" id="closeSheet">Готово</button>
+            </header>
+            <div class="edit-chip-picker">
+              ${(sheet === 'tags' ? tagPool : sheet === 'media' ? mediaPool : lookingPool).map(item => {
+                const list = draft[sheet === 'looking' ? 'looking' : sheet];
+                const on = list.includes(item);
+                return `<button type="button" class="${on ? 'on' : ''}" data-chip="${esc(item)}">${esc(item)}</button>`;
+              }).join('')}
+            </div>
+          </div>` : ''}
+
+        ${sheet === 'relationship' || sheet === 'gender' ? `
+          <div class="edit-sheet">
+            <header>
+              <h2>${sheet === 'relationship' ? 'Отношения' : 'Пол'}</h2>
+              <button type="button" id="closeSheet">Сохранить</button>
+            </header>
+            <div class="edit-radio-list">
+              ${(sheet === 'relationship' ? relationships : genders).map(item => `
+                <button type="button" class="${draft[sheet] === item ? 'on' : ''}" data-pick="${esc(item)}">
+                  <span>${esc(item)}</span>
+                  ${draft[sheet] === item ? '<i class="ti ti-check"></i>' : ''}
+                </button>`).join('')}
+            </div>
+          </div>` : ''}
+      </div>`;
+
+    const syncDraft = () => {
+      draft.name = view.querySelector('#profileName')?.value || '';
+      draft.age = Number(view.querySelector('#profileAge')?.value) || draft.age;
+      draft.city = view.querySelector('#profileCity')?.value || '';
+      draft.bio = view.querySelector('#profileAbout')?.value || '';
+    };
+
+    view.querySelectorAll('[data-sheet]').forEach(button => {
+      button.onclick = () => {
+        syncDraft();
+        sheet = button.dataset.sheet;
+        render();
+      };
+    });
+    view.querySelector('#closeSheet')?.addEventListener('click', () => {
+      sheet = null;
+      render();
+    });
+    view.querySelectorAll('[data-chip]').forEach(button => {
+      button.onclick = () => {
+        const key = sheet === 'looking' ? 'looking' : sheet;
+        const value = button.dataset.chip;
+        const list = draft[key];
+        const index = list.indexOf(value);
+        if (index >= 0) list.splice(index, 1);
+        else list.push(value);
+        render();
+      };
+    });
+    view.querySelectorAll('[data-pick]').forEach(button => {
+      button.onclick = () => {
+        draft[sheet] = button.dataset.pick;
+        render();
+      };
+    });
+    view.querySelectorAll('[data-field]').forEach(button => {
+      button.onclick = () => {
+        syncDraft();
+        const key = button.dataset.field;
+        if (key === 'relationship' || key === 'gender') {
+          sheet = key;
+          render();
+          return;
+        }
+        const labels = {
+          education: 'Образование',
+          work: 'Работа',
+          pronouns: 'Местоимения',
+          sexuality: 'Ориентация',
+          instagram: 'Instagram',
+          tiktok: 'TikTok',
+          website: 'Сайт'
+        };
+        const next = window.prompt(labels[key] || key, draft[key] || '');
+        if (next !== null) {
+          draft[key] = next.trim();
+          render();
+        }
+      };
+    });
+    view.querySelector('#saveEdit').onclick = async () => {
+      syncDraft();
+      if (!draft.name.trim() || !Number.isInteger(draft.age) || draft.age < 18 || draft.age > 100) {
+        showError('Проверьте имя и возраст: возраст должен быть от 18 до 100.');
+        return;
+      }
+      try {
+        await saveProfile({
+          name: draft.name.trim(),
+          age: draft.age,
+          city: draft.city.trim(),
+          about: draft.bio.trim(),
+          tags: draft.tags,
+          looking: draft.looking,
+          media: draft.media,
+          education: draft.education,
+          work: draft.work,
+          pronouns: draft.pronouns,
+          gender: draft.gender,
+          sexuality: draft.sexuality,
+          relationship: draft.relationship,
+          instagram: draft.instagram,
+          tiktok: draft.tiktok,
+          website: draft.website
+        });
+        navigate('me');
+      } catch {
+        showError('Анкета не сохранилась. Попробуйте ещё раз.');
+      }
+    };
+  };
+
+  render();
 }
 
 export async function editPhotosScreen(_id, token) {
@@ -328,30 +539,77 @@ export async function editPhotosScreen(_id, token) {
   }
   if (!isCurrentRender(token)) return;
 
-  const photos = [...(profile.photos || [profile.photo, promptPhoto].filter(Boolean))];
+  let photos = [...(profile.photos || [profile.photo, promptPhoto].filter(Boolean))];
   while (photos.length < 6) photos.push(null);
+  const pool = [PHOTOS.city, PHOTOS.coffee, PHOTOS.books, PHOTOS.palms, PHOTOS.event, people[0].photo].filter(Boolean);
 
-  view.innerHTML = `
-    <div class="edit-photos-page">
-      <header class="filters-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        <span></span>
-        <span></span>
-      </header>
-      <h1>Ваши фото</h1>
-      <p class="photos-lead">Загрузите хотя бы два фото, чтобы другие видели, как вы выглядите.</p>
-      <div class="photos-grid">
-        ${photos.map((photo, index) => photo
-          ? `<div class="photo-slot filled">
-              <img src="${esc(photo)}" alt="">
-              <span class="photo-badge">${index === 0 ? '<i class="ti ti-check"></i> Главное' : index + 1}</span>
-              ${index ? '<button type="button" class="photo-remove" aria-label="Удалить"><i class="ti ti-x"></i></button>' : ''}
-            </div>`
-          : `<button type="button" class="photo-slot empty" aria-label="Добавить"><i class="ti ti-plus"></i></button>`
-        ).join('')}
-      </div>
-      <button class="photos-save" data-action="back">Сохранить</button>
-    </div>`;
+  const render = () => {
+    const filled = photos.filter(Boolean).length;
+    view.innerHTML = `
+      <div class="edit-photos-page">
+        <header class="filters-head">
+          <button data-action="edit" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <span></span>
+          <button class="head-action ${filled >= 2 ? 'on' : ''}" id="savePhotos" ${filled >= 2 ? '' : 'disabled'}>Сохранить</button>
+        </header>
+        <h1>Ваши фото</h1>
+        <p class="photos-lead">Загрузите хотя бы два фото, чтобы другие видели, как вы выглядите.</p>
+        <div class="photos-grid">
+          ${photos.map((photo, index) => photo
+            ? `<div class="photo-slot filled">
+                <img src="${esc(photo)}" alt="">
+                <span class="photo-badge">${index === 0 ? '<i class="ti ti-check"></i> Главное' : index + 1}</span>
+                ${index ? `<button type="button" class="photo-make-main" data-main="${index}">Главное</button>` : ''}
+                ${index ? `<button type="button" class="photo-remove" data-remove="${index}" aria-label="Удалить"><i class="ti ti-x"></i></button>` : ''}
+              </div>`
+            : `<button type="button" class="photo-slot empty" data-add="${index}" aria-label="Добавить"><i class="ti ti-plus"></i></button>`
+          ).join('')}
+        </div>
+      </div>`;
+
+    view.querySelectorAll('[data-add]').forEach(button => {
+      button.onclick = () => {
+        const index = Number(button.dataset.add);
+        const next = pool.find(src => !photos.includes(src)) || pool[index % pool.length];
+        photos[index] = next;
+        render();
+      };
+    });
+    view.querySelectorAll('[data-remove]').forEach(button => {
+      button.onclick = () => {
+        photos[Number(button.dataset.remove)] = null;
+        render();
+      };
+    });
+    view.querySelectorAll('[data-main]').forEach(button => {
+      button.onclick = () => {
+        const index = Number(button.dataset.main);
+        const [main] = photos.splice(index, 1);
+        photos.unshift(main);
+        while (photos.length < 6) photos.push(null);
+        photos = photos.slice(0, 6);
+        render();
+      };
+    });
+    view.querySelector('#savePhotos').onclick = async () => {
+      const clean = photos.filter(Boolean);
+      if (clean.length < 2) return;
+      try {
+        await saveProfile({
+          name: profile.name,
+          age: profile.age,
+          city: profile.city,
+          about: profile.bio,
+          photo: clean[0],
+          photos: clean
+        });
+        navigate('edit');
+      } catch {
+        showError('Фото не сохранились. Попробуйте ещё раз.');
+      }
+    };
+  };
+  render();
 }
 
 export async function friendsScreen(_id, token) {
@@ -631,10 +889,29 @@ export function cameraRollScreen() {
 }
 
 export function basicInfoScreen() {
-  setBackTitle('Основное');
+  clearHeader();
+  const profile = { ...defaultProfile, ...(getState().profile || {}) };
   view.innerHTML = `
-    <div class="screen-content">
-      <div class="me-box"><h4>Пол</h4><div class="big-chips"><span>Женщина</span></div></div>
+    <div class="settings-page">
+      <header class="filters-head">
+        <button data-action="me" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Основное</h1>
+        <button class="head-action on" data-action="edit">Изменить</button>
+      </header>
+      <div class="edit-basic-list padded">
+        ${[
+          ['Пол', profile.gender || 'Женщина'],
+          ['Образование', profile.education || '—'],
+          ['Работа', profile.work || '—'],
+          ['Местоимения', profile.pronouns || '—'],
+          ['Ориентация', profile.sexuality || '—'],
+          ['Отношения', profile.relationship || '—']
+        ].map(([label, value]) => `
+          <div class="edit-basic-row static">
+            <span>${label}</span>
+            <b>${esc(value)}</b>
+          </div>`).join('')}
+      </div>
     </div>`;
 }
 
