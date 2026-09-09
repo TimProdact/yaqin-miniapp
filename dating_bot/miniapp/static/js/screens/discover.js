@@ -1,9 +1,10 @@
-import { view, esc, setDiscoverHeader, setBackTitle, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
+import { view, esc, setDiscoverHeader, clearHeader, showDiscoverLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
-import { loadPeople } from '../repository.js';
+import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
 import { people as demoPeople } from '../data.js';
+import { getState } from '../state.js';
 import { closeSafetyOverlay } from './safety.js';
 
 let lastShown = [];
@@ -17,9 +18,22 @@ function findPerson(id) {
   return getPersonById(id) || lastShown[0];
 }
 
+function renderEmptyState() {
+  view.innerHTML = `
+    <div class="discover-empty">
+      <div class="empty-card">
+        <div class="empty-badge"><i class="ti ti-users"></i></div>
+        <h2>Вы посмотрели всех новых</h2>
+        <p>Посмотрите анкеты, которые пропустили в прошлый раз!</p>
+        <button class="empty-primary" data-action="show-skipped">Показать</button>
+        <button class="empty-outline" data-action="filters">Изменить фильтры</button>
+      </div>
+    </div>`;
+}
+
 export async function peopleScreen(_id, token) {
   setDiscoverHeader('Ташкент');
-  showLoading('Ищем людей рядом...');
+  showDiscoverLoading();
 
   let candidates;
   try {
@@ -32,7 +46,7 @@ export async function peopleScreen(_id, token) {
 
   lastShown = candidates;
   if (!candidates.length) {
-    showPlaceholder('✿', 'Пока никого рядом', 'Новые анкеты появятся после проверки модератором.');
+    renderEmptyState();
     return;
   }
 
@@ -159,32 +173,104 @@ function bindPersonHero(photos) {
   });
 }
 
+function distanceLabel(km) {
+  if (km <= 5) return 'Рядом';
+  if (km >= 45) return 'Далеко';
+  return 'В городе';
+}
+
 export function filtersScreen() {
-  setBackTitle('Фильтры');
+  clearHeader();
+  const { filters } = getState();
+  let ageMin = filters.ageMin;
+  let ageMax = filters.ageMax;
+  let distance = filters.distance;
+
   view.innerHTML = `
-    <div class="screen-content filter-screen">
-      <h2>Город</h2>
-      <button class="filter-select">Ташкент <i class="ti ti-chevron-down"></i></button>
-      <h2>Возраст</h2>
-      <div class="range-values"><b>18</b><b>45</b></div>
-      <input type="range" min="18" max="45" value="32">
-      <h2>Интересы</h2>
-      <div class="big-chips">${chipList(['кофе', 'бег', 'йога', 'книги', 'путешествия'])}</div>
-      <button class="button" data-action="people">Применить</button>
+    <div class="filters-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <h1>Фильтры</h1>
+        <span></span>
+      </header>
+
+      <section class="filter-block">
+        <h2>Сколько им лет?</h2>
+        <p class="filter-value">от <b id="ageMinLabel">${ageMin}</b> до <b id="ageMaxLabel">${ageMax}</b></p>
+        <div class="dual-range" id="ageRange">
+          <div class="range-track"><div class="range-fill" id="ageFill"></div></div>
+          <input type="range" id="ageMin" min="18" max="55" value="${ageMin}">
+          <input type="range" id="ageMax" min="18" max="55" value="${ageMax}">
+        </div>
+      </section>
+
+      <section class="filter-block">
+        <h2>Как далеко?</h2>
+        <p class="filter-value" id="distanceLabel">${distanceLabel(distance)}</p>
+        <div class="single-range">
+          <input type="range" id="distance" min="1" max="50" value="${distance}">
+          <div class="range-ends"><span>1 км</span><span>50+ км</span></div>
+        </div>
+      </section>
+
+      <button class="filters-save" data-action="save-filters">Сохранить</button>
     </div>`;
+
+  const minInput = view.querySelector('#ageMin');
+  const maxInput = view.querySelector('#ageMax');
+  const fill = view.querySelector('#ageFill');
+  const distInput = view.querySelector('#distance');
+
+  const syncAge = () => {
+    ageMin = Math.min(Number(minInput.value), Number(maxInput.value) - 1);
+    ageMax = Math.max(Number(maxInput.value), ageMin + 1);
+    minInput.value = ageMin;
+    maxInput.value = ageMax;
+    view.querySelector('#ageMinLabel').textContent = ageMin;
+    view.querySelector('#ageMaxLabel').textContent = ageMax;
+    const left = ((ageMin - 18) / (55 - 18)) * 100;
+    const right = ((ageMax - 18) / (55 - 18)) * 100;
+    fill.style.left = `${left}%`;
+    fill.style.width = `${right - left}%`;
+  };
+
+  const syncDistance = () => {
+    distance = Number(distInput.value);
+    view.querySelector('#distanceLabel').textContent = distanceLabel(distance);
+  };
+
+  minInput.oninput = syncAge;
+  maxInput.oninput = syncAge;
+  distInput.oninput = syncDistance;
+  syncAge();
+  syncDistance();
+
+  view.querySelector('[data-action="save-filters"]').onclick = () => {
+    saveFilters({ ageMin, ageMax, distance });
+    navigate('people');
+  };
 }
 
 export function connectedScreen(id) {
+  clearHeader();
   const person = findPerson(id);
   if (!person) return showPlaceholder('✿', 'Анкета недоступна');
 
+  const firstName = person.name.split(' ')[0];
+  const withName = firstName.replace(/а$/i, 'ой').replace(/я$/i, 'ей');
+
   view.innerHTML = `
     <div class="connected-page">
-      <button class="connected-back" data-action="people">←</button>
-      <h1>Вы познакомились<br>с ${esc(person.name.split(' ')[0])}</h1>
+      <button class="connected-back" data-action="people" aria-label="Закрыть"><i class="ti ti-refresh"></i></button>
+      <h1>Вы познакомились<br>с ${esc(withName)}</h1>
       <div class="connected-photo" data-action="chat" data-id="0">
         <img src="${esc(person.photo)}">
-        <div class="connected-wave">👋</div>
+        <div class="connected-wave"><i class="ti ti-hand-stop"></i></div>
       </div>
     </div>`;
+}
+
+export function showSkippedPeople() {
+  clearSkipped();
+  navigate('people');
 }

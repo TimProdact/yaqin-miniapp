@@ -1,17 +1,163 @@
-.verify-page{padding-bottom:32px}
-.verify-status{border-radius:20px;padding:26px 22px;text-align:center;background:#f4f2f6}
-.verify-status.verify-ok{background:#e9f7ec}
-.verify-status.verify-bad{background:#fdecef}
-.verify-icon{width:64px;height:64px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:30px;background:#fff;color:#171719}
-.verify-status h1{margin:0 0 8px;font-size:24px}
-.verify-status p{margin:0;font-size:16px;line-height:1.45;color:#5c5c63}
-.verify-page h2{margin:26px 0 12px;font-size:18px}
-.verify-steps{margin:0;padding-left:22px;display:grid;gap:12px}
-.verify-steps li{font-size:16px;line-height:1.45}
-.verify-note{margin:20px 0 24px;font-size:14px;line-height:1.45;color:var(--muted)}
-.verify-page .button{width:100%}
-.verify-row{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:16px;padding:16px 18px;background:#f4f2f6;text-align:left;font-size:16px}
-.verify-row .verify-dot{width:10px;height:10px;border-radius:50%;background:#e0a33c;flex:0 0 auto}
-.verify-row.verify-ok .verify-dot{background:#3fa96a}
-.verify-row.verify-bad .verify-dot{background:#e33b5b}
-.verify-row span:last-child{margin-left:auto;color:var(--muted)}
+/* Проверка анкеты. Структура с 03-verification, контент — Yaqin (видеокружок). */
+
+body[data-route='verify'] .app-header,
+body[data-route='verify'] .nav {
+  display: none;
+}
+body[data-route='verify'] .view {
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  background: #fff;
+}
+
+.verify-intro,
+.verify-submitted {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 18px 28px 36px;
+}
+
+.verify-close {
+  align-self: flex-start;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  color: #171719;
+}
+
+.verify-pair {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 48px 0 36px;
+}
+.verify-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+}
+.verify-logo.yaqin {
+  background: #fff292;
+  color: #171719;
+}
+.verify-logo.bot {
+  background: #fff;
+  color: #2aabee;
+  box-shadow: 0 0 0 1px #e8e8ec;
+}
+.verify-dots {
+  width: 36px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #c8c8cd 0 4px, transparent 4px 8px);
+}
+
+.verify-intro h1,
+.verify-submitted h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.verify-lead {
+  margin: 16px 0 24px;
+  max-width: 320px;
+  font-size: 17px;
+  line-height: 1.4;
+  color: #171719;
+}
+.verify-steps {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 0 18px;
+  padding-left: 22px;
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #3a3a3f;
+}
+.verify-steps li + li {
+  margin-top: 10px;
+}
+.verify-note {
+  margin: 0 0 28px;
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #8e8e93;
+}
+
+.verify-cta {
+  margin-top: auto;
+  min-width: 168px;
+  border: 0;
+  border-radius: 999px;
+  background: #171719;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 16px 40px;
+}
+
+.verify-brand {
+  margin-top: 48px;
+  font-size: 28px;
+  color: #171719;
+}
+.verify-check {
+  width: 88px;
+  height: 88px;
+  margin: 56px 0 24px;
+  border-radius: 50%;
+  background: #171719;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 44px;
+}
+.verify-submitted p {
+  margin: 12px 0 0;
+  max-width: 280px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #171719;
+}
+.verify-submitted .verify-cta {
+  margin-top: auto;
+}
+
+.verify-row {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  font-size: 16px;
+  color: #171719;
+  text-align: left;
+}
+.verify-row span:last-child {
+  margin-left: auto;
+  color: #8e8e93;
+  font-size: 14px;
+}
+.verify-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8e8e93;
+}
+.verify-ok .verify-dot { background: #34c759; }
+.verify-wait .verify-dot { background: #ff9f0a; }
+.verify-bad .verify-dot { background: #ff3b30; }

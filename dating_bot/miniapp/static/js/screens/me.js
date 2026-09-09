@@ -38,7 +38,10 @@ export async function meScreen(_id, token) {
     <div class="me-page">
       <div class="me-top">
         <h1>Профиль</h1>
-        <div><button>↗</button><button data-action="settings">⚙</button></div>
+        <div>
+          <button aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
+          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+        </div>
       </div>
       <div class="me-tabs">
         <button class="active">Анкета</button>
@@ -48,6 +51,7 @@ export async function meScreen(_id, token) {
       <div class="me-hero">
         <img src="${esc(profile.photo)}">
         <button class="edit-profile" data-action="edit">Редактировать</button>
+        <div class="me-dots"><span class="on"></span><span></span></div>
       </div>
       <section class="me-info">
         <h2>${esc(profile.name)}</h2>

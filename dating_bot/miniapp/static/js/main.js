@@ -2,7 +2,7 @@ import { registerScreens, navigate, goBack, render } from './router.js';
 import { view, header, showError } from './dom.js';
 import { decide, blockPerson, reportPerson } from './actions.js';
 import { saveProfile } from './repository.js';
-import { peopleScreen, personScreen, filtersScreen, connectedScreen, getPersonById } from './screens/discover.js';
+import { peopleScreen, personScreen, filtersScreen, connectedScreen, getPersonById, showSkippedPeople } from './screens/discover.js';
 import {
   showPersonMenu,
   showBlockConfirm,
@@ -80,9 +80,10 @@ async function handleAction(target) {
     if (sent) showReportSent(person);
     return;
   }
+  if (action === 'show-skipped') return showSkippedPeople();
   if (action === 'verify-start') {
     startVerification();
-    return navigate('verify');
+    return;
   }
   return navigate(action, id === undefined ? undefined : Number(id));
 }

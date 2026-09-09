@@ -1,6 +1,13 @@
 const STORAGE_KEY = 'yaqin-demo';
 
-const initialState = { liked: [2], skipped: [], blocked: [], profile: null, onboarded: true };
+const initialState = {
+  liked: [2],
+  skipped: [],
+  blocked: [],
+  profile: null,
+  onboarded: true,
+  filters: { ageMin: 18, ageMax: 40, distance: 50 }
+};
 
 export function getState() {
   try {

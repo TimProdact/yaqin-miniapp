@@ -27,11 +27,23 @@ function toPerson(item) {
   };
 }
 
-export async function loadPeople() {
-  const { blocked, skipped } = getState();
-  const hidden = [...blocked, ...skipped];
+export async function loadPeople({ includeSkipped = false } = {}) {
+  const { blocked, skipped, filters } = getState();
+  const hidden = includeSkipped ? [...blocked] : [...blocked, ...skipped];
   const candidates = isLive ? (await api.discover()).items.map(toPerson) : demoPeople;
-  return candidates.filter(person => !hidden.includes(person.id));
+  return candidates.filter(person => {
+    if (hidden.includes(person.id)) return false;
+    if (person.age < filters.ageMin || person.age > filters.ageMax) return false;
+    return true;
+  });
+}
+
+export function clearSkipped() {
+  saveState({ ...getState(), skipped: [] });
+}
+
+export function saveFilters(filters) {
+  saveState({ ...getState(), filters: { ...getState().filters, ...filters } });
 }
 
 export async function loadMatches() {

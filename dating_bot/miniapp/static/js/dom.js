@@ -50,6 +50,31 @@ export function showPlaceholder(icon, title, text = '') {
     </div>`;
 }
 
+export function showDiscoverLoading() {
+  view.innerHTML = `
+    <div class="swipe-stage discover-loading">
+      <div class="profile-card skeleton-card">
+        <div class="skeleton-top">
+          <span class="sk sk-name"></span>
+          <span class="sk sk-meta"></span>
+        </div>
+        <div class="skeleton-spinner"></div>
+        <div class="skeleton-bottom">
+          <span class="sk sk-line"></span>
+          <span class="sk sk-line short"></span>
+          <div class="skeleton-chips">
+            <span class="sk sk-chip"></span>
+            <span class="sk sk-chip wide"></span>
+            <span class="sk sk-chip"></span>
+            <span class="sk sk-chip mid"></span>
+            <span class="sk sk-chip"></span>
+            <span class="sk sk-chip wide"></span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
 export function showLoading(title = 'Загружаем...') {
   showPlaceholder('✿', title);
 }
