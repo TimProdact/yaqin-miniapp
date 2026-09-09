@@ -417,6 +417,7 @@ export function groupPostsScreen(id) {
             <span>2 комментария</span>
             <span class="ago">2 ч назад</span>
           </footer>
+          <button class="post-open-comments" type="button" data-action="post-comments" data-id="${group.id}">Смотреть комментарии</button>
         </article>
         <section class="posts-welcome">
           <span class="welcome-mark">✿</span>
@@ -685,6 +686,67 @@ export function groupSettingsScreen(id) {
     </div>`;
 }
 
+export function postCommentsScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let draft = '';
+  const comments = [
+    { name: people[0].name, photo: people[0].photo, text: 'Беру «отлично» и кидаю трек в тред', time: '1 ч' },
+    { name: people[2].name, photo: people[2].photo, text: 'Можно собраться на кофе под этот плейлист?', time: '40 мин' }
+  ];
+
+  const render = () => {
+    const has = draft.trim().length > 0;
+    view.innerHTML = `
+      <div class="post-comments-page">
+        <header class="modal-head">
+          <button data-action="group-posts" data-id="${group.id}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <h1>Комментарии</h1>
+          <span></span>
+        </header>
+        <article class="comment-post-preview">
+          <b>${esc(people[1].name)}</b>
+          <h2>🎶 Кофейный плейлист недели</h2>
+          <p>Делитесь треками и голосуйте за настроение</p>
+        </article>
+        <div class="comments-list">
+          ${comments.map(item => `
+            <article class="comment-row">
+              <img src="${esc(item.photo)}" alt="">
+              <div>
+                <header><b>${esc(item.name)}</b><time>${esc(item.time)}</time></header>
+                <p>${esc(item.text)}</p>
+              </div>
+            </article>`).join('')}
+        </div>
+        <div class="message-bar comment-bar">
+          <label class="msg-field">
+            <input id="commentInput" placeholder="Написать комментарий" value="${esc(draft)}">
+            <i class="ti ti-mood-smile"></i>
+          </label>
+          ${has ? `<button class="msg-send" id="sendComment" aria-label="Отправить"><i class="ti ti-arrow-up"></i></button>` : ''}
+        </div>
+      </div>`;
+    const input = view.querySelector('#commentInput');
+    input.oninput = () => {
+      draft = input.value;
+      const next = draft.trim().length > 0;
+      if (next !== has) render();
+    };
+    view.querySelector('#sendComment')?.addEventListener('click', () => {
+      if (!draft.trim()) return;
+      comments.push({ name: people[0].name, photo: people[0].photo, text: draft.trim(), time: 'сейчас' });
+      draft = '';
+      render();
+    });
+    if (draft) {
+      input.focus();
+      input.setSelectionRange(draft.length, draft.length);
+    }
+  };
+  render();
+}
+
 export function organizeRoomsScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
@@ -694,8 +756,52 @@ export function organizeRoomsScreen(id) {
     { title: 'События', icon: 'calendar-event' },
     { title: 'Рекомендации', icon: 'file-text' }
   ];
+  let editing = null;
+  let creating = false;
+  let draftName = '';
 
   const render = () => {
+    if (creating || editing !== null) {
+      const isEdit = editing !== null;
+      view.innerHTML = `
+        <div class="organize-rooms-page">
+          <header class="modal-head">
+            <button id="cancelRoom" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+            <h1>${isEdit ? 'Переименовать' : 'Новая комната'}</h1>
+            <button class="head-action on" id="saveRoom" ${draftName.trim() ? '' : 'disabled'}>Сохранить</button>
+          </header>
+          <input class="create-name" id="roomName" placeholder="Название комнаты" value="${esc(draftName)}">
+          ${isEdit ? `<button class="danger-text" type="button" id="deleteRoom">Удалить комнату</button>` : ''}
+        </div>`;
+      view.querySelector('#roomName').oninput = event => {
+        draftName = event.target.value;
+        const btn = view.querySelector('#saveRoom');
+        btn.disabled = !draftName.trim();
+        btn.classList.toggle('on', Boolean(draftName.trim()));
+      };
+      view.querySelector('#cancelRoom').onclick = () => {
+        creating = false;
+        editing = null;
+        draftName = '';
+        render();
+      };
+      view.querySelector('#saveRoom').onclick = () => {
+        if (!draftName.trim()) return;
+        if (isEdit) rooms[editing].title = draftName.trim();
+        else rooms.push({ title: draftName.trim(), icon: 'folder' });
+        creating = false;
+        editing = null;
+        draftName = '';
+        render();
+      };
+      view.querySelector('#deleteRoom')?.addEventListener('click', () => {
+        rooms.splice(editing, 1);
+        editing = null;
+        draftName = '';
+        render();
+      });
+      return;
+    }
     view.innerHTML = `
       <div class="organize-rooms-page">
         <header class="modal-head">
@@ -708,7 +814,7 @@ export function organizeRoomsScreen(id) {
           ${rooms.map((room, index) => `
             <div class="organize-row">
               <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
-              <b>${esc(room.title)}</b>
+              <button type="button" class="organize-title" data-edit="${index}">${esc(room.title)}</button>
               <div class="organize-actions">
                 <button type="button" data-up="${index}" ${index === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
                 <button type="button" data-down="${index}" ${index === rooms.length - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
@@ -733,8 +839,16 @@ export function organizeRoomsScreen(id) {
         render();
       };
     });
+    view.querySelectorAll('[data-edit]').forEach(button => {
+      button.onclick = () => {
+        editing = Number(button.dataset.edit);
+        draftName = rooms[editing].title;
+        render();
+      };
+    });
     view.querySelector('#addRoom').onclick = () => {
-      rooms.push({ title: `Комната ${rooms.length + 1}`, icon: 'folder' });
+      creating = true;
+      draftName = '';
       render();
     };
   };

@@ -19,6 +19,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'group-search',
   'group-settings',
   'organize-rooms',
+  'post-comments',
   'blocked',
   'dark-mode',
   'notifications',
