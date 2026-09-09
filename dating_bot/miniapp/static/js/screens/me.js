@@ -89,15 +89,80 @@ export async function meScreen(_id, token) {
 }
 
 export function settingsScreen() {
-  setBackTitle('Настройки');
+  clearHeader();
   view.innerHTML = `
-    <div class="settings-list">
-      <button data-action="verify">Проверка анкеты <span>›</span></button>
-      <button>Аккаунт <span>›</span></button>
-      <button>Уведомления <span>›</span></button>
-      <button>Приватность и безопасность <span>›</span></button>
-      <button>О Yaqin <span>›</span></button>
-      <button class="danger">Выйти</button>
+    <div class="settings-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <h1>Настройки</h1>
+        <span></span>
+      </header>
+
+      <section class="settings-block">
+        <label class="settings-row toggle">
+          <span class="settings-icon green"><i class="ti ti-circle-filled"></i></span>
+          <span>Показывать онлайн</span>
+          <input type="checkbox" checked>
+        </label>
+        <button class="settings-row" type="button">
+          <span class="settings-icon orange"><i class="ti ti-info-circle"></i></span>
+          <span>Мой аккаунт</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" data-action="verify" type="button">
+          <span class="settings-icon yellow"><i class="ti ti-shield-check"></i></span>
+          <span>Проверка анкеты</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </section>
+
+      <h3 class="settings-label">Параметры</h3>
+      <section class="settings-block">
+        <button class="settings-row" type="button">
+          <span class="settings-icon green"><i class="ti ti-bell"></i></span>
+          <span>Уведомления</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon pink"><i class="ti ti-lock"></i></span>
+          <span>Приватность</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon red"><i class="ti ti-eye-off"></i></span>
+          <span>Заблокированные</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon green"><i class="ti ti-info-circle"></i></span>
+          <span>Новости функций</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon blue"><i class="ti ti-bulb"></i></span>
+          <span>Тёмная тема</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </section>
+
+      <h3 class="settings-label">Помощь</h3>
+      <section class="settings-block">
+        <button class="settings-row" type="button">
+          <span class="settings-icon purple"><i class="ti ti-help-circle"></i></span>
+          <span>Справка</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon orange"><i class="ti ti-message"></i></span>
+          <span>Отправить отзыв</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon pink"><i class="ti ti-file-text"></i></span>
+          <span>Правовая информация</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </section>
     </div>`;
 }
 

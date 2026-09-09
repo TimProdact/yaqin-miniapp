@@ -1,8 +1,8 @@
 const screens = new Map();
 
-const FULL_SCREEN_ROUTES = new Set(['connected', 'chat', 'onboarding', 'filters', 'verify']);
-const SHEET_ROUTES = new Set(['person']);
-const PROFILE_OPEN_ROUTES = new Set(['me']);
+const FULL_SCREEN_ROUTES = new Set(['connected', 'chat', 'onboarding', 'filters', 'verify', 'settings']);
+const SHEET_ROUTES = new Set(['person', 'group', 'event']);
+const PROFILE_OPEN_ROUTES = new Set(['me', 'events']);
 
 const TAB_ROUTES = new Set(['people', 'groups', 'chats', 'activity', 'me']);
 

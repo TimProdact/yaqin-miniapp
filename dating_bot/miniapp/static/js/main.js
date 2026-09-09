@@ -9,7 +9,7 @@ import {
   showReportSent,
   closeSafetyOverlay
 } from './screens/safety.js';
-import { groupsScreen, groupScreen, eventsScreen } from './screens/groups.js';
+import { groupsScreen, groupScreen, eventsScreen, eventScreen } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, activityScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
@@ -34,6 +34,7 @@ registerScreens({
   groups: groupsScreen,
   group: groupScreen,
   events: eventsScreen,
+  event: eventScreen,
   chats: chatsScreen,
   chat: chatScreen,
   activity: activityScreen,
