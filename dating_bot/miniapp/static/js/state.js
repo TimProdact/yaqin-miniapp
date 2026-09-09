@@ -11,7 +11,9 @@ const initialState = {
   email: '',
   notifications: { dm: true, reactions: true },
   announcements: true,
-  shakeFeedback: true
+  shakeFeedback: true,
+  onboardingStep: 'start',
+  onboardingDraft: null
 };
 
 export function getState() {

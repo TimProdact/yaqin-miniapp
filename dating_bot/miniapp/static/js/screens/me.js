@@ -428,15 +428,6 @@ export function basicInfoScreen() {
     </div>`;
 }
 
-export function onboardingScreen() {
-  clearHeader();
-  view.innerHTML = `
-    <div class="connected-page">
-      <h1>Добро пожаловать<br>в Yaqin</h1>
-      <button class="button" data-action="people">Начать</button>
-    </div>`;
-}
-
 export function notificationsScreen() {
   clearHeader();
   const prefs = getState().notifications || { dm: true, reactions: true };

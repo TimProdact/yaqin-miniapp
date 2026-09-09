@@ -29,7 +29,6 @@ import {
   friendsScreen,
   promptsScreen,
   basicInfoScreen,
-  onboardingScreen,
   blockedScreen,
   darkModeScreen,
   notificationsScreen,
@@ -43,6 +42,7 @@ import {
   closeSettingsOverlay,
   applyStoredTheme
 } from './screens/me.js';
+import { onboardingScreen, startOnboardingFlow } from './screens/onboarding.js';
 
 const telegram = window.Telegram?.WebApp;
 telegram?.ready();
