@@ -1724,3 +1724,110 @@ body[data-route='group-settings'] .view { padding: 0 !important; background: #ff
 }
 .hub-member strong { display: block; font-size: 16px; }
 .hub-member span { color: #8e8e93; font-size: 13px; }
+
+.group-location-page, .group-theme-page {
+  min-height: 100%;
+  background: #fff;
+  padding: 0 20px 40px;
+}
+.loc-sub { text-align: center; color: #6b6b73; margin: 0 0 16px; }
+.loc-map {
+  height: 220px;
+  border-radius: 20px;
+  background: linear-gradient(160deg,#d9e8ff,#f2f6ff 55%,#e8f5e9);
+  position: relative;
+  margin-bottom: 18px;
+}
+.loc-pin {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%,-100%);
+  background: #171719;
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.loc-pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #171719;
+}
+.loc-current {
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  background: #3b6ef5;
+  color: #fff;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.loc-everywhere {
+  display: block;
+  margin: 14px auto 0;
+  border: 0;
+  background: none;
+  color: #3b6ef5;
+  font-size: 15px;
+  font-weight: 600;
+}
+.theme-grid { display: grid; gap: 10px; margin-top: 12px; }
+.theme-swatch {
+  border: 1px solid #e5e5ea;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+.theme-swatch i {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--swatch);
+  display: block;
+}
+.theme-swatch.on { border-color: #171719; }
+
+.post-poll {
+  margin: 8px 0 16px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  padding: 14px;
+}
+.post-poll header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #8e8e93;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.post-poll header button { border: 0; background: none; color: #8e8e93; }
+.post-poll h3 { margin: 0 0 12px; color: #ff5a5f; font-size: 18px; }
+.poll-option {
+  width: 100%;
+  border: 1px solid #e5e5ea;
+  background: #fff;
+  border-radius: 999px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+}
+.post-poll footer { text-align: right; color: #8e8e93; font-size: 12px; margin-top: 4px; }

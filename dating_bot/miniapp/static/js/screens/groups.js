@@ -395,9 +395,11 @@ export function createPostScreen(id) {
   const me = people[0];
   let title = '';
   let body = '';
+  let poll = null;
+  const pollOptions = ['отлично 😄', 'нормально 😐', 'грустно 😭', 'раздражена 😟'];
 
   const render = () => {
-    const canPost = title.trim().length > 0 || body.trim().length > 0;
+    const canPost = title.trim().length > 0 || body.trim().length > 0 || poll;
     view.innerHTML = `
       <div class="create-post-page">
         <header class="modal-head">
@@ -410,33 +412,48 @@ export function createPostScreen(id) {
           <b>${esc(me.name)}</b>
         </div>
         <input class="create-post-title" id="postTitle" placeholder="Добавить заголовок" value="${esc(title)}">
-        <textarea class="create-post-body" id="postBody" placeholder="О чём думаете?" rows="6">${esc(body)}</textarea>
+        <textarea class="create-post-body" id="postBody" placeholder="О чём думаете?" rows="4">${esc(body)}</textarea>
+        ${poll ? `
+          <div class="post-poll">
+            <header>
+              <span><i class="ti ti-chart-bar"></i> Анонимный опрос · до 18:00</span>
+              <button type="button" id="clearPoll" aria-label="Убрать"><i class="ti ti-x"></i></button>
+            </header>
+            <h3>${esc(poll.question)}</h3>
+            ${pollOptions.map(option => `
+              <button type="button" class="poll-option"><span>${esc(option)}</span><b>0%</b></button>`).join('')}
+            <footer>0 ответов</footer>
+          </div>` : ''}
         <div class="create-post-tools">
           <button type="button" aria-label="Фото"><i class="ti ti-photo"></i></button>
           <button type="button" aria-label="Файл"><i class="ti ti-file"></i></button>
           <button type="button" aria-label="GIF">GIF</button>
           <button type="button" aria-label="Событие"><i class="ti ti-calendar-event"></i></button>
-          <button type="button" aria-label="Опрос"><i class="ti ti-chart-bar"></i></button>
+          <button type="button" id="addPoll" aria-label="Опрос"><i class="ti ti-chart-bar"></i></button>
           <button type="button" aria-label="Эмодзи"><i class="ti ti-mood-smile"></i></button>
           <button type="button" aria-label="Формат">Aa</button>
         </div>
       </div>`;
-    view.querySelector('#postTitle').oninput = event => {
-      title = event.target.value;
+    const sync = () => {
       const btn = view.querySelector('#publishPost');
-      const ok = title.trim() || body.trim();
+      const ok = title.trim() || body.trim() || poll;
       btn.disabled = !ok;
       btn.classList.toggle('on', Boolean(ok));
     };
-    view.querySelector('#postBody').oninput = event => {
-      body = event.target.value;
-      const btn = view.querySelector('#publishPost');
-      const ok = title.trim() || body.trim();
-      btn.disabled = !ok;
-      btn.classList.toggle('on', Boolean(ok));
+    view.querySelector('#postTitle').oninput = event => { title = event.target.value; sync(); };
+    view.querySelector('#postBody').oninput = event => { body = event.target.value; sync(); };
+    view.querySelector('#addPoll').onclick = () => {
+      poll = { question: 'ваше настроение сейчас' };
+      if (!title) title = '🎶 еженедельный плейлист';
+      if (!body) body = 'делитесь треками в комментариях и голосуйте за настроение';
+      render();
     };
+    view.querySelector('#clearPoll')?.addEventListener('click', () => {
+      poll = null;
+      render();
+    });
     view.querySelector('#publishPost').onclick = () => {
-      if (!title.trim() && !body.trim()) return;
+      if (!title.trim() && !body.trim() && !poll) return;
       navigate('group-posts', group.id);
     };
   };
@@ -554,9 +571,63 @@ export function createGroupScreen() {
   let isPublic = true;
   let cover = null;
   let tag = '';
+  let theme = { name: 'Синий', color: '#3b6ef5' };
+  let locOpen = false;
+  let themeOpen = false;
+  const themes = [
+    { name: 'Синий', color: '#3b6ef5' },
+    { name: 'Коралл', color: '#ff5a5f' },
+    { name: 'Фиолетовый', color: '#8b5cf6' },
+    { name: 'Зелёный', color: '#34c759' }
+  ];
 
   const render = () => {
     const canCreate = name.trim().length > 1;
+    if (locOpen) {
+      view.innerHTML = `
+        <div class="group-location-page">
+          <header class="modal-head">
+            <span></span>
+            <h1>Локация</h1>
+            <button class="head-action on" id="locDone">Готово</button>
+          </header>
+          <p class="loc-sub">Добавьте город для группы</p>
+          <div class="loc-map">
+            <span class="loc-pin">${esc(city || 'Ташкент')}</span>
+          </div>
+          <button class="loc-current" id="locCurrent"><i class="ti ti-current-location"></i> Текущее местоположение</button>
+          <button class="loc-everywhere" id="locEverywhere">Установить «Везде»</button>
+        </div>`;
+      view.querySelector('#locCurrent').onclick = () => { city = 'Ташкент'; locOpen = false; render(); };
+      view.querySelector('#locEverywhere').onclick = () => { city = 'Везде'; locOpen = false; render(); };
+      view.querySelector('#locDone').onclick = () => { locOpen = false; render(); };
+      return;
+    }
+    if (themeOpen) {
+      view.innerHTML = `
+        <div class="group-theme-page">
+          <header class="modal-head">
+            <button id="themeBack" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+            <h1>Цвет темы</h1>
+            <span></span>
+          </header>
+          <div class="theme-grid">
+            ${themes.map(item => `
+              <button type="button" class="theme-swatch ${theme.name === item.name ? 'on' : ''}" data-theme="${esc(item.name)}" style="--swatch:${item.color}">
+                <i></i><span>${esc(item.name)}</span>
+              </button>`).join('')}
+          </div>
+        </div>`;
+      view.querySelector('#themeBack').onclick = () => { themeOpen = false; render(); };
+      view.querySelectorAll('[data-theme]').forEach(button => {
+        button.onclick = () => {
+          theme = themes.find(item => item.name === button.dataset.theme) || theme;
+          themeOpen = false;
+          render();
+        };
+      });
+      return;
+    }
     view.innerHTML = `
       <div class="create-group-page">
         <header class="modal-head">
@@ -581,9 +652,9 @@ export function createGroupScreen() {
 
         <h3 class="settings-label">Параметры</h3>
         <div class="settings-block">
-          <button class="settings-row" type="button">
-            <span class="settings-icon blue"><i class="ti ti-palette"></i></span>
-            <span>Цвет темы<br><small>Синий</small></span>
+          <button class="settings-row" type="button" id="openTheme">
+            <span class="settings-icon" style="background:${theme.color}"></span>
+            <span>Цвет темы<br><small>${esc(theme.name)}</small></span>
             <i class="ti ti-chevron-right"></i>
           </button>
           <label class="settings-row toggle">
@@ -618,7 +689,11 @@ export function createGroupScreen() {
       render();
     };
     view.querySelector('#setCity').onclick = () => {
-      city = !city ? 'Ташкент' : city === 'Ташкент' ? 'Везде' : '';
+      locOpen = true;
+      render();
+    };
+    view.querySelector('#openTheme').onclick = () => {
+      themeOpen = true;
       render();
     };
     view.querySelector('#setTag').onclick = () => {
