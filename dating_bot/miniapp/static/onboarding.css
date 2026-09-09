@@ -367,10 +367,10 @@ body[data-route='onboarding'] .view {
   color: #fff;
 }
 .ob-suggest {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 10px;
-  justify-content: center;
+  justify-items: center;
+  margin-top: 8px;
 }
 .ob-suggest button {
   border: 0;
