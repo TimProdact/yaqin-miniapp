@@ -1,4 +1,4 @@
-import { defaultProfile, groups, promptPhoto, people } from '../data.js';
+import { defaultProfile, groups, promptPhoto, people, events } from '../data.js';
 import { getState, saveState } from '../state.js';
 import { view, esc, setBackTitle, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender } from '../router.js';
@@ -69,7 +69,7 @@ export async function meScreen(_id, token) {
       </div>
       <div class="me-tabs">
         <button class="active">Анкета</button>
-        <button data-action="events">События</button>
+        <button data-action="my-events">События</button>
         <button data-action="friends">Подруги</button>
       </div>
       <div class="me-hero">
@@ -100,10 +100,15 @@ export async function meScreen(_id, token) {
         </div>
       </section>
       <section class="me-section">
-        <h3>Мои группы</h3>
+        <div class="me-section-head">
+          <h3>Мои группы</h3>
+          <button type="button" class="me-link" data-action="profile-groups">На профиле</button>
+        </div>
         <div class="groups-row">
-          ${groups.slice(0, 2).map(group => `
-            <div><img src="${esc(group.photo)}"><span>${esc(group.title)}</span></div>`).join('')}
+          ${groups.filter(group => group.joined !== false).slice(0, 2).map(group => `
+            <button type="button" data-action="group-hub" data-id="${group.id}">
+              <img src="${esc(group.photo)}" alt=""><span>${esc(group.title)}</span>
+            </button>`).join('')}
         </div>
       </section>
       <section class="me-section">
@@ -362,53 +367,165 @@ export async function friendsScreen(_id, token) {
   }
   if (!isCurrentRender(token)) return;
 
-  const requests = people.filter(person => !matches.some(match => match.id === person.id)).slice(0, 1);
-  const friends = matches.length ? matches : people.slice(0, 3);
+  let requests = people.filter(person => !matches.some(match => match.id === person.id)).slice(0, 2);
+  let friends = matches.length ? [...matches] : people.slice(0, 3);
+  let toast = '';
 
-  view.innerHTML = `
-    <div class="me-page friends-page">
-      <div class="me-top">
-        <h1>Профиль</h1>
-        <div>
-          <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
-          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+  const render = () => {
+    view.innerHTML = `
+      <div class="me-page friends-page">
+        ${toast ? `<div class="friend-toast">${esc(toast)}</div>` : ''}
+        <div class="me-top">
+          <h1>Профиль</h1>
+          <div>
+            <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
+            <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+          </div>
         </div>
-      </div>
-      <div class="me-tabs">
-        <button data-action="me">Анкета</button>
-        <button data-action="events">События</button>
-        <button class="active">Подруги${requests.length ? ` <b class="tab-dot">${requests.length}</b>` : ''}</button>
-      </div>
+        <div class="me-tabs">
+          <button data-action="me">Анкета</button>
+          <button data-action="my-events">События</button>
+          <button class="active">Подруги${requests.length ? ` <b class="tab-dot">${requests.length}</b>` : ''}</button>
+        </div>
 
-      ${requests.length ? `
-        <h2 class="friends-label">Заявки · ${requests.length}</h2>
-        ${requests.map(person => `
+        ${requests.length ? `
+          <h2 class="friends-label">Заявки · ${requests.length}</h2>
+          ${requests.map(person => `
+            <div class="friend-row">
+              <img src="${esc(person.photo)}" alt="">
+              <div>
+                <strong>${esc(person.name)}</strong>
+                <span>${person.age} · ${esc(person.city)}</span>
+              </div>
+              <button class="friend-decline" type="button" data-decline="${person.id}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
+              <button class="friend-add" type="button" data-accept="${person.id}">Добавить</button>
+            </div>`).join('')}
+        ` : ''}
+
+        <h2 class="friends-label">Все подруги · ${friends.length}</h2>
+        ${friends.map(person => `
           <div class="friend-row">
             <img src="${esc(person.photo)}" alt="">
             <div>
               <strong>${esc(person.name)}</strong>
               <span>${person.age} · ${esc(person.city)}</span>
             </div>
-            <button class="friend-decline" type="button" aria-label="Отклонить"><i class="ti ti-x"></i></button>
-            <button class="friend-add" type="button">Добавить</button>
+            <button class="friend-msg" data-action="chat" data-id="0" aria-label="Написать"><i class="ti ti-send"></i></button>
           </div>`).join('')}
-      ` : ''}
+        <button class="add-friends" type="button" data-action="people">
+          <span class="add-box"><i class="ti ti-plus"></i></span>
+          Добавить подруг
+        </button>
+      </div>`;
 
-      <h2 class="friends-label">Все подруги · ${friends.length}</h2>
-      ${friends.map(person => `
-        <div class="friend-row">
-          <img src="${esc(person.photo)}" alt="">
+    view.querySelectorAll('[data-accept]').forEach(button => {
+      button.onclick = () => {
+        const id = Number(button.dataset.accept);
+        const person = requests.find(item => item.id === id);
+        requests = requests.filter(item => item.id !== id);
+        if (person && !friends.some(item => item.id === id)) friends = [person, ...friends];
+        toast = 'Подруга добавлена';
+        render();
+        setTimeout(() => {
+          toast = '';
+          render();
+        }, 1600);
+      };
+    });
+    view.querySelectorAll('[data-decline]').forEach(button => {
+      button.onclick = () => {
+        requests = requests.filter(item => item.id !== Number(button.dataset.decline));
+        render();
+      };
+    });
+  };
+  render();
+}
+
+export function myEventsScreen() {
+  clearHeader();
+  let month = 'Сентябрь 2026';
+  const emptyMonths = ['Июль 2026', 'Август 2026', 'Октябрь 2026', 'Ноябрь 2026'];
+
+  const render = () => {
+    const empty = month !== 'Сентябрь 2026';
+    view.innerHTML = `
+      <div class="me-page my-events-page">
+        <div class="me-top">
+          <h1>Профиль</h1>
           <div>
-            <strong>${esc(person.name)}</strong>
-            <span>${person.age} · ${esc(person.city)}</span>
+            <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
+            <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
           </div>
-          <button class="friend-msg" data-action="chat" data-id="0" aria-label="Написать"><i class="ti ti-send"></i></button>
-        </div>`).join('')}
-      <button class="add-friends" type="button" data-action="people">
-        <span class="add-box"><i class="ti ti-plus"></i></span>
-        Добавить подруг
-      </button>
-    </div>`;
+        </div>
+        <div class="me-tabs">
+          <button data-action="me">Анкета</button>
+          <button class="active">События</button>
+          <button data-action="friends">Подруги</button>
+        </div>
+        <button class="events-month" type="button" id="cycleMyMonth">${esc(month)} <i class="ti ti-chevron-down"></i></button>
+        ${empty ? `
+          <div class="events-empty-month">
+            <i class="ti ti-calendar-off"></i>
+            <p>В этом месяце пока нет событий</p>
+          </div>` : `
+          <div class="my-events-list">
+            ${events.map(event => `
+              <article class="my-event-card" data-action="event" data-id="${event.id}">
+                <div class="event-date"><span>${esc(event.month)}</span><b>${esc(event.day)}</b></div>
+                <div>
+                  <strong>${esc(event.title)}</strong>
+                  <span>${esc(event.when)}</span>
+                  <span>${esc(event.place)}</span>
+                  <div class="event-foot">
+                    <span>${event.going} идут</span>
+                    <em>RSVP</em>
+                  </div>
+                </div>
+              </article>`).join('')}
+          </div>`}
+      </div>`;
+    view.querySelector('#cycleMyMonth').onclick = () => {
+      const all = ['Сентябрь 2026', ...emptyMonths];
+      month = all[(all.indexOf(month) + 1) % all.length];
+      render();
+    };
+  };
+  render();
+}
+
+export function profileGroupsScreen() {
+  clearHeader();
+  let selected = new Set(groups.filter(group => group.joined !== false).slice(0, 2).map(group => group.id));
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="profile-groups-page">
+        <header class="modal-head">
+          <button data-action="me" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Группы в профиле</h1>
+          <button class="head-action on" data-action="me">Сохранить</button>
+        </header>
+        <p class="loc-sub">Выберите, какие группы видят другие в вашей анкете.</p>
+        <div class="profile-groups-list">
+          ${groups.map(group => `
+            <button type="button" class="profile-group-row ${selected.has(group.id) ? 'on' : ''}" data-toggle="${group.id}">
+              <img src="${esc(group.photo)}" alt="">
+              <b>${esc(group.title)}</b>
+              <span class="check">${selected.has(group.id) ? '<i class="ti ti-check"></i>' : ''}</span>
+            </button>`).join('')}
+        </div>
+      </div>`;
+    view.querySelectorAll('[data-toggle]').forEach(button => {
+      button.onclick = () => {
+        const id = Number(button.dataset.toggle);
+        if (selected.has(id)) selected.delete(id);
+        else selected.add(id);
+        render();
+      };
+    });
+  };
+  render();
 }
 
 export function promptsScreen(idOrForce = '') {

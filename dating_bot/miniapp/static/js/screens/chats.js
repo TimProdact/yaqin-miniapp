@@ -595,32 +595,63 @@ export function groupNotificationsScreen(id) {
 
 export function activityScreen() {
   clearHeader();
-  view.innerHTML = `
-    <div class="activity-page">
-      <header class="chats-head">
-        <h1>Лента</h1>
-        <span></span>
-      </header>
-      <div class="activity-list">
-        ${activity.map(item => `
-          <div class="activity-item">
-            <div class="activity-avatar">
-              <img src="${esc(item.photo)}">
-              ${item.verified ? '<span class="verified"><i class="ti ti-check"></i></span>' : ''}
+  let emailHidden = false;
+  let dismissed = new Set();
+  let accepted = new Set();
+
+  const render = () => {
+    const items = activity.filter(item => !dismissed.has(item.id));
+    view.innerHTML = `
+      <div class="activity-page">
+        <header class="chats-head">
+          <h1>Лента</h1>
+          <span></span>
+        </header>
+        ${!emailHidden ? `
+          <div class="activity-card">
+            <div>
+              <b>Добавьте email 💌</b>
+              <span>Чтобы не потерять доступ к аккаунту</span>
             </div>
-            <div class="activity-copy">
-              <b>${esc(item.title)} <time>${esc(item.time)}</time></b>
-              <span>${esc(item.text)}</span>
-            </div>
-            ${item.unread ? '<i class="unread-dot"></i>' : ''}
-          </div>`).join('')}
-      </div>
-      <div class="activity-card">
-        <div>
-          <b>Добавьте email 💌</b>
-          <span>Чтобы не потерять доступ к аккаунту</span>
+            <button type="button" data-action="add-email">Добавить</button>
+            <button type="button" class="activity-card-x" id="hideEmail" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+          </div>` : ''}
+        <div class="activity-list">
+          ${items.map(item => `
+            <div class="activity-item ${item.unread ? 'unread' : ''}">
+              <button class="activity-main" type="button"
+                ${item.action ? `data-action="${item.action}" data-id="${item.actionId ?? ''}"` : ''}>
+                <div class="activity-avatar">
+                  <img src="${esc(item.photo)}" alt="">
+                  ${item.verified ? '<span class="verified"><i class="ti ti-check"></i></span>' : ''}
+                  ${item.kind === 'event' ? '<span class="kind-badge"><i class="ti ti-calendar-event"></i></span>' : ''}
+                </div>
+                <div class="activity-copy">
+                  ${item.month ? `<small class="activity-month">${esc(item.month)}</small>` : ''}
+                  <b>${esc(item.title)} <time>${esc(item.time)}</time></b>
+                  <span>${esc(item.text)}</span>
+                </div>
+                ${item.unread && item.kind !== 'friend' ? '<i class="unread-dot"></i>' : ''}
+              </button>
+              ${item.kind === 'friend' && !accepted.has(item.id) ? `
+                <button type="button" class="friend-add" data-accept="${esc(item.id)}">Добавить</button>` : ''}
+              ${item.kind === 'friend' && accepted.has(item.id) ? '<em class="added-pill">Добавлено</em>' : ''}
+            </div>`).join('') || '<p class="muted activity-empty">Пока тихо — зайдите позже</p>'}
         </div>
-        <button type="button">Добавить</button>
-      </div>
-    </div>`;
+      </div>`;
+
+    view.querySelector('#hideEmail')?.addEventListener('click', event => {
+      event.stopPropagation();
+      emailHidden = true;
+      render();
+    });
+    view.querySelectorAll('[data-accept]').forEach(button => {
+      button.onclick = event => {
+        event.stopPropagation();
+        accepted.add(button.dataset.accept);
+        render();
+      };
+    });
+  };
+  render();
 }

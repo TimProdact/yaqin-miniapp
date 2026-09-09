@@ -2180,6 +2180,7 @@ export function eventScreen(id) {
           <li><i class="ti ti-user"></i>Создала ${esc(event.host)}</li>
           <li><i class="ti ti-clock"></i>${esc(event.when)}</li>
           <li><i class="ti ti-map-pin"></i><div><b>${esc(event.place)}</b><span>${esc(event.address)}</span></div></li>
+          <li><i class="ti ti-link"></i><a class="event-link" href="https://yaqin.uz" target="_blank" rel="noopener">yaqin.uz/events</a></li>
           <li><button type="button" id="openRsvp"><i class="ti ti-check"></i>${event.going} человек идут</button></li>
         </ul>
         <div class="event-avatars">

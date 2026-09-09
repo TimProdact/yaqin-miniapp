@@ -36,7 +36,26 @@ export async function blockPerson(id) {
       return;
     }
   }
+  closeSafetyOverlaySafe();
+  showBlockBanner();
   navigate('people');
+}
+
+function closeSafetyOverlaySafe() {
+  try {
+    document.querySelector('.safety-overlay')?.remove();
+    document.body.classList.remove('safety-open');
+  } catch (_) { /* ignore */ }
+}
+
+function showBlockBanner() {
+  document.getElementById('block-banner')?.remove();
+  const banner = document.createElement('div');
+  banner.id = 'block-banner';
+  banner.className = 'block-banner';
+  banner.textContent = 'Пользователь заблокирован';
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 2200);
 }
 
 export async function reportPerson(id) {

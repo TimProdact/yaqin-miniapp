@@ -232,26 +232,69 @@ export const chats = [
 
 export const activity = [
   {
+    id: 'evt-1',
+    kind: 'event',
+    title: 'В «Девушки Ташкента»',
+    text: 'Новое событие: «Клубный вечер у Moon»',
+    time: '8 ч',
+    unread: true,
+    photo: people[0].photo,
+    action: 'event',
+    actionId: 0,
+    month: 'Сен'
+  },
+  {
+    id: 'evt-2',
+    kind: 'event',
+    title: 'В «Девушки Ташкента»',
+    text: 'Новое событие: «Кофе-прогулка по Мирабаду»',
+    time: '8 ч',
+    unread: true,
+    photo: people[0].photo,
+    action: 'event',
+    actionId: 0
+  },
+  {
+    id: 'friend-1',
+    kind: 'friend',
+    title: 'Мила',
+    text: 'отправила заявку в подруги',
+    time: '11 ч',
+    unread: true,
+    photo: people[1].photo,
+    action: 'friends'
+  },
+  {
+    id: 'verify',
+    kind: 'verify',
     title: 'Фото в анкете подтверждено!',
     text: 'Можно знакомиться с новыми людьми.',
-    time: '3 мин',
-    unread: true,
+    time: '3 д',
+    unread: false,
     photo: people[0].photo,
     verified: true
   },
   {
+    id: 'like-1',
+    kind: 'like',
     title: 'Мила отправила симпатию',
     text: 'Ответьте приветом, если хотите познакомиться.',
     time: '1 ч',
     unread: false,
-    photo: people[1].photo
+    photo: people[1].photo,
+    action: 'person',
+    actionId: 1
   },
   {
+    id: 'match-1',
+    kind: 'match',
     title: 'У вас новый мэтч с Милой',
     text: 'Напишите первой — переписка уже открыта.',
     time: '1 ч',
     unread: false,
-    photo: people[1].photo
+    photo: people[1].photo,
+    action: 'chat',
+    actionId: 0
   }
 ];
 
