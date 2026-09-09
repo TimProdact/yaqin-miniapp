@@ -204,6 +204,7 @@ export function groupChatScreen(id) {
             <button type="button" id="closeWelcome" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           </div>` : ''}
 
+        <div class="gchat-typing"><i></i><i></i><i></i><span>Мила печатает…</span></div>
         <button class="jump-latest" type="button" id="jumpLatest">К новым <i class="ti ti-chevron-down"></i></button>
         ${mentionOpen ? `
           <div class="mention-strip">

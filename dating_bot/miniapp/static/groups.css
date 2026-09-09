@@ -2331,3 +2331,43 @@ html[data-theme='dark'] .gchat-pinned {
   border-radius: 50%;
   object-fit: cover;
 }
+
+.gchat-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 14px 8px;
+  color: #8e8e93;
+  font-size: 13px;
+}
+.gchat-typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c7c7cc;
+  display: inline-block;
+  animation: gchatDot 1.2s infinite ease-in-out;
+}
+.gchat-typing i:nth-child(2) { animation-delay: .15s; }
+.gchat-typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes gchatDot {
+  0%, 80%, 100% { opacity: .35; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
+}
+
+.posts-feed.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 8px 12px;
+}
+.posts-feed.grid .post-card {
+  margin: 0;
+  padding: 12px;
+}
+.posts-feed.grid .post-poll,
+.posts-feed.grid .post-open-comments,
+.posts-feed.grid footer,
+.posts-feed.grid .post-reacts { display: none; }
+.posts-feed.grid .post-image { max-height: 120px; }
+.posts-feed.grid h2 { font-size: 15px; }
