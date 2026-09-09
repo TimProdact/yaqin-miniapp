@@ -1831,3 +1831,213 @@ body[data-route='group-settings'] .view { padding: 0 !important; background: #ff
   font-size: 15px;
 }
 .post-poll footer { text-align: right; color: #8e8e93; font-size: 12px; margin-top: 4px; }
+
+.post-media {
+  position: relative;
+  margin: 8px 0 14px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.post-media img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  display: block;
+}
+.post-media button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,.5);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+.format-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid #f0f0f2;
+}
+.format-bar button {
+  border: 1px solid #e5e5ea;
+  background: #fff;
+  border-radius: 10px;
+  min-width: 40px;
+  height: 36px;
+  font-size: 15px;
+  color: #171719;
+}
+.format-bar .on {
+  background: #171719;
+  color: #fff;
+  border-color: #171719;
+}
+.format-bar #fmtClose {
+  margin-left: auto;
+  border: 0;
+  color: #ff5a5f;
+  font-weight: 600;
+}
+.fmt-bold { font-weight: 800 !important; }
+.fmt-italic { font-style: italic !important; }
+.post-gif-sheet {
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fafafa;
+}
+.post-gif-sheet header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.post-gif-sheet header button {
+  border: 0;
+  background: none;
+  font-size: 18px;
+}
+.post-gif-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.post-gif-grid button {
+  border: 0;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+.post-gif-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.group-tags-page {
+  min-height: 100%;
+  background: #fff;
+  padding: 0 20px 40px;
+}
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+.tag-chip {
+  border: 1px solid #e5e5ea;
+  background: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 15px;
+}
+.tag-chip.on {
+  background: #171719;
+  color: #fff;
+  border-color: #171719;
+}
+
+.group-posts-page { position: relative; }
+.gchat-peer.room-switch {
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 0;
+  color: inherit;
+}
+.room-switch-pop {
+  position: absolute;
+  top: 56px;
+  left: 56px;
+  right: 56px;
+  z-index: 20;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.16);
+  overflow: hidden;
+  padding: 6px 0;
+}
+.room-switch-pop button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 15px;
+}
+.room-switch-pop .on {
+  background: #f2f2f7;
+  font-weight: 700;
+}
+
+body[data-route='organize-rooms'] .nav { display: none; }
+body[data-route='organize-rooms'] .view { padding: 0 !important; background: #fff; }
+.organize-rooms-page {
+  min-height: 100%;
+  background: #fff;
+  padding: 0 16px 40px;
+}
+.organize-list { display: grid; gap: 8px; margin-top: 8px; }
+.organize-row {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: #f7f7f8;
+}
+.organize-actions { display: flex; gap: 4px; }
+.organize-actions button {
+  border: 0;
+  background: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #555;
+}
+.organize-actions button:disabled { opacity: .35; }
+.add-room-btn {
+  margin-top: 18px;
+  width: 100%;
+  border: 1px dashed #d0d0d5;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  color: #ff5a5f;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.post-body {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.4;
+}
+.post-image {
+  width: 100%;
+  border-radius: 14px;
+  object-fit: cover;
+  max-height: 220px;
+  margin-bottom: 12px;
+  display: block;
+}
+.post-poll.compact {
+  box-shadow: none;
+  border: 1px solid #eee;
+  margin-bottom: 12px;
+}

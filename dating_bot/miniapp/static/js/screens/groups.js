@@ -280,7 +280,7 @@ export function groupHubScreen(id) {
         </header>
         ${menuOpen ? `
           <div class="hub-menu-pop">
-            <button type="button"><i class="ti ti-arrows-sort"></i> Упорядочить комнаты</button>
+            <button type="button" data-action="organize-rooms" data-id="${group.id}"><i class="ti ti-arrows-sort"></i> Упорядочить комнаты</button>
             <button type="button" id="tabMembers"><i class="ti ti-users"></i> Участницы</button>
             <button type="button" data-action="group-settings" data-id="${group.id}"><i class="ti ti-settings"></i> Настройки</button>
             <button type="button" data-action="report-flow" data-id="1"><i class="ti ti-flag"></i> Жалобы</button>
@@ -344,49 +344,104 @@ export function groupHubScreen(id) {
 export function groupPostsScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
-  view.innerHTML = `
-    <div class="group-posts-page">
-      <header class="gchat-top">
-        <button class="gchat-back" data-action="group-hub" data-id="${group.id}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <img class="gchat-avatar" src="${esc(group.photo)}" alt="">
-        <div class="gchat-peer">
-          <h1>События <i class="ti ti-chevron-down"></i></h1>
-        </div>
-        <button data-action="group" data-id="${group.id}" aria-label="Участницы"><i class="ti ti-users"></i></button>
-      </header>
-      <div class="posts-toolbar">
-        <button type="button">Недавнее <i class="ti ti-chevron-down"></i></button>
-        <div class="posts-view-toggle">
-          <button class="on" aria-label="Лента"><i class="ti ti-list"></i></button>
-          <button aria-label="Сетка"><i class="ti ti-layout-grid"></i></button>
-        </div>
-      </div>
-      <article class="post-card">
-        <header>
-          <img src="${esc(people[0].photo)}" alt="">
-          <div>
-            <b>${esc(people[0].name)} <span class="owner-badge">Организатор</span></b>
-            <time>Вчера в 17:58</time>
-          </div>
-          <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+  let roomOpen = false;
+  let room = 'События';
+  const rooms = ['Знакомства', 'Чат', 'События', 'Рекомендации'];
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="group-posts-page">
+        <header class="gchat-top">
+          <button class="gchat-back" data-action="group-hub" data-id="${group.id}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <img class="gchat-avatar" src="${esc(group.photo)}" alt="">
+          <button class="gchat-peer room-switch" type="button" id="toggleRooms">
+            <h1>${esc(room)} <i class="ti ti-chevron-down"></i></h1>
+          </button>
+          <button data-action="group" data-id="${group.id}" aria-label="Участницы"><i class="ti ti-users"></i></button>
         </header>
-        <h2>Создала комнату «События»</h2>
-        <div class="post-reacts">
-          <button type="button">👏 0</button>
-          <button type="button"><i class="ti ti-mood-plus"></i></button>
+        ${roomOpen ? `
+          <div class="room-switch-pop">
+            ${rooms.map(item => `
+              <button type="button" class="${item === room ? 'on' : ''}" data-room="${esc(item)}">${esc(item)}</button>`).join('')}
+          </div>` : ''}
+        <div class="posts-toolbar">
+          <button type="button">Недавнее <i class="ti ti-chevron-down"></i></button>
+          <div class="posts-view-toggle">
+            <button class="on" aria-label="Лента"><i class="ti ti-list"></i></button>
+            <button aria-label="Сетка"><i class="ti ti-layout-grid"></i></button>
+          </div>
         </div>
-        <footer>
-          <span>0 комментариев</span>
-          <span class="ago">Создано 1 д назад</span>
-        </footer>
-      </article>
-      <section class="posts-welcome">
-        <span class="welcome-mark">✿</span>
-        <h2>Добро пожаловать в События</h2>
-        <button type="button"><i class="ti ti-pencil"></i> Изменить название</button>
-      </section>
-      <button class="create-post-bar" type="button" data-action="create-post" data-id="${group.id}"><i class="ti ti-pencil"></i> Создать пост</button>
-    </div>`;
+        <article class="post-card">
+          <header>
+            <img src="${esc(people[0].photo)}" alt="">
+            <div>
+              <b>${esc(people[0].name)} <span class="owner-badge">Организатор</span></b>
+              <time>Вчера в 17:58</time>
+            </div>
+            <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+          </header>
+          <h2>Создала комнату «${esc(room)}»</h2>
+          <div class="post-reacts">
+            <button type="button">👏 0</button>
+            <button type="button"><i class="ti ti-mood-plus"></i></button>
+          </div>
+          <footer>
+            <span>0 комментариев</span>
+            <span class="ago">Создано 1 д назад</span>
+          </footer>
+        </article>
+        <article class="post-card">
+          <header>
+            <img src="${esc(people[1].photo)}" alt="">
+            <div>
+              <b>${esc(people[1].name)}</b>
+              <time>сегодня</time>
+            </div>
+            <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+          </header>
+          <h2>🎶 Кофейный плейлист недели</h2>
+          <p class="post-body">Делитесь треками и голосуйте за настроение</p>
+          <img class="post-image" src="${esc(PHOTOS.coffee)}" alt="">
+          <div class="post-poll compact">
+            <h3>ваше настроение сейчас</h3>
+            <button type="button" class="poll-option"><span>отлично 😄</span><b>42%</b></button>
+            <button type="button" class="poll-option"><span>нормально 😐</span><b>33%</b></button>
+            <button type="button" class="poll-option"><span>грустно 😭</span><b>25%</b></button>
+            <footer>12 ответов</footer>
+          </div>
+          <div class="post-reacts">
+            <button type="button">❤️ 3</button>
+            <button type="button"><i class="ti ti-mood-plus"></i></button>
+          </div>
+          <footer>
+            <span>2 комментария</span>
+            <span class="ago">2 ч назад</span>
+          </footer>
+        </article>
+        <section class="posts-welcome">
+          <span class="welcome-mark">✿</span>
+          <h2>Добро пожаловать в ${esc(room)}</h2>
+          <button type="button"><i class="ti ti-pencil"></i> Изменить название</button>
+        </section>
+        <button class="create-post-bar" type="button" data-action="create-post" data-id="${group.id}"><i class="ti ti-pencil"></i> Создать пост</button>
+      </div>`;
+    view.querySelector('#toggleRooms').onclick = () => {
+      roomOpen = !roomOpen;
+      render();
+    };
+    view.querySelectorAll('[data-room]').forEach(button => {
+      button.onclick = () => {
+        room = button.dataset.room;
+        roomOpen = false;
+        if (room === 'Чат') {
+          navigate('group-chat', group.id);
+          return;
+        }
+        render();
+      };
+    });
+  };
+  render();
 }
 
 export function createPostScreen(id) {
@@ -396,10 +451,16 @@ export function createPostScreen(id) {
   let title = '';
   let body = '';
   let poll = null;
+  let photo = null;
+  let gifOpen = false;
+  let formatOpen = false;
+  let bold = false;
+  let italic = false;
   const pollOptions = ['отлично 😄', 'нормально 😐', 'грустно 😭', 'раздражена 😟'];
+  const gifs = [PHOTOS.coffee, PHOTOS.city, PHOTOS.palms, PHOTOS.event, PHOTOS.books, PHOTOS.malika].filter(Boolean);
 
   const render = () => {
-    const canPost = title.trim().length > 0 || body.trim().length > 0 || poll;
+    const canPost = title.trim().length > 0 || body.trim().length > 0 || poll || photo;
     view.innerHTML = `
       <div class="create-post-page">
         <header class="modal-head">
@@ -411,8 +472,13 @@ export function createPostScreen(id) {
           <img src="${esc(me.photo)}" alt="">
           <b>${esc(me.name)}</b>
         </div>
-        <input class="create-post-title" id="postTitle" placeholder="Добавить заголовок" value="${esc(title)}">
-        <textarea class="create-post-body" id="postBody" placeholder="О чём думаете?" rows="4">${esc(body)}</textarea>
+        <input class="create-post-title ${bold ? 'fmt-bold' : ''} ${italic ? 'fmt-italic' : ''}" id="postTitle" placeholder="Добавить заголовок" value="${esc(title)}">
+        <textarea class="create-post-body ${bold ? 'fmt-bold' : ''} ${italic ? 'fmt-italic' : ''}" id="postBody" placeholder="О чём думаете?" rows="4">${esc(body)}</textarea>
+        ${photo ? `
+          <div class="post-media">
+            <img src="${esc(photo)}" alt="">
+            <button type="button" id="clearPhoto" aria-label="Убрать"><i class="ti ti-x"></i></button>
+          </div>` : ''}
         ${poll ? `
           <div class="post-poll">
             <header>
@@ -424,36 +490,92 @@ export function createPostScreen(id) {
               <button type="button" class="poll-option"><span>${esc(option)}</span><b>0%</b></button>`).join('')}
             <footer>0 ответов</footer>
           </div>` : ''}
+        ${formatOpen ? `
+          <div class="format-bar">
+            <button type="button" class="${bold ? 'on' : ''}" id="fmtBold"><b>B</b></button>
+            <button type="button" class="${italic ? 'on' : ''}" id="fmtItalic"><i>I</i></button>
+            <button type="button" id="fmtClose">Готово</button>
+          </div>` : ''}
+        ${gifOpen ? `
+          <div class="post-gif-sheet">
+            <header><b>GIF</b><button type="button" id="closeGif"><i class="ti ti-x"></i></button></header>
+            <div class="post-gif-grid">
+              ${gifs.map(src => `<button type="button" data-gif="${esc(src)}"><img src="${esc(src)}" alt=""></button>`).join('')}
+            </div>
+          </div>` : ''}
         <div class="create-post-tools">
-          <button type="button" aria-label="Фото"><i class="ti ti-photo"></i></button>
+          <button type="button" id="addPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
           <button type="button" aria-label="Файл"><i class="ti ti-file"></i></button>
-          <button type="button" aria-label="GIF">GIF</button>
+          <button type="button" id="openGif" aria-label="GIF">GIF</button>
           <button type="button" aria-label="Событие"><i class="ti ti-calendar-event"></i></button>
           <button type="button" id="addPoll" aria-label="Опрос"><i class="ti ti-chart-bar"></i></button>
           <button type="button" aria-label="Эмодзи"><i class="ti ti-mood-smile"></i></button>
-          <button type="button" aria-label="Формат">Aa</button>
+          <button type="button" id="openFormat" aria-label="Формат">Aa</button>
         </div>
       </div>`;
     const sync = () => {
       const btn = view.querySelector('#publishPost');
-      const ok = title.trim() || body.trim() || poll;
+      const ok = title.trim() || body.trim() || poll || photo;
       btn.disabled = !ok;
       btn.classList.toggle('on', Boolean(ok));
     };
     view.querySelector('#postTitle').oninput = event => { title = event.target.value; sync(); };
     view.querySelector('#postBody').oninput = event => { body = event.target.value; sync(); };
+    view.querySelector('#addPhoto').onclick = () => {
+      photo = PHOTOS.city;
+      gifOpen = false;
+      render();
+    };
+    view.querySelector('#openGif').onclick = () => {
+      gifOpen = !gifOpen;
+      formatOpen = false;
+      render();
+    };
+    view.querySelector('#closeGif')?.addEventListener('click', () => {
+      gifOpen = false;
+      render();
+    });
+    view.querySelectorAll('[data-gif]').forEach(button => {
+      button.onclick = () => {
+        photo = button.dataset.gif;
+        gifOpen = false;
+        render();
+      };
+    });
+    view.querySelector('#openFormat').onclick = () => {
+      formatOpen = !formatOpen;
+      gifOpen = false;
+      render();
+    };
+    view.querySelector('#fmtBold')?.addEventListener('click', () => {
+      bold = !bold;
+      render();
+    });
+    view.querySelector('#fmtItalic')?.addEventListener('click', () => {
+      italic = !italic;
+      render();
+    });
+    view.querySelector('#fmtClose')?.addEventListener('click', () => {
+      formatOpen = false;
+      render();
+    });
     view.querySelector('#addPoll').onclick = () => {
       poll = { question: 'ваше настроение сейчас' };
       if (!title) title = '🎶 еженедельный плейлист';
       if (!body) body = 'делитесь треками в комментариях и голосуйте за настроение';
+      gifOpen = false;
       render();
     };
     view.querySelector('#clearPoll')?.addEventListener('click', () => {
       poll = null;
       render();
     });
+    view.querySelector('#clearPhoto')?.addEventListener('click', () => {
+      photo = null;
+      render();
+    });
     view.querySelector('#publishPost').onclick = () => {
-      if (!title.trim() && !body.trim() && !poll) return;
+      if (!title.trim() && !body.trim() && !poll && !photo) return;
       navigate('group-posts', group.id);
     };
   };
@@ -563,6 +685,62 @@ export function groupSettingsScreen(id) {
     </div>`;
 }
 
+export function organizeRoomsScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let rooms = [
+    { title: 'Знакомства', icon: 'star' },
+    { title: 'Чат', icon: 'message-circle' },
+    { title: 'События', icon: 'calendar-event' },
+    { title: 'Рекомендации', icon: 'file-text' }
+  ];
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="organize-rooms-page">
+        <header class="modal-head">
+          <button data-action="group-hub" data-id="${group.id}" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Комнаты</h1>
+          <button class="head-action on" data-action="group-hub" data-id="${group.id}">Готово</button>
+        </header>
+        <p class="loc-sub">Перетащите, чтобы изменить порядок</p>
+        <div class="organize-list">
+          ${rooms.map((room, index) => `
+            <div class="organize-row">
+              <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
+              <b>${esc(room.title)}</b>
+              <div class="organize-actions">
+                <button type="button" data-up="${index}" ${index === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
+                <button type="button" data-down="${index}" ${index === rooms.length - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
+              </div>
+            </div>`).join('')}
+        </div>
+        <button class="add-room-btn" type="button" id="addRoom"><i class="ti ti-plus"></i> Добавить комнату</button>
+      </div>`;
+    view.querySelectorAll('[data-up]').forEach(button => {
+      button.onclick = () => {
+        const index = Number(button.dataset.up);
+        if (index <= 0) return;
+        [rooms[index - 1], rooms[index]] = [rooms[index], rooms[index - 1]];
+        render();
+      };
+    });
+    view.querySelectorAll('[data-down]').forEach(button => {
+      button.onclick = () => {
+        const index = Number(button.dataset.down);
+        if (index >= rooms.length - 1) return;
+        [rooms[index + 1], rooms[index]] = [rooms[index], rooms[index + 1]];
+        render();
+      };
+    });
+    view.querySelector('#addRoom').onclick = () => {
+      rooms.push({ title: `Комната ${rooms.length + 1}`, icon: 'folder' });
+      render();
+    };
+  };
+  render();
+}
+
 export function createGroupScreen() {
   clearHeader();
   let name = '';
@@ -571,9 +749,12 @@ export function createGroupScreen() {
   let isPublic = true;
   let cover = null;
   let tag = '';
+  let tags = new Set();
   let theme = { name: 'Синий', color: '#3b6ef5' };
   let locOpen = false;
   let themeOpen = false;
+  let tagsOpen = false;
+  const tagChoices = ['кофе', 'прогулки', 'книги', 'йога', 'музыка', 'кино', 'спорт', 'еда', 'искусство', 'путешествия'];
   const themes = [
     { name: 'Синий', color: '#3b6ef5' },
     { name: 'Коралл', color: '#ff5a5f' },
@@ -628,6 +809,33 @@ export function createGroupScreen() {
       });
       return;
     }
+    if (tagsOpen) {
+      view.innerHTML = `
+        <div class="group-tags-page">
+          <header class="modal-head">
+            <button id="tagsBack" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+            <h1>Теги</h1>
+            <button class="head-action on" id="tagsDone">Готово</button>
+          </header>
+          <p class="loc-sub">Выберите до 5 интересов группы</p>
+          <div class="tags-cloud">
+            ${tagChoices.map(item => `
+              <button type="button" class="tag-chip ${tags.has(item) ? 'on' : ''}" data-tag="${esc(item)}">${esc(item)}</button>`).join('')}
+          </div>
+        </div>`;
+      view.querySelectorAll('[data-tag]').forEach(button => {
+        button.onclick = () => {
+          const value = button.dataset.tag;
+          if (tags.has(value)) tags.delete(value);
+          else if (tags.size < 5) tags.add(value);
+          tag = [...tags].join(', ');
+          render();
+        };
+      });
+      view.querySelector('#tagsBack').onclick = () => { tagsOpen = false; render(); };
+      view.querySelector('#tagsDone').onclick = () => { tagsOpen = false; render(); };
+      return;
+    }
     view.innerHTML = `
       <div class="create-group-page">
         <header class="modal-head">
@@ -647,7 +855,7 @@ export function createGroupScreen() {
 
         <div class="create-chips">
           <button type="button" id="setCity"><i class="ti ti-map-pin"></i>${city ? esc(city) : 'Добавить локацию'}</button>
-          <button type="button" id="setTag"><i class="ti ti-tag"></i>${tag ? esc(tag) : 'Теги'}</button>
+          <button type="button" id="setTag"><i class="ti ti-tag"></i>${tag ? esc(tag.split(', ')[0] + (tags.size > 1 ? ` +${tags.size - 1}` : '')) : 'Теги'}</button>
         </div>
 
         <h3 class="settings-label">Параметры</h3>
@@ -697,7 +905,7 @@ export function createGroupScreen() {
       render();
     };
     view.querySelector('#setTag').onclick = () => {
-      tag = tag ? '' : 'кофе';
+      tagsOpen = true;
       render();
     };
     view.querySelector('#createGroupBtn').onclick = () => {
