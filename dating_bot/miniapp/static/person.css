@@ -9,7 +9,7 @@ body.sheet-view .nav {
 }
 body.sheet-view .view {
   padding: 0 !important;
-  background: #fdfafe;
+  background: var(--yaqin-bg);
 }
 
 .person-view {
@@ -19,7 +19,7 @@ body.sheet-view .view {
 .person-hero {
   position: relative;
   height: 528px;
-  background: #d7d1cd;
+  background: var(--yaqin-sep);
   touch-action: pan-y;
 }
 .person-hero-photo {
@@ -38,7 +38,7 @@ body.sheet-view .view {
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(8px);
-  color: #fff;
+  color: var(--yaqin-ink-inverse);
   font-size: 22px;
   display: grid;
   place-items: center;
@@ -67,7 +67,7 @@ body.sheet-view .view {
   background: rgba(255, 255, 255, 0.45);
 }
 .hero-dots span.on {
-  background: #fff;
+  background: var(--yaqin-bg);
 }
 
 .person-head {
@@ -76,7 +76,7 @@ body.sheet-view .view {
   margin-top: -28px;
   padding: 60px 34px 34px;
   border-radius: 28px 28px 0 0;
-  background: #fff;
+  background: var(--yaqin-bg);
 }
 .person-head h1 {
   margin: 0;
@@ -85,20 +85,20 @@ body.sheet-view .view {
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: #171719;
+  color: var(--yaqin-text);
 }
 .person-meta {
   margin: 8px 0 0;
   font-size: 16px;
   line-height: 1.25;
-  color: #55555c;
+  color: var(--yaqin-text-secondary);
 }
 .person-bio {
   margin: 22px 0 0;
   max-width: 82%;
   font-size: 17px;
   line-height: 28px;
-  color: #171719;
+  color: var(--yaqin-text);
 }
 
 .hero-wave {
@@ -109,8 +109,8 @@ body.sheet-view .view {
   height: 66px;
   border: 0;
   border-radius: 50%;
-  background: #fff292;
-  color: #171719;
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-text);
   font-size: 34px;
   display: grid;
   place-items: center;
@@ -125,14 +125,14 @@ body.sheet-view .view {
   padding: 0 24px;
   font-size: 16px;
   font-weight: 500;
-  color: #171719;
+  color: var(--yaqin-text);
 }
 
 .person-card {
   margin: 0 8px;
   padding: 22px 18px;
   border-radius: 20px;
-  background: #fff;
+  background: var(--yaqin-bg);
 }
 
 .chip-group + .chip-group {
@@ -143,7 +143,7 @@ body.sheet-view .view {
   margin: 0 0 12px;
   font-size: 16px;
   font-weight: 400;
-  color: #55555c;
+  color: var(--yaqin-text-secondary);
 }
 
 .chips-wrap {
@@ -157,8 +157,8 @@ body.sheet-view .view {
   height: 38px;
   padding: 0 16px;
   border-radius: 19px;
-  background: #171719;
-  color: #fff;
+  background: var(--yaqin-text);
+  color: var(--yaqin-ink-inverse);
   font-size: 16px;
   font-weight: 400;
   white-space: nowrap;
@@ -180,7 +180,7 @@ body.sheet-view .view {
   padding: 10px;
   border: 0;
   border-radius: 20px;
-  background: #fff;
+  background: var(--yaqin-bg);
   text-align: center;
   color: inherit;
 }
@@ -195,7 +195,7 @@ body.sheet-view .view {
   margin-top: 12px;
   font-size: 15px;
   line-height: 20px;
-  color: #171719;
+  color: var(--yaqin-text);
 }
 
 .info-row + .info-row {
@@ -210,18 +210,18 @@ body.sheet-view .view {
 }
 .person-skip,
 .person-wave {
-  border-radius: 999px;
+  border-radius: var(--yaqin-radius-pill);
   font-size: 15px;
   font-weight: 700;
   padding: 14px 12px;
 }
 .person-skip {
-  border: 1.5px solid #171719;
-  background: #fff;
-  color: #171719;
+  border: 1.5px solid var(--yaqin-text);
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
 }
 .person-wave {
   border: 0;
-  background: #fff292;
-  color: #171719;
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-text);
 }

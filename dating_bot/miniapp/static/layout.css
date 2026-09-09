@@ -102,14 +102,14 @@ body.full-screen .view {
 }
 
 @media (min-width: 520px) {
-  html, body { background: #e6e1e7; }
+  html, body { background: var(--yaqin-bg-subtle); }
   html[data-theme='dark'],
   html[data-theme='dark'] body {
-    background: #111;
+    background: var(--yaqin-surface-raised);
   }
   .app {
     max-width: 442px;
-    box-shadow: 0 0 0 1px #00000010;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
   }
 }
 
@@ -117,8 +117,8 @@ body.full-screen .view {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: #fff;
-  color: #171719;
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
   padding: 24px 20px;
   font: 15px/1.45 system-ui, sans-serif;
   overflow: auto;
@@ -130,7 +130,7 @@ body.full-screen .view {
 .yaqin-boot-error pre {
   white-space: pre-wrap;
   word-break: break-word;
-  background: #f4f4f6;
+  background: var(--yaqin-bg-subtle);
   padding: 12px;
   border-radius: 12px;
   font-size: 12px;

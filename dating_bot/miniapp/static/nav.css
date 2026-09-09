@@ -1,33 +1,36 @@
-/* Нижняя навигация. Метрики с design/bff-ios-jan-2026/04-discover/card--040.png. */
+/* Bottom nav — BFF card / chats metrics → DESIGN-SYSTEM */
 
 .nav {
   bottom: 0 !important;
   height: auto;
-  padding: 22px 8px max(39px, env(safe-area-inset-bottom, 39px)) !important;
-  border-top: 0;
-  background: #fff;
+  min-height: var(--yaqin-nav-h);
+  padding: 10px 8px max(12px, var(--yaqin-safe-bottom)) !important;
+  border-top: 1px solid var(--yaqin-sep) !important;
+  background: var(--yaqin-surface) !important;
 }
 
 .nav button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--yaqin-space-2);
   padding: 0;
-  font-size: 30px;
+  font-size: 22px;
   line-height: 1;
-  color: #b9b9bd;
+  color: var(--yaqin-text-tertiary);
 }
+
 .nav button.active {
-  color: #171719;
+  color: var(--yaqin-text);
 }
 
 .nav small {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--yaqin-fs-micro);
   font-weight: 500;
   line-height: 1.2;
 }
+
 .nav button.active small {
   font-weight: 600;
 }
@@ -40,13 +43,14 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 9px;
-  background: #e01e43;
-  font-size: 11px;
-  font-weight: 600;
+  background: var(--yaqin-danger);
+  color: var(--yaqin-ink-inverse);
+  font-size: var(--yaqin-fs-badge);
+  font-weight: 700;
   display: grid;
   place-items: center;
 }
 
 body:not(.full-screen) .view {
-  padding-bottom: 145px;
+  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom) + 16px);
 }

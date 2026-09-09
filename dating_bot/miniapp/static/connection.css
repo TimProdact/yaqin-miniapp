@@ -12,7 +12,7 @@ body.full-screen .view {
 
 .connected-page {
   height: 100%;
-  background: #fff;
+  background: var(--yaqin-bg);
   text-align: center;
   padding: 52px 24px 28px;
   position: relative;
@@ -25,7 +25,7 @@ body.full-screen .view {
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #171719;
+  color: var(--yaqin-text);
 }
 .connected-back {
   position: absolute;
@@ -35,7 +35,7 @@ body.full-screen .view {
   height: 40px;
   border: 0;
   background: none;
-  color: #171719;
+  color: var(--yaqin-text);
   font-size: 24px;
   display: grid;
   place-items: center;
@@ -62,8 +62,8 @@ body.full-screen .view {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: #fff292;
-  color: #171719;
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-text);
   display: grid;
   place-items: center;
   font-size: 48px;
@@ -76,9 +76,9 @@ body.full-screen .view {
   margin: 22px auto 8px;
   width: min(100%, 280px);
   border: 0;
-  border-radius: 999px;
-  background: #171719;
-  color: #fff;
+  border-radius: var(--yaqin-radius-pill);
+  background: var(--yaqin-text);
+  color: var(--yaqin-ink-inverse);
   font-size: 17px;
   font-weight: 700;
   padding: 16px 20px;
@@ -86,13 +86,13 @@ body.full-screen .view {
 
 .chat-page {
   height: 100%;
-  background: #fff;
+  background: var(--yaqin-bg);
   display: flex;
   flex-direction: column;
 }
 .chat-page > header {
   height: 92px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--yaqin-sep);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -111,7 +111,7 @@ body.full-screen .view {
 .chat-page > header p {
   text-align: center;
   margin: 4px 0;
-  color: #888;
+  color: var(--yaqin-text-tertiary);
   font-size: 17px;
 }
 .chat-page > header p i {
@@ -119,7 +119,7 @@ body.full-screen .view {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #aaa;
+  background: var(--yaqin-text-tertiary);
 }
 .chat-page main {
   flex: 1;
@@ -127,7 +127,7 @@ body.full-screen .view {
   align-items: center;
   flex-direction: column;
   padding-top: 38%;
-  color: #999;
+  color: var(--yaqin-text-tertiary);
   text-align: center;
   font-size: 20px;
 }
@@ -143,7 +143,7 @@ body.full-screen .view {
 .chat-tags {
   display: flex;
   gap: 24px;
-  color: #333;
+  color: var(--yaqin-text);
 }
 .message-bar {
   height: 88px;
@@ -151,14 +151,14 @@ body.full-screen .view {
   align-items: center;
   gap: 16px;
   padding: 10px 28px;
-  color: #aaa;
+  color: var(--yaqin-text-tertiary);
   font-size: 18px;
 }
 .message-bar button,
 .message-bar b {
   border: 0;
   background: none;
-  color: #189bea;
+  color: var(--yaqin-blue);
   font-size: 28px;
 }
 .message-bar span {
