@@ -259,7 +259,7 @@ export function groupNotificationsScreen(id) {
           ].map(([value, title, text]) => `
             <button class="settings-row stacked-btn radio-row" type="button" data-mode="${value}">
               <span>${title}<br><small>${text}</small></span>
-              <i class="radio ${mode === value ? 'on' : ''}">${mode === value ? '<i class="ti ti-check"></i>' : ''}</i>
+              <span class="radio ${mode === value ? 'on' : ''}">${mode === value ? '<i class="ti ti-check"></i>' : ''}</span>
             </button>`).join('')}
         </section>
         <section class="settings-block">

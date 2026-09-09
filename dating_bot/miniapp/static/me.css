@@ -132,7 +132,7 @@ body.profile-open .nav{display:grid}body.profile-open .app-header{display:none}b
 .edit-photos-page {
   min-height: 100%;
   background: #fff;
-  padding: 8px 20px 40px;
+  padding: 8px 20px 110px;
 }
 .edit-photos-page h1 {
   margin: 8px 0 8px;
@@ -197,8 +197,12 @@ body.profile-open .nav{display:grid}body.profile-open .app-header{display:none}b
   place-items: center;
 }
 .photos-save {
-  margin-top: 28px;
-  width: 100%;
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: min(353px, calc(100% - 40px));
+  margin-top: 0;
   border: 0;
   border-radius: 999px;
   background: #171719;
@@ -206,6 +210,7 @@ body.profile-open .nav{display:grid}body.profile-open .app-header{display:none}b
   font-size: 17px;
   font-weight: 600;
   padding: 16px;
+  z-index: 5;
 }
 
 .edit-profile-page {
