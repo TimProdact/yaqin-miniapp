@@ -124,6 +124,9 @@ export async function meScreen(_id, token) {
 
 export function settingsScreen() {
   clearHeader();
+  const privacy = getState().privacy || { showOnline: true };
+  const profileId = (getState().profileId || 'yaqin-demo-local').slice(0, 36);
+
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
@@ -136,7 +139,7 @@ export function settingsScreen() {
         <label class="settings-row toggle">
           <span class="settings-icon green"><i class="ti ti-circle-filled"></i></span>
           <span>Показывать онлайн</span>
-          <input type="checkbox" checked>
+          <input type="checkbox" id="showOnline" ${privacy.showOnline !== false ? 'checked' : ''}>
         </label>
         <button class="settings-row" data-action="account" type="button">
           <span class="settings-icon orange"><i class="ti ti-info-circle"></i></span>
@@ -157,7 +160,7 @@ export function settingsScreen() {
           <span>Уведомления</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row" type="button">
+        <button class="settings-row" data-action="privacy" type="button">
           <span class="settings-icon pink"><i class="ti ti-lock"></i></span>
           <span>Приватность</span>
           <i class="ti ti-chevron-right"></i>
@@ -181,7 +184,7 @@ export function settingsScreen() {
 
       <h3 class="settings-label">Помощь</h3>
       <section class="settings-block">
-        <button class="settings-row" type="button">
+        <button class="settings-row" data-action="help" type="button">
           <span class="settings-icon purple"><i class="ti ti-help-circle"></i></span>
           <span>Справка</span>
           <i class="ti ti-chevron-right"></i>
@@ -191,13 +194,39 @@ export function settingsScreen() {
           <span>Отправить отзыв</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row" type="button">
+        <button class="settings-row" data-action="legal" type="button">
           <span class="settings-icon pink"><i class="ti ti-file-text"></i></span>
           <span>Правовая информация</span>
           <i class="ti ti-chevron-right"></i>
         </button>
       </section>
+
+      <h3 class="settings-label">Аккаунт</h3>
+      <section class="settings-block">
+        <button class="settings-row danger" type="button" id="logoutBtn">
+          <span class="settings-icon red"><i class="ti ti-logout"></i></span>
+          <span>Выйти</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </section>
+
+      <footer class="settings-footer">
+        <span class="settings-brand"><i class="ti ti-flower"></i></span>
+        <p>Версия 1.0.0 · демо</p>
+        <p>Profile ID: ${esc(profileId)}</p>
+      </footer>
     </div>`;
+
+  view.querySelector('#showOnline').onchange = event => {
+    saveState({
+      ...getState(),
+      privacy: { ...(getState().privacy || {}), showOnline: event.target.checked }
+    });
+  };
+  view.querySelector('#logoutBtn').onclick = () => {
+    saveState({ ...getState(), onboarded: false, onboardingStep: 'start' });
+    navigate('onboarding');
+  };
 }
 
 export function blockedScreen() {
@@ -235,6 +264,145 @@ export function blockedScreen() {
       const state = getState();
       saveState({ ...state, blocked: state.blocked.filter(item => item !== id) });
       blockedScreen();
+    };
+  });
+}
+
+export function privacyScreen() {
+  clearHeader();
+  const privacy = {
+    showOnline: true,
+    showInDiscover: true,
+    readReceipts: true,
+    allowInvites: true,
+    ...(getState().privacy || {})
+  };
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="settings-page">
+        <header class="filters-head">
+          <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <h1>Приватность</h1>
+          <span></span>
+        </header>
+        <h3 class="settings-label">Видимость</h3>
+        <section class="settings-block">
+          <label class="settings-row toggle stacked">
+            <span>Показывать онлайн<br><small>Другие увидят, когда вы в сети</small></span>
+            <input type="checkbox" data-key="showOnline" ${privacy.showOnline ? 'checked' : ''}>
+          </label>
+          <label class="settings-row toggle stacked">
+            <span>Показывать в ленте<br><small>Анкета появляется во вкладке «Люди»</small></span>
+            <input type="checkbox" data-key="showInDiscover" ${privacy.showInDiscover ? 'checked' : ''}>
+          </label>
+        </section>
+        <h3 class="settings-label">Общение</h3>
+        <section class="settings-block">
+          <label class="settings-row toggle stacked">
+            <span>Отчёты о прочтении<br><small>Показывать, когда вы прочитали сообщение</small></span>
+            <input type="checkbox" data-key="readReceipts" ${privacy.readReceipts ? 'checked' : ''}>
+          </label>
+          <label class="settings-row toggle stacked">
+            <span>Приглашения в группы<br><small>Разрешить приглашать вас в группы</small></span>
+            <input type="checkbox" data-key="allowInvites" ${privacy.allowInvites ? 'checked' : ''}>
+          </label>
+        </section>
+      </div>`;
+
+    view.querySelectorAll('[data-key]').forEach(input => {
+      input.onchange = () => {
+        privacy[input.dataset.key] = input.checked;
+        saveState({ ...getState(), privacy: { ...privacy } });
+      };
+    });
+  };
+  render();
+}
+
+export function helpScreen() {
+  clearHeader();
+  const topics = [
+    ['verify', 'Как пройти проверку анкеты', 'Запишите короткое видео с кодом — команда проверит вручную.'],
+    ['groups', 'Как работают группы', 'Вступайте по вопросам или по приглашению, пишите в комнатах и на событиях.'],
+    ['safety', 'Безопасность и жалобы', 'Можно пожаловаться или заблокировать прямо из профиля или чата.'],
+    ['account', 'Почта и доступ', 'Добавьте email в аккаунте, чтобы не потерять доступ.']
+  ];
+
+  view.innerHTML = `
+    <div class="settings-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Справка</h1>
+        <span></span>
+      </header>
+      <section class="settings-block">
+        ${topics.map(([id, title, text]) => `
+          <button class="settings-row stacked-btn" type="button" data-help="${id}">
+            <span>${esc(title)}<br><small>${esc(text)}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>`).join('')}
+      </section>
+      <section class="settings-block">
+        <button class="settings-row" data-action="feedback" type="button">
+          <span class="settings-icon orange"><i class="ti ti-message"></i></span>
+          <span>Написать в поддержку</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </section>
+    </div>`;
+
+  view.querySelectorAll('[data-help]').forEach(button => {
+    button.onclick = () => {
+      const topic = topics.find(item => item[0] === button.dataset.help);
+      if (!topic) return;
+      mountSheet(`
+        <div class="help-sheet">
+          <div class="confirm-handle"></div>
+          <h2>${esc(topic[1])}</h2>
+          <p>${esc(topic[2])}</p>
+          <button class="announce-cta" data-action="close-sheet">Понятно</button>
+        </div>`);
+    };
+  });
+}
+
+export function legalScreen() {
+  clearHeader();
+  const docs = [
+    ['terms', 'Условия использования', 'Демо-текст: пользуясь Yaqin, вы соглашаетесь общаться уважительно и не нарушать законы Узбекистана.'],
+    ['privacy', 'Политика конфиденциальности', 'Демо-текст: мы обрабатываем данные профиля и чатов только для работы сервиса. В Telegram Mini App часть данных приходит из Telegram.'],
+    ['community', 'Правила сообществ', 'Демо-текст: без травли, спама, фейков и непристойного контента. Жалобы рассматривает модерация.']
+  ];
+
+  view.innerHTML = `
+    <div class="settings-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Правовая информация</h1>
+        <span></span>
+      </header>
+      <section class="settings-block">
+        ${docs.map(([id, title]) => `
+          <button class="settings-row" type="button" data-legal="${id}">
+            <span class="settings-icon pink"><i class="ti ti-file-text"></i></span>
+            <span>${esc(title)}</span>
+            <i class="ti ti-chevron-right"></i>
+          </button>`).join('')}
+      </section>
+    </div>`;
+
+  view.querySelectorAll('[data-legal]').forEach(button => {
+    button.onclick = () => {
+      const doc = docs.find(item => item[0] === button.dataset.legal);
+      if (!doc) return;
+      mountSheet(`
+        <div class="help-sheet legal-sheet">
+          <div class="confirm-handle"></div>
+          <h2>${esc(doc[1])}</h2>
+          <p>${esc(doc[2])}</p>
+          <button class="announce-cta" data-action="close-sheet">Закрыть</button>
+        </div>`);
     };
   });
 }
@@ -977,7 +1145,8 @@ export async function accountScreen(_id, token) {
   if (!isCurrentRender(token)) return;
 
   const email = getState().email || '';
-  const slug = String(profile.name || 'yaqin')
+  const savedUser = getState().username || getState().profile?.username;
+  const slug = savedUser || String(profile.name || 'yaqin')
     .toLowerCase()
     .replace(/[а-яё]/gi, char => ({
       а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y',
@@ -1001,17 +1170,17 @@ export async function accountScreen(_id, token) {
         <div class="account-row">
           <span class="settings-icon blue"><i class="ti ti-user"></i></span>
           <div><b>Имя</b><span>${esc(profile.name)}</span></div>
-          <button type="button" aria-label="Ещё"><i class="ti ti-dots"></i></button>
+          <button type="button" data-edit="name" aria-label="Изменить"><i class="ti ti-dots"></i></button>
         </div>
         <div class="account-row">
           <span class="settings-icon blue"><i class="ti ti-at"></i></span>
           <div><b>Имя пользователя</b><span>${esc(username)}</span></div>
-          <button type="button" aria-label="Ещё"><i class="ti ti-dots"></i></button>
+          <button type="button" data-edit="username" aria-label="Изменить"><i class="ti ti-dots"></i></button>
         </div>
         <div class="account-row">
           <span class="settings-icon blue"><i class="ti ti-phone"></i></span>
           <div><b>Телефон</b><span>через Telegram</span></div>
-          <button type="button" aria-label="Ещё"><i class="ti ti-dots"></i></button>
+          <button type="button" data-edit="phone" aria-label="Подробнее"><i class="ti ti-dots"></i></button>
         </div>
         <button class="account-row" type="button" data-action="add-email">
           <span class="settings-icon blue square"><i class="ti ti-mail"></i></span>
@@ -1027,6 +1196,10 @@ export async function accountScreen(_id, token) {
         </button>
       </section>
     </div>`;
+
+  view.querySelectorAll('[data-edit]').forEach(button => {
+    button.onclick = () => showAccountFieldSheet(button.dataset.edit, profile, username);
+  });
 }
 
 export function announcementsScreen() {
@@ -1173,6 +1346,65 @@ export function showAddEmailSheet() {
     if (add.disabled) return;
     saveState({ ...getState(), email: field.value.trim() });
     closeSettingsOverlay();
+    showEmailSentSheet();
+  };
+}
+
+function showEmailSentSheet() {
+  mountSheet(`
+    <div class="help-sheet email-sent-sheet">
+      <div class="confirm-handle"></div>
+      <div class="email-sent-badge"><i class="ti ti-mail"></i><span>SENT</span></div>
+      <h2>Письмо отправлено 🎉</h2>
+      <p>Перейдите по ссылке в письме. После подтверждения почта появится в аккаунте.</p>
+      <button class="announce-cta" id="emailGotIt">Понятно</button>
+    </div>`);
+  document.getElementById('emailGotIt').onclick = () => {
+    closeSettingsOverlay();
+    accountScreen();
+  };
+}
+
+function showAccountFieldSheet(field, profile, username) {
+  if (field === 'phone') {
+    mountSheet(`
+      <div class="help-sheet">
+        <div class="confirm-handle"></div>
+        <h2>Телефон</h2>
+        <p>Номер приходит из Telegram Mini App и не редактируется здесь. Чтобы сменить номер, обновите его в Telegram.</p>
+        <button class="announce-cta" data-action="close-sheet">Понятно</button>
+      </div>`);
+    return;
+  }
+
+  const isName = field === 'name';
+  const title = isName ? 'Имя' : 'Имя пользователя';
+  const value = isName ? (profile.name || '') : username.replace(/^@/, '');
+  const overlay = mountSheet(`
+    <div class="email-sheet">
+      <div class="confirm-handle"></div>
+      <header class="modal-head">
+        <button data-action="close-sheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <h1>${title}</h1>
+        <button class="head-action on" id="fieldSave">Сохранить</button>
+      </header>
+      <input class="email-input" id="fieldValue" maxlength="${isName ? 40 : 24}" value="${esc(value)}" ${isName ? '' : 'spellcheck="false"'}>
+      <p class="email-note">${isName ? 'Имя видно в профиле и чатах.' : 'Только латиница, цифры и _.'}</p>
+    </div>`);
+
+  const input = overlay.querySelector('#fieldValue');
+  input.focus();
+  input.setSelectionRange(value.length, value.length);
+  overlay.querySelector('#fieldSave').onclick = async () => {
+    const next = input.value.trim();
+    if (!next) return;
+    if (isName) {
+      await saveProfile({ name: next });
+    } else {
+      const slug = next.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24) || 'yaqin';
+      saveState({ ...getState(), username: slug, profile: { ...(getState().profile || {}), username: slug } });
+    }
+    closeSettingsOverlay();
     accountScreen();
   };
 }
@@ -1199,6 +1431,8 @@ export function showDeleteAccountDialog() {
   button.onclick = () => {
     if (button.disabled) return;
     closeSettingsOverlay();
+    localStorage.removeItem('yaqin-demo');
+    navigate('onboarding');
   };
 }
 
@@ -1220,7 +1454,7 @@ export function showAnnouncementLatest() {
           <p>Находите подходящих людей на вкладке «Люди». Настройки сохраняются в профиле.</p>
         </div>
         <button class="announce-cta" data-action="close-sheet">В приложение</button>
-        <p class="announce-legal">Нажимая «В приложение», вы соглашаетесь с <u>условиями и политикой</u>.</p>
+        <p class="announce-legal">Нажимая «В приложение», вы соглашаетесь с <button type="button" class="legal-inline" data-action="legal">условиями и политикой</button>.</p>
       </div>
     </div>`);
 }

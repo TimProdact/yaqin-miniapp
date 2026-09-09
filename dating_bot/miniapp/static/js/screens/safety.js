@@ -40,14 +40,28 @@ export function showPersonMenu(person) {
 
 export function showBlockConfirm(person) {
   const firstName = esc(person.name.split(' ')[0]);
-  mountOverlay(`
+  const overlay = mountOverlay(`
     <div class="confirm-sheet">
       <div class="confirm-handle"></div>
       <div class="confirm-icon"><i class="ti ti-alert-circle"></i></div>
       <h2>Заблокировать ${firstName}?</h2>
-      <button class="confirm-link" type="button">Что это значит?</button>
+      <button class="confirm-link" type="button" id="blockMeaning">Что это значит?</button>
       <button class="confirm-danger" data-action="block-user" data-id="${person.id}">Да, заблокировать</button>
       <button class="confirm-outline" data-action="close-sheet">Не надо</button>
+    </div>`);
+  overlay.querySelector('#blockMeaning').onclick = () => showBlockMeaning(person);
+}
+
+export function showBlockMeaning(person) {
+  const firstName = esc(person.name.split(' ')[0]);
+  mountOverlay(`
+    <div class="confirm-sheet">
+      <div class="confirm-handle"></div>
+      <div class="confirm-icon soft"><i class="ti ti-eye-off"></i></div>
+      <h2>Что значит блок</h2>
+      <p class="confirm-copy">${firstName} не увидит ваш профиль, не сможет писать вам и приглашать в группы. Вы тоже перестанете видеть её анкету. Разблокировать можно в настройках.</p>
+      <button class="confirm-danger" data-action="block-user" data-id="${person.id}">Да, заблокировать</button>
+      <button class="confirm-outline" data-action="block-confirm" data-id="${person.id}">Назад</button>
     </div>`);
 }
 

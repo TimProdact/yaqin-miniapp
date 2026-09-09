@@ -744,9 +744,114 @@ body[data-route='share-profile'] .nav {
 body[data-route='notifications'] .view,
 body[data-route='account'] .view,
 body[data-route='announcements'] .view,
+body[data-route='privacy'] .view,
+body[data-route='help'] .view,
+body[data-route='legal'] .view,
 body[data-route='share-profile'] .view {
   padding: 0 !important;
   background: #fff;
+}
+
+.settings-footer {
+  margin: 28px 8px 40px;
+  text-align: center;
+  color: #8e8e93;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.settings-brand {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  background: #fff292;
+  color: #171719;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+.settings-footer p { margin: 0; }
+
+.help-sheet {
+  padding: 8px 20px 28px;
+  text-align: center;
+}
+.help-sheet h2 {
+  margin: 8px 0 12px;
+  font-size: 22px;
+}
+.help-sheet p {
+  margin: 0 0 20px;
+  color: #55555c;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: left;
+}
+.email-sent-badge {
+  width: 72px;
+  height: 72px;
+  margin: 8px auto 12px;
+  border-radius: 20px;
+  background: #efe8ff;
+  color: #6d28d9;
+  display: grid;
+  place-items: center;
+  position: relative;
+  font-size: 30px;
+}
+.email-sent-badge span {
+  position: absolute;
+  right: -10px;
+  bottom: -6px;
+  background: #34c759;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 8px;
+}
+.legal-inline {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline;
+  font: inherit;
+}
+.role-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid #f0f0f2;
+}
+.role-toggle-row span {
+  flex: 1;
+  text-align: left;
+}
+.role-toggle-row b { display: block; font-size: 16px; }
+.role-toggle-row small {
+  display: block;
+  margin-top: 4px;
+  color: #8e8e93;
+  font-size: 13px;
+}
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  padding: 8px 4px 4px;
+}
+.emoji-pick {
+  height: 48px;
+  border: 1px solid #e5e5ea;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 22px;
+}
+.emoji-pick.on {
+  border-color: #171719;
+  background: #fff292;
 }
 
 .settings-hint {

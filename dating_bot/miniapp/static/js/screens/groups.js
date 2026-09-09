@@ -1216,8 +1216,14 @@ export function leaveGroupConfirm(id) {
 export function groupSettingsScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
-  let privacyOpen = false;
+  let sheet = null; // privacy | roles | emoji
   let privacy = 'open';
+  const roles = [
+    { id: 'admin', title: 'Админ', text: 'Менять настройки и комнаты', on: true },
+    { id: 'mod', title: 'Модератор', text: 'Удалять посты и банить', on: true },
+    { id: 'member', title: 'Участница', text: 'Писать и создавать события', on: true }
+  ];
+  let customEmoji = ['💛', '✨', '☕', '🌿'];
 
   const render = () => {
     view.innerHTML = `
@@ -1249,17 +1255,17 @@ export function groupSettingsScreen(id) {
             <span>Уведомления</span>
             <i class="ti ti-chevron-right"></i>
           </button>
-          <button class="settings-row" type="button">
+          <button class="settings-row" type="button" id="openEmoji">
             <span class="settings-icon purple"><i class="ti ti-mood-smile"></i></span>
-            <span>Свои эмодзи</span>
+            <span>Свои эмодзи<br><small>${customEmoji.join(' ')}</small></span>
             <i class="ti ti-chevron-right"></i>
           </button>
         </div>
         <h3 class="settings-label">Управление</h3>
         <div class="settings-block">
-          <button class="settings-row" type="button">
+          <button class="settings-row" type="button" id="openRoles">
             <span class="settings-icon orange"><i class="ti ti-crown"></i></span>
-            <span>Роли и права</span>
+            <span>Роли и права<br><small>${roles.filter(r => r.on).length} активных</small></span>
             <i class="ti ti-chevron-right"></i>
           </button>
           <button class="settings-row" type="button" data-action="report-flow" data-id="1">
@@ -1273,11 +1279,11 @@ export function groupSettingsScreen(id) {
             <i class="ti ti-chevron-right"></i>
           </button>
         </div>
-        ${privacyOpen ? `
+        ${sheet === 'privacy' ? `
           <div class="edit-sheet">
             <header>
               <h2>Конфиденциальность</h2>
-              <button type="button" id="closePrivacy">Готово</button>
+              <button type="button" id="closeSheet">Готово</button>
             </header>
             <div class="edit-radio-list">
               ${[
@@ -1291,19 +1297,67 @@ export function groupSettingsScreen(id) {
                 </button>`).join('')}
             </div>
           </div>` : ''}
+        ${sheet === 'roles' ? `
+          <div class="edit-sheet">
+            <header>
+              <h2>Роли и права</h2>
+              <button type="button" id="closeSheet">Готово</button>
+            </header>
+            <div class="edit-radio-list">
+              ${roles.map(role => `
+                <label class="role-toggle-row">
+                  <span><b>${esc(role.title)}</b><small>${esc(role.text)}</small></span>
+                  <input type="checkbox" data-role="${role.id}" ${role.on ? 'checked' : ''} ${role.id === 'member' ? 'disabled' : ''}>
+                </label>`).join('')}
+            </div>
+          </div>` : ''}
+        ${sheet === 'emoji' ? `
+          <div class="edit-sheet">
+            <header>
+              <h2>Свои эмодзи</h2>
+              <button type="button" id="closeSheet">Готово</button>
+            </header>
+            <div class="emoji-grid">
+              ${['💛', '✨', '☕', '🌿', '🌸', '🔥', '📚', '💬', '🫶', '🌙'].map(item => `
+                <button type="button" class="emoji-pick ${customEmoji.includes(item) ? 'on' : ''}" data-emoji="${item}">${item}</button>`).join('')}
+            </div>
+            <p class="settings-hint">Выбрано: ${customEmoji.join(' ')}</p>
+          </div>` : ''}
       </div>`;
     view.querySelector('#openPrivacy').onclick = () => {
-      privacyOpen = true;
+      sheet = 'privacy';
       render();
     };
-    view.querySelector('#closePrivacy')?.addEventListener('click', () => {
-      privacyOpen = false;
+    view.querySelector('#openRoles').onclick = () => {
+      sheet = 'roles';
+      render();
+    };
+    view.querySelector('#openEmoji').onclick = () => {
+      sheet = 'emoji';
+      render();
+    };
+    view.querySelector('#closeSheet')?.addEventListener('click', () => {
+      sheet = null;
       render();
     });
     view.querySelectorAll('[data-privacy]').forEach(button => {
       button.onclick = () => {
         privacy = button.dataset.privacy;
-        privacyOpen = false;
+        sheet = null;
+        render();
+      };
+    });
+    view.querySelectorAll('[data-role]').forEach(input => {
+      input.onchange = () => {
+        const role = roles.find(item => item.id === input.dataset.role);
+        if (role) role.on = input.checked;
+      };
+    });
+    view.querySelectorAll('[data-emoji]').forEach(button => {
+      button.onclick = () => {
+        const item = button.dataset.emoji;
+        if (customEmoji.includes(item)) customEmoji = customEmoji.filter(e => e !== item);
+        else if (customEmoji.length < 6) customEmoji = [...customEmoji, item];
         render();
       };
     });

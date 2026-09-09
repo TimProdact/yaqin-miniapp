@@ -60,7 +60,10 @@ import {
   showDeleteAccountDialog,
   showAnnouncementLatest,
   closeSettingsOverlay,
-  applyStoredTheme
+  applyStoredTheme,
+  privacyScreen,
+  helpScreen,
+  legalScreen
 } from './screens/me.js';
 import { onboardingScreen, startOnboardingFlow } from './screens/onboarding.js';
 
@@ -116,6 +119,9 @@ registerScreens({
   notifications: notificationsScreen,
   account: accountScreen,
   announcements: announcementsScreen,
+  privacy: privacyScreen,
+  help: helpScreen,
+  legal: legalScreen,
   'share-profile': shareProfileScreen,
   'edit-photos': editPhotosScreen,
   'group-notifications': groupNotificationsScreen,
@@ -185,6 +191,9 @@ async function handleAction(target) {
   if (action === 'delete-account') return showDeleteAccountDialog();
   if (action === 'leave-group') return leaveGroupConfirm(id);
   if (action === 'announcement-latest') return showAnnouncementLatest();
+  closeSettingsOverlay();
+  closeSafetyOverlay();
+  closeMessageMenu();
   return navigate(action, id === undefined ? undefined : Number(id));
 }
 
