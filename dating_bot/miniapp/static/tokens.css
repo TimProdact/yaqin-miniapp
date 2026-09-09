@@ -1,0 +1,107 @@
+/* Yaqin design tokens — source: design/DESIGN-SYSTEM.md (from BFF iOS Jan 2026) */
+:root {
+  /* Color — light */
+  --yaqin-bg: #ffffff;
+  --yaqin-bg-subtle: #f2f2f7;
+  --yaqin-bg-muted: #f8f8fa;
+  --yaqin-surface: #ffffff;
+  --yaqin-surface-raised: #ffffff;
+  --yaqin-text: #171719;
+  --yaqin-text-secondary: #55555c;
+  --yaqin-text-tertiary: #8e8e93;
+  --yaqin-sep: #e5e5ea;
+  --yaqin-sep-soft: #f0f0f2;
+  --yaqin-yellow: #fff292;
+  --yaqin-yellow-ink: #171719;
+  --yaqin-ink: #171719;
+  --yaqin-ink-inverse: #ffffff;
+  --yaqin-danger: #e21e4f;
+  --yaqin-danger-soft: #ffecef;
+  --yaqin-blue: #007aff;
+  --yaqin-link: #3b6ef5;
+  --yaqin-green: #34c759;
+  --yaqin-orange: #ff9500;
+  --yaqin-pink: #ff2d55;
+  --yaqin-purple: #af52de;
+  --yaqin-overlay: rgba(0, 0, 0, 0.45);
+
+  /* Typography */
+  --yaqin-font: 'Onest', system-ui, -apple-system, sans-serif;
+  --yaqin-fs-display: 34px;
+  --yaqin-fs-title: 28px;
+  --yaqin-fs-title-sm: 22px;
+  --yaqin-fs-modal: 17px;
+  --yaqin-fs-body: 16px;
+  --yaqin-fs-body-rg: 15px;
+  --yaqin-fs-secondary: 14px;
+  --yaqin-fs-caption: 13px;
+  --yaqin-fs-micro: 12px;
+  --yaqin-fs-badge: 11px;
+
+  /* Space */
+  --yaqin-space-1: 4px;
+  --yaqin-space-2: 8px;
+  --yaqin-space-3: 12px;
+  --yaqin-space-4: 16px;
+  --yaqin-space-5: 20px; /* page gutter */
+  --yaqin-space-6: 24px;
+  --yaqin-space-7: 32px;
+  --yaqin-space-8: 40px;
+  --yaqin-gutter: var(--yaqin-space-5);
+  --yaqin-header-h: 52px;
+  --yaqin-row-h: 72px;
+  --yaqin-nav-h: 76px;
+  --yaqin-fab-size: 56px;
+
+  /* Radius */
+  --yaqin-radius-xs: 8px;
+  --yaqin-radius-sm: 12px;
+  --yaqin-radius-md: 16px;
+  --yaqin-radius-lg: 20px;
+  --yaqin-radius-xl: 28px;
+  --yaqin-radius-pill: 999px;
+
+  /* Safe area (JS may override --yaqin-safe-*) */
+  --yaqin-safe-top: max(
+    env(safe-area-inset-top, 0px),
+    var(--tg-safe-area-inset-top, 0px)
+  );
+  --yaqin-safe-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    var(--tg-safe-area-inset-bottom, 0px)
+  );
+}
+
+html[data-theme='dark'] {
+  --yaqin-bg: #000000;
+  --yaqin-bg-subtle: #1c1c1e;
+  --yaqin-bg-muted: #1c1c1e;
+  --yaqin-surface: #000000;
+  --yaqin-surface-raised: #1c1c1e;
+  --yaqin-text: #f2f2f7;
+  --yaqin-text-secondary: #98989f;
+  --yaqin-text-tertiary: #98989f;
+  --yaqin-sep: #2c2c2e;
+  --yaqin-sep-soft: #2c2c2e;
+  --yaqin-ink: #f2f2f7;
+  --yaqin-ink-inverse: #000000;
+  --yaqin-overlay: rgba(0, 0, 0, 0.62);
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme='system'] {
+    --yaqin-bg: #000000;
+    --yaqin-bg-subtle: #1c1c1e;
+    --yaqin-bg-muted: #1c1c1e;
+    --yaqin-surface: #000000;
+    --yaqin-surface-raised: #1c1c1e;
+    --yaqin-text: #f2f2f7;
+    --yaqin-text-secondary: #98989f;
+    --yaqin-text-tertiary: #98989f;
+    --yaqin-sep: #2c2c2e;
+    --yaqin-sep-soft: #2c2c2e;
+    --yaqin-ink: #f2f2f7;
+    --yaqin-ink-inverse: #000000;
+    --yaqin-overlay: rgba(0, 0, 0, 0.62);
+  }
+}

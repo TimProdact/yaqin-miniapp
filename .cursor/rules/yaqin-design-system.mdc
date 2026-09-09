@@ -1,0 +1,26 @@
+---
+description: Yaqin UI follows BFF-derived design system (tokens + DESIGN-SYSTEM.md)
+alwaysApply: true
+---
+
+# Yaqin Design System
+
+Источник: `yaqin-miniapp/design/DESIGN-SYSTEM.md` + PNG в `design/bff-ios-jan-2026/`.  
+CSS-токены: `dating_bot/miniapp/static/tokens.css`.
+
+## Обязательно
+
+- Новые/правимые стили — через `var(--yaqin-*)`, не сырые `#fff` / случайные `15px`/`36px`.
+- Page gutter = `--yaqin-gutter` (20px). Page title = `--yaqin-fs-title` (28/700).
+- Primary fill = `--yaqin-ink`. Accent = `--yaqin-yellow`. Danger = `--yaqin-danger`.
+- Pills/кнопки = `--yaqin-radius-pill`. Cards = `--yaqin-radius-md`–`lg`.
+- Dark: оболочка `.app`/body/view/headers = `--yaqin-bg`; карточки = `--yaqin-surface-raised`. Запрещены белые карточки со светлым текстом и белая рамка вокруг чёрных страниц.
+- Safe-area: `--yaqin-safe-top/bottom` (sum TG insets + clamp); фон отступа = `--yaqin-bg`.
+- Перед новым экраном — PNG из соответствующего flow BFF; имена полей/сущностей не выдумывать.
+
+## Не делать
+
+- MUI/Ant/shadcn/Bootstrap.
+- Letterbox `max-width: 442` на мобильном WebView.
+- Force safe-top 54px «на глаз».
+- Смешивать `#fff18a` / `#fff292` / `#ff5a5f` / `#e01e43` — только токены.

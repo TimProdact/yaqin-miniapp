@@ -1,25 +1,9 @@
 html, body {
   overflow: hidden;
   height: 100%;
-  background: var(--yaqin-bg, #fff);
-}
-
-:root {
-  --yaqin-bg: #fff;
-  --yaqin-surface: #fff;
-  --yaqin-text: #171719;
-  --yaqin-muted: #8e8e93;
-  --yaqin-sep: #f0f0f2;
-  /* Telegram injects --tg-safe-area-* and --tg-content-safe-area-*.
-     JS sets --yaqin-safe-top (sum + clamp). */
-  --yaqin-safe-top: max(
-    env(safe-area-inset-top, 0px),
-    var(--tg-safe-area-inset-top, 0px)
-  );
-  --yaqin-safe-bottom: max(
-    env(safe-area-inset-bottom, 0px),
-    var(--tg-safe-area-inset-bottom, 0px)
-  );
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  font-family: var(--yaqin-font);
 }
 
 .app {
@@ -60,11 +44,11 @@ html, body {
   bottom: 0 !important;
   z-index: 30 !important;
   background: var(--yaqin-surface) !important;
-  border-top-color: var(--yaqin-sep) !important;
-  padding-bottom: max(12px, var(--yaqin-safe-bottom), env(safe-area-inset-bottom, 12px)) !important;
+  border-top: 1px solid var(--yaqin-sep) !important;
+  padding-bottom: max(12px, var(--yaqin-safe-bottom)) !important;
 }
 
-body:not(.full-screen) .view { padding-bottom: 96px; }
+body:not(.full-screen) .view { padding-bottom: calc(var(--yaqin-nav-h) + 20px); }
 body.profile-open .view {
   height: auto !important;
   padding-bottom: 0 !important;
@@ -76,7 +60,6 @@ body.full-screen .view {
   padding-bottom: 0;
 }
 
-/* Page headers stay above scrolling content — same surface as theme */
 .chats-head,
 .modal-head,
 .filters-head,
@@ -98,28 +81,30 @@ body.full-screen .view {
 .gchat-top,
 .sheet-head {
   flex-shrink: 0;
+  min-height: var(--yaqin-header-h);
 }
 
 .me-tabs {
   position: sticky;
-  top: 64px;
+  top: var(--yaqin-header-h);
   z-index: 14;
   background: var(--yaqin-surface);
 }
 
 .gchat-top {
-  border-bottom: 1px solid var(--yaqin-sep);
+  border-bottom: 1px solid var(--yaqin-sep-soft);
 }
 
 .compose {
-  bottom: calc(96px + var(--yaqin-safe-bottom, 0px)) !important;
+  bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 12px) !important;
+  width: var(--yaqin-fab-size) !important;
+  height: var(--yaqin-fab-size) !important;
 }
 
-/* Desktop / wide preview only */
 @media (min-width: 520px) {
   html, body { background: #e6e1e7; }
-  html[data-theme='dark'] body,
-  html[data-theme='dark'] {
+  html[data-theme='dark'],
+  html[data-theme='dark'] body {
     background: #111;
   }
   .app {
@@ -128,7 +113,6 @@ body.full-screen .view {
   }
 }
 
-/* Видимая ошибка вместо белого экрана */
 .yaqin-boot-error {
   position: fixed;
   inset: 0;
