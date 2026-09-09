@@ -1705,3 +1705,22 @@ body[data-route='group-settings'] .view { padding: 0 !important; background: #ff
 .settings-icon.orange { background: #fff0e0; color: #ff9500; }
 .settings-icon.red { background: #ffe8e8; color: #ff3b30; }
 .settings-row.danger span:nth-child(2) { color: #ff3b30; }
+
+.hub-members { display: grid; gap: 4px; }
+.hub-member {
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  text-align: left;
+}
+.hub-member img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.hub-member strong { display: block; font-size: 16px; }
+.hub-member span { color: #8e8e93; font-size: 13px; }

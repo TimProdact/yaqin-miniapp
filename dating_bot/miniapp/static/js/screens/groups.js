@@ -258,12 +258,14 @@ export function groupHubScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
   let menuOpen = false;
+  let tab = 'rooms';
   const rooms = [
     { id: 'intros', icon: 'star', title: 'Знакомства' },
     { id: 'chat', icon: 'message-circle', title: 'Чат', action: 'group-chat' },
     { id: 'events', icon: 'calendar-event', title: 'События', action: 'group-posts' },
     { id: 'recs', icon: 'file-text', title: 'Рекомендации' }
   ];
+  const members = [people[0], people[1], people[2]];
 
   const render = () => {
     view.innerHTML = `
@@ -279,7 +281,7 @@ export function groupHubScreen(id) {
         ${menuOpen ? `
           <div class="hub-menu-pop">
             <button type="button"><i class="ti ti-arrows-sort"></i> Упорядочить комнаты</button>
-            <button type="button"><i class="ti ti-users"></i> Участницы</button>
+            <button type="button" id="tabMembers"><i class="ti ti-users"></i> Участницы</button>
             <button type="button" data-action="group-settings" data-id="${group.id}"><i class="ti ti-settings"></i> Настройки</button>
             <button type="button" data-action="report-flow" data-id="1"><i class="ti ti-flag"></i> Жалобы</button>
           </div>` : ''}
@@ -293,25 +295,48 @@ export function groupHubScreen(id) {
           <button class="hub-invite" type="button"><i class="ti ti-user-plus"></i> Пригласить</button>
         </div>
         <div class="hub-tabs">
-          <button class="on">Комнаты</button>
-          <button data-action="events">События</button>
-          <button>Участницы</button>
+          <button class="${tab === 'rooms' ? 'on' : ''}" data-tab="rooms">Комнаты</button>
+          <button class="${tab === 'events' ? 'on' : ''}" data-action="events">События</button>
+          <button class="${tab === 'members' ? 'on' : ''}" data-tab="members">Участницы</button>
           <button data-action="group" data-id="${group.id}">О группе</button>
         </div>
-        <h3 class="hub-label">КОМНАТЫ</h3>
-        <div class="hub-rooms">
-          ${rooms.map(room => `
-            <button class="hub-room" type="button" ${room.action ? `data-action="${room.action}" data-id="${group.id}"` : ''}>
-              <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
-              <b>${esc(room.title)}</b>
-            </button>`).join('')}
-        </div>
+        ${tab === 'members' ? `
+          <h3 class="hub-label">УЧАСТНИЦЫ</h3>
+          <div class="hub-members">
+            ${members.map((person, index) => `
+              <button class="hub-member" type="button" data-action="person" data-id="${person.id}">
+                <img src="${esc(person.photo)}" alt="">
+                <div>
+                  <strong>${esc(person.name)}</strong>
+                  <span>${index === 0 ? 'Организатор' : 'Участница'}</span>
+                </div>
+              </button>`).join('')}
+          </div>` : `
+          <h3 class="hub-label">КОМНАТЫ</h3>
+          <div class="hub-rooms">
+            ${rooms.map(room => `
+              <button class="hub-room" type="button" ${room.action ? `data-action="${room.action}" data-id="${group.id}"` : ''}>
+                <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
+                <b>${esc(room.title)}</b>
+              </button>`).join('')}
+          </div>`}
         <button class="compose coral" data-action="create-post" data-id="${group.id}" aria-label="Создать"><i class="ti ti-plus"></i></button>
       </div>`;
     view.querySelector('#hubMenu').onclick = () => {
       menuOpen = !menuOpen;
       render();
     };
+    view.querySelector('#tabMembers')?.addEventListener('click', () => {
+      tab = 'members';
+      menuOpen = false;
+      render();
+    });
+    view.querySelectorAll('[data-tab]').forEach(button => {
+      button.onclick = () => {
+        tab = button.dataset.tab;
+        render();
+      };
+    });
   };
   render();
 }
