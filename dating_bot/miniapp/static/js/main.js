@@ -58,8 +58,17 @@ import {
 import { onboardingScreen, startOnboardingFlow } from './screens/onboarding.js';
 
 const telegram = window.Telegram?.WebApp;
-telegram?.ready();
-telegram?.expand();
+try {
+  telegram?.ready();
+  telegram?.expand();
+  // Подстраховка: не даём content-safe-area раздуть padding до пустого экрана.
+  const top = Number(telegram?.safeAreaInset?.top || 0);
+  if (top > 0 && top < 120) {
+    document.documentElement.style.setProperty('--tg-safe-area-inset-top', `${top}px`);
+  }
+} catch (_) {
+  /* ignore Telegram bridge errors */
+}
 applyStoredTheme();
 
 registerScreens({

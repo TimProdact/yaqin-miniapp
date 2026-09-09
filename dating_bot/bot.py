@@ -20,6 +20,9 @@ logging.basicConfig(level=logging.INFO)
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 DB_PATH = os.getenv("DB_PATH", "dating_bot.sqlite3")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "")
+if WEBAPP_URL and not WEBAPP_URL.rstrip("/").endswith((".html", ".htm")):
+    WEBAPP_URL = WEBAPP_URL.rstrip("/") + "/"
+
 MODERATOR_IDS = {int(value) for value in os.getenv("MODERATOR_IDS", "").split(",") if value.strip().isdigit()}
 router = Router()
 

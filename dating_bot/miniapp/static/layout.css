@@ -1,1 +1,79 @@
-html,body{overflow:hidden;height:100%;background:#e6e1e7}.app{width:100%;max-width:442px;height:100dvh;min-height:100dvh;padding-top:max(84px,env(safe-area-inset-top,0px),var(--tg-content-safe-area-inset-top,0px));display:flex;flex-direction:column;margin:auto;background:#fff;box-shadow:0 0 0 1px #00000010}.brand-footer{display:none}.app-header{flex:0 0 auto}.view{flex:1;min-height:0;height:auto!important;overflow-y:auto;overscroll-behavior:contain}.nav{bottom:0!important;padding-bottom:max(32px,env(safe-area-inset-bottom,32px))!important}body:not(.full-screen) .view{padding-bottom:108px}body.profile-open .view{height:auto!important;padding-bottom:0!important}body.full-screen .app-header{display:none}body.full-screen .view{height:100%!important;flex:1;padding-bottom:0}@media(max-width:442px){.app{box-shadow:none}}
+html, body {
+  overflow: hidden;
+  height: 100%;
+  background: #e6e1e7;
+}
+
+.app {
+  width: 100%;
+  max-width: 442px;
+  height: 100dvh;
+  min-height: 100dvh;
+  /* Не суммируем tg-content-safe-area с фиксированными 84px — в WebView Telegram
+     это выталкивает весь UI за экран (белый пустой мини-апп). */
+  padding-top: max(
+    env(safe-area-inset-top, 0px),
+    var(--tg-safe-area-inset-top, 0px)
+  );
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  background: #fff;
+  box-shadow: 0 0 0 1px #00000010;
+}
+
+.brand-footer { display: none; }
+.app-header { flex: 0 0 auto; }
+
+.view {
+  flex: 1;
+  min-height: 0;
+  height: auto !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.nav {
+  bottom: 0 !important;
+  padding-bottom: max(32px, env(safe-area-inset-bottom, 32px)) !important;
+}
+
+body:not(.full-screen) .view { padding-bottom: 108px; }
+body.profile-open .view {
+  height: auto !important;
+  padding-bottom: 0 !important;
+}
+body.full-screen .app-header { display: none; }
+body.full-screen .view {
+  height: 100% !important;
+  flex: 1;
+  padding-bottom: 0;
+}
+
+@media (max-width: 442px) {
+  .app { box-shadow: none; }
+}
+
+/* Видимая ошибка вместо белого экрана */
+.yaqin-boot-error {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #fff;
+  color: #171719;
+  padding: 24px 20px;
+  font: 15px/1.45 system-ui, sans-serif;
+  overflow: auto;
+}
+.yaqin-boot-error h1 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+.yaqin-boot-error pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f4f4f6;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 12px;
+}

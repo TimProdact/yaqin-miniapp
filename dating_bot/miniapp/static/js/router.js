@@ -73,13 +73,21 @@ export function goBack() {
 }
 
 export function render() {
-  document.body.dataset.route = currentRoute;
-  document.body.classList.toggle('full-screen', FULL_SCREEN_ROUTES.has(currentRoute));
-  document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
-  document.body.classList.toggle('sheet-view', SHEET_ROUTES.has(currentRoute));
-  syncNav();
-  const screen = screens.get(currentRoute);
-  if (screen) screen(selectedId, ++renderToken);
+  try {
+    document.body.dataset.route = currentRoute;
+    document.body.classList.toggle('full-screen', FULL_SCREEN_ROUTES.has(currentRoute));
+    document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
+    document.body.classList.toggle('sheet-view', SHEET_ROUTES.has(currentRoute));
+    syncNav();
+    const screen = screens.get(currentRoute);
+    if (screen) screen(selectedId, ++renderToken);
+  } catch (error) {
+    console.error(error);
+    const view = document.getElementById('view');
+    if (view) {
+      view.innerHTML = `<div class="yaqin-boot-error" style="position:static;padding:24px"><h1>Ошибка экрана</h1><pre>${String(error?.stack || error)}</pre></div>`;
+    }
+  }
 }
 
 /** Async screens use this to drop results that arrived after the user moved on. */

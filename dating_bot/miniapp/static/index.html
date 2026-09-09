@@ -4,6 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Yaqin</title>
+  <script>
+    // Telegram WebView часто не следует 301 GitHub Pages без завершающего `/`,
+    // из‑за чего ломаются относительные `./js/main.js` → пустой экран.
+    (function () {
+      var path = location.pathname;
+      if (path.slice(-1) !== '/' && !/\.[a-z0-9]+$/i.test(path)) {
+        location.replace(path + '/' + location.search + location.hash);
+      }
+    })();
+    window.addEventListener('error', function (event) {
+      if (document.getElementById('yaqin-boot-error')) return;
+      var box = document.createElement('div');
+      box.id = 'yaqin-boot-error';
+      box.className = 'yaqin-boot-error';
+      box.innerHTML = '<h1>Yaqin не загрузился</h1><pre></pre>';
+      box.querySelector('pre').textContent = String(event.message || event.error || event);
+      document.documentElement.appendChild(box);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      if (document.getElementById('yaqin-boot-error')) return;
+      var box = document.createElement('div');
+      box.id = 'yaqin-boot-error';
+      box.className = 'yaqin-boot-error';
+      box.innerHTML = '<h1>Yaqin не загрузился</h1><pre></pre>';
+      box.querySelector('pre').textContent = String(event.reason || event);
+      document.documentElement.appendChild(box);
+    });
+  </script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
