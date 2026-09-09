@@ -7,6 +7,7 @@
 **/bot.log
 **/miniapp.log
 screenshots/
+design/**/*.png
 *.png
 *.jpg
 *.jpeg
