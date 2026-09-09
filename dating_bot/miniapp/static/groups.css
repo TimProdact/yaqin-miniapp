@@ -2230,3 +2230,23 @@ body[data-route='create-event'] .view { padding: 0 !important; background: #fff;
   display: block;
   object-fit: cover;
 }
+
+.leave-sheet {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+}
+.leave-sheet h2 { margin: 0 0 8px; font-size: 20px; }
+.leave-sheet p { margin: 0 0 18px; color: #6b6b73; }
+.leave-sheet button {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.leave-sheet .danger { background: #ff3b30; color: #fff; }
+.leave-sheet #cancelLeave { background: #f2f2f7; color: #171719; }

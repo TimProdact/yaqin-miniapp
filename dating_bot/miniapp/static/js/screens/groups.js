@@ -107,8 +107,7 @@ export function groupScreen(id) {
       render();
     };
     view.querySelector('#leaveGroup')?.addEventListener('click', () => {
-      group.joined = false;
-      navigate('groups');
+      leaveGroupConfirm(group.id);
     });
   };
   render();
@@ -721,6 +720,34 @@ export function groupSearchScreen(id) {
   render();
 }
 
+export function leaveGroupConfirm(id) {
+  const group = groups[Number(id) || 0] || groups[0];
+  const overlay = document.createElement('div');
+  overlay.className = 'safety-overlay';
+  overlay.innerHTML = `
+    <div class="leave-sheet">
+      <h2>Покинуть «${esc(group.title)}»?</h2>
+      <p>Вы перестанете получать сообщения и посты этой группы.</p>
+      <button type="button" class="danger" id="confirmLeave">Покинуть группу</button>
+      <button type="button" id="cancelLeave">Отмена</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add('safety-open');
+  const close = () => {
+    overlay.remove();
+    document.body.classList.remove('safety-open');
+  };
+  overlay.querySelector('#cancelLeave').onclick = close;
+  overlay.querySelector('#confirmLeave').onclick = () => {
+    group.joined = false;
+    close();
+    navigate('groups');
+  };
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) close();
+  });
+}
+
 export function groupSettingsScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
@@ -771,13 +798,14 @@ export function groupSettingsScreen(id) {
           <span>Пожаловаться на группу</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row danger" type="button" data-action="groups">
+        <button class="settings-row danger" type="button" id="leaveFromSettings">
           <span class="settings-icon red"><i class="ti ti-logout"></i></span>
           <span>Покинуть группу</span>
           <i class="ti ti-chevron-right"></i>
         </button>
       </div>
     </div>`;
+  view.querySelector('#leaveFromSettings').onclick = () => leaveGroupConfirm(group.id);
 }
 
 export function postCommentsScreen(id) {
