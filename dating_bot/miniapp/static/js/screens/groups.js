@@ -5,19 +5,23 @@ import { navigate } from '../router.js';
 const JOIN_QUESTIONS = [
   {
     text: 'Вы живёте в Ташкенте или планируете переезд?',
+    type: 'choice',
     options: ['Да', 'Нет']
   },
   {
+    text: 'Сколько вам лет?',
+    type: 'text',
+    placeholder: 'Ваш ответ'
+  },
+  {
     text: 'Зачем хотите вступить в группу?',
+    type: 'choice',
     options: ['Найти подруг', 'Ходить на встречи', 'Просто посмотреть']
   },
   {
-    text: 'Готовы приходить на офлайн-встречи?',
-    options: ['Да', 'Иногда', 'Пока онлайн']
-  },
-  {
-    text: 'Согласны с правилами сообщества?',
-    options: ['Да, согласна', 'Нужно почитать']
+    text: 'Что хотите получить от этой группы?',
+    type: 'text',
+    placeholder: 'Ваш ответ'
   }
 ];
 
@@ -1584,20 +1588,37 @@ export function organizeRoomsScreen(id) {
           <h1>Комнаты</h1>
           <button class="head-action on" data-action="group-hub" data-id="${group.id}">Готово</button>
         </header>
-        <p class="loc-sub">Перетащите, чтобы изменить порядок</p>
+        <p class="loc-sub">Изменения видят все участницы группы</p>
         <div class="organize-list">
-          ${rooms.map((room, index) => `
+          ${rooms.filter(room => room.category === 'Без категории' || !room.category).map((room, index) => {
+            const realIndex = rooms.indexOf(room);
+            return `
             <div class="organize-row">
               <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
-              <button type="button" class="organize-title" data-edit="${index}">
+              <button type="button" class="organize-title" data-edit="${realIndex}">
                 ${esc(room.title)}
-                <small>${esc(privacyLabel[room.privacy] || 'Открытая')} · ${esc(room.category || 'Без категории')}</small>
+                <small>${esc(privacyLabel[room.privacy] || 'Открытая')}</small>
               </button>
               <div class="organize-actions">
-                <button type="button" data-up="${index}" ${index === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
-                <button type="button" data-down="${index}" ${index === rooms.length - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
+                <button type="button" data-up="${realIndex}" ${realIndex === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
+                <button type="button" data-down="${realIndex}" ${realIndex === rooms.length - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
               </div>
-            </div>`).join('')}
+            </div>`;
+          }).join('')}
+        </div>
+        <h3 class="hub-label">КАТЕГОРИИ</h3>
+        <div class="organize-list">
+          ${rooms.filter(room => room.category && room.category !== 'Без категории').map(room => {
+            const realIndex = rooms.indexOf(room);
+            return `
+            <div class="organize-row">
+              <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
+              <button type="button" class="organize-title" data-edit="${realIndex}">
+                ${esc(room.title)}
+                <small>${esc(room.category)}</small>
+              </button>
+            </div>`;
+          }).join('') || '<p class="muted cat-empty">Пока нет категорий — создайте при добавлении комнаты</p>'}
         </div>
         <button class="add-room-btn" type="button" id="addRoom"><i class="ti ti-plus"></i> Добавить комнату</button>
         <button class="invite-room-btn" type="button" data-action="invite-sheet" data-id="${group.id}"><i class="ti ti-user-plus"></i> Пригласить в комнаты</button>
@@ -1948,38 +1969,54 @@ export function joinGroupScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0];
   let step = 0;
-  let answers = JOIN_QUESTIONS.map(() => null);
+  let answers = JOIN_QUESTIONS.map(() => '');
+
+  const answered = () => {
+    const question = JOIN_QUESTIONS[step];
+    if (question.type === 'choice') return answers[step] !== '' && answers[step] !== null;
+    return String(answers[step] || '').trim().length > 0;
+  };
 
   const render = () => {
     const question = JOIN_QUESTIONS[step];
+    const ready = answered();
     view.innerHTML = `
       <div class="join-page">
         <header class="modal-head">
           <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <span></span>
-          <button class="head-action ${answers[step] !== null ? 'on' : ''}" id="joinNext" ${answers[step] === null ? 'disabled' : ''}>${step === JOIN_QUESTIONS.length - 1 ? 'Готово' : 'Далее'}</button>
+          <button class="head-action ${ready ? 'on' : ''}" id="joinNext" ${ready ? '' : 'disabled'}>${step === JOIN_QUESTIONS.length - 1 ? 'Отправить' : 'Далее'}</button>
         </header>
         <img class="join-cover" src="${esc(group.photo)}" alt="">
         <h1>${esc(group.title)}</h1>
         <p class="join-step">${step + 1}/${JOIN_QUESTIONS.length}</p>
         <h2>${esc(question.text)}</h2>
-        <div class="join-options">
-          ${question.options.map((option, index) => `
-            <button type="button" class="join-option ${answers[step] === index ? 'on' : ''}" data-option="${index}">
-              ${esc(option)}
-            </button>`).join('')}
-        </div>
+        ${question.type === 'choice' ? `
+          <div class="join-options">
+            ${question.options.map(option => `
+              <button type="button" class="join-option ${answers[step] === option ? 'on' : ''}" data-option="${esc(option)}">
+                ${esc(option)}
+              </button>`).join('')}
+          </div>` : `
+          <textarea class="join-answer" id="joinAnswer" placeholder="${esc(question.placeholder || 'Ваш ответ')}" rows="4">${esc(answers[step] || '')}</textarea>`}
       </div>`;
 
     view.querySelectorAll('[data-option]').forEach(button => {
       button.onclick = () => {
-        answers[step] = Number(button.dataset.option);
+        answers[step] = button.dataset.option;
         render();
       };
     });
+    view.querySelector('#joinAnswer')?.addEventListener('input', event => {
+      answers[step] = event.target.value;
+      const btn = view.querySelector('#joinNext');
+      const ok = event.target.value.trim().length > 0;
+      btn.disabled = !ok;
+      btn.classList.toggle('on', ok);
+    });
 
     view.querySelector('#joinNext').onclick = () => {
-      if (answers[step] === null) return;
+      if (!answered()) return;
       if (step < JOIN_QUESTIONS.length - 1) {
         step += 1;
         render();
@@ -1988,6 +2025,11 @@ export function joinGroupScreen(id) {
       group.joined = true;
       navigate('group-hub', group.id);
     };
+    if (question.type === 'text' && answers[step]) {
+      const input = view.querySelector('#joinAnswer');
+      input?.focus();
+      input?.setSelectionRange(answers[step].length, answers[step].length);
+    }
   };
 
   render();
@@ -2051,48 +2093,75 @@ export function createEventScreen(id) {
 
 export function eventsScreen() {
   clearHeader();
-  view.innerHTML = `
-    <div class="events-page">
-      <header class="chats-head">
-        <h1>События</h1>
-        <button data-action="create-event" data-id="0" aria-label="Создать"><i class="ti ti-plus"></i></button>
-      </header>
+  let month = 'Сентябрь 2026';
+  const emptyMonths = ['Октябрь 2026', 'Ноябрь 2026', 'Декабрь 2026'];
 
-      <section class="events-calendar">
-        <h2>Сентябрь 2026</h2>
-        <div class="cal-week">${['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'].map(day => `<span>${day}</span>`).join('')}</div>
-        <div class="cal-grid">
-          ${Array.from({ length: 30 }, (_, index) => {
-            const day = index + 1;
-            const marked = events.some(event => Number(event.day) === day);
-            const selected = day === 14;
-            return `<button class="${selected ? 'on' : ''} ${marked ? 'dot' : ''}" type="button">${day}</button>`;
-          }).join('')}
-        </div>
-      </section>
+  const render = () => {
+    const empty = month !== 'Сентябрь 2026';
+    view.innerHTML = `
+      <div class="events-page">
+        <header class="chats-head">
+          <h1>События</h1>
+          <button data-action="create-event" data-id="0" aria-label="Создать"><i class="ti ti-plus"></i></button>
+        </header>
 
-      <div class="events-list">
-        ${events.map(event => `
-          <button class="event-card" data-action="event" data-id="${event.id}">
-            <div class="event-date"><span>${esc(event.month)}</span><b>${esc(event.day)}</b></div>
-            <div class="event-copy">
-              <strong>${esc(event.title)}</strong>
-              <span class="when">${esc(event.when)}</span>
-              <span class="where">${esc(event.place)}</span>
-              <div class="event-foot">
-                <span>${event.going} идут</span>
-                <em>RSVP</em>
-              </div>
-            </div>
-          </button>`).join('')}
-      </div>
-    </div>`;
+        <section class="events-calendar">
+          <button class="events-month" type="button" id="cycleMonth">${esc(month)} <i class="ti ti-chevron-down"></i></button>
+          ${empty ? `
+            <div class="events-empty-month">
+              <i class="ti ti-calendar-off"></i>
+              <p>В этом месяце пока нет событий</p>
+            </div>` : `
+            <div class="cal-week">${['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'].map(day => `<span>${day}</span>`).join('')}</div>
+            <div class="cal-grid">
+              ${Array.from({ length: 30 }, (_, index) => {
+                const day = index + 1;
+                const marked = events.some(event => Number(event.day) === day);
+                const selected = day === 14;
+                return `<button class="${selected ? 'on' : ''} ${marked ? 'dot' : ''}" type="button">${day}</button>`;
+              }).join('')}
+            </div>`}
+        </section>
+
+        ${empty ? '' : `
+          <div class="events-list">
+            ${events.map(event => `
+              <button class="event-card" data-action="event" data-id="${event.id}">
+                <div class="event-date"><span>${esc(event.month)}</span><b>${esc(event.day)}</b></div>
+                <div class="event-copy">
+                  <strong>${esc(event.title)}</strong>
+                  <span class="when">${esc(event.when)}</span>
+                  <span class="where">${esc(event.place)}</span>
+                  <div class="event-foot">
+                    <span>${event.going} идут</span>
+                    <em>RSVP</em>
+                  </div>
+                </div>
+              </button>`).join('')}
+          </div>`}
+      </div>`;
+    view.querySelector('#cycleMonth').onclick = () => {
+      const all = ['Сентябрь 2026', ...emptyMonths];
+      const index = all.indexOf(month);
+      month = all[(index + 1) % all.length];
+      render();
+    };
+  };
+  render();
 }
 
 export function eventScreen(id) {
   clearHeader();
   const event = events[Number(id) || 0];
   let rsvp = 'going';
+  let rsvpOpen = false;
+  let rsvpTab = 'going';
+
+  const lists = {
+    going: people.slice(0, 4),
+    maybe: people.slice(1, 3),
+    later: people.slice(2, 4)
+  };
 
   const render = () => {
     view.innerHTML = `
@@ -2111,7 +2180,7 @@ export function eventScreen(id) {
           <li><i class="ti ti-user"></i>Создала ${esc(event.host)}</li>
           <li><i class="ti ti-clock"></i>${esc(event.when)}</li>
           <li><i class="ti ti-map-pin"></i><div><b>${esc(event.place)}</b><span>${esc(event.address)}</span></div></li>
-          <li><i class="ti ti-check"></i>${event.going + (rsvp === 'going' ? 0 : 0)} человек идут</li>
+          <li><button type="button" id="openRsvp"><i class="ti ti-check"></i>${event.going} человек идут</button></li>
         </ul>
         <div class="event-avatars">
           ${[people[0].photo, people[1].photo, people[2].photo].map((src, index) => `<img src="${esc(src)}" alt="" style="--i:${index}">`).join('')}
@@ -2121,10 +2190,54 @@ export function eventScreen(id) {
           <button type="button" data-rsvp="maybe" class="${rsvp === 'maybe' ? 'on' : ''}">Интересно 👋</button>
           <button type="button" data-rsvp="going" class="${rsvp === 'going' ? 'on' : ''}">Иду 👍</button>
         </div>
+        <button class="event-chat-btn" type="button" data-action="group-chat" data-id="0"><i class="ti ti-message-circle"></i> Чат события</button>
+        ${rsvp === 'going' ? `
+          <div class="event-activity">
+            <img src="${esc(people[0].photo)}" alt="">
+            <div>
+              <b>${esc(people[0].name)}</b>
+              <span>идёт · только что</span>
+            </div>
+            <button type="button" data-action="group-chat" data-id="0">18 сообщ. <i class="ti ti-chevron-right"></i></button>
+          </div>` : ''}
+        ${rsvpOpen ? `
+          <div class="rsvp-sheet">
+            <header>
+              <h2>RSVP</h2>
+              <button type="button" id="closeRsvp"><i class="ti ti-x"></i></button>
+            </header>
+            <div class="rsvp-tabs">
+              <button class="${rsvpTab === 'going' ? 'on' : ''}" data-rtab="going">Идут</button>
+              <button class="${rsvpTab === 'maybe' ? 'on' : ''}" data-rtab="maybe">Интересно</button>
+              <button class="${rsvpTab === 'later' ? 'on' : ''}" data-rtab="later">В другой раз</button>
+            </div>
+            <div class="rsvp-list">
+              ${lists[rsvpTab].map(person => `
+                <button type="button" data-action="person" data-id="${person.id}">
+                  <img src="${esc(person.photo)}" alt="">
+                  <b>${esc(person.name)}</b>
+                  <span>${esc(person.city)}</span>
+                </button>`).join('')}
+            </div>
+          </div>` : ''}
       </article>`;
     view.querySelectorAll('[data-rsvp]').forEach(button => {
       button.onclick = () => {
         rsvp = button.dataset.rsvp;
+        render();
+      };
+    });
+    view.querySelector('#openRsvp')?.addEventListener('click', () => {
+      rsvpOpen = true;
+      render();
+    });
+    view.querySelector('#closeRsvp')?.addEventListener('click', () => {
+      rsvpOpen = false;
+      render();
+    });
+    view.querySelectorAll('[data-rtab]').forEach(button => {
+      button.onclick = () => {
+        rsvpTab = button.dataset.rtab;
         render();
       };
     });
