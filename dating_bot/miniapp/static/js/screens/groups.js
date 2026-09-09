@@ -292,7 +292,7 @@ export function groupHubScreen(id) {
             <p>${group.members.toLocaleString('ru-RU')} участниц</p>
             <p class="hub-online"><i></i> ${group.online || 3} в сети</p>
           </div>
-          <button class="hub-invite" type="button"><i class="ti ti-user-plus"></i> Пригласить</button>
+          <button class="hub-invite" type="button" data-action="invite-friends" data-id="${group.id}"><i class="ti ti-user-plus"></i> Пригласить</button>
         </div>
         <div class="hub-tabs">
           <button class="${tab === 'rooms' ? 'on' : ''}" data-tab="rooms">Комнаты</button>
@@ -346,6 +346,7 @@ export function groupPostsScreen(id) {
   const group = groups[Number(id) || 0] || groups[0];
   let roomOpen = false;
   let room = 'События';
+  let postMenu = null;
   const rooms = ['Знакомства', 'Чат', 'События', 'Рекомендации'];
 
   const render = () => {
@@ -364,6 +365,13 @@ export function groupPostsScreen(id) {
             ${rooms.map(item => `
               <button type="button" class="${item === room ? 'on' : ''}" data-room="${esc(item)}">${esc(item)}</button>`).join('')}
           </div>` : ''}
+        ${postMenu !== null ? `
+          <div class="post-menu-pop">
+            <button type="button" data-action="post-comments" data-id="${group.id}">Комментарии</button>
+            <button type="button">Закрепить</button>
+            <button type="button">Скопировать ссылку</button>
+            <button type="button" class="danger">Удалить пост</button>
+          </div>` : ''}
         <div class="posts-toolbar">
           <button type="button">Недавнее <i class="ti ti-chevron-down"></i></button>
           <div class="posts-view-toggle">
@@ -378,7 +386,7 @@ export function groupPostsScreen(id) {
               <b>${esc(people[0].name)} <span class="owner-badge">Организатор</span></b>
               <time>Вчера в 17:58</time>
             </div>
-            <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+            <button class="post-menu-btn" type="button" data-post-menu="0" aria-label="Ещё"><i class="ti ti-dots"></i></button>
           </header>
           <h2>Создала комнату «${esc(room)}»</h2>
           <div class="post-reacts">
@@ -428,8 +436,17 @@ export function groupPostsScreen(id) {
       </div>`;
     view.querySelector('#toggleRooms').onclick = () => {
       roomOpen = !roomOpen;
+      postMenu = null;
       render();
     };
+    view.querySelectorAll('[data-post-menu]').forEach(button => {
+      button.onclick = () => {
+        const id = Number(button.dataset.postMenu);
+        postMenu = postMenu === id ? null : id;
+        roomOpen = false;
+        render();
+      };
+    });
     view.querySelectorAll('[data-room]').forEach(button => {
       button.onclick = () => {
         room = button.dataset.room;
@@ -855,6 +872,54 @@ export function organizeRoomsScreen(id) {
   render();
 }
 
+export function inviteFriendsScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let selected = new Set();
+  const friends = people.slice(0, 3);
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="invite-friends-page">
+        <header class="modal-head">
+          <button data-action="group-hub" data-id="${group.id}" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Пригласить</h1>
+          <button class="head-action ${selected.size ? 'on coral' : ''}" id="sendInvites" ${selected.size ? '' : 'disabled'}>Отправить</button>
+        </header>
+        <p class="loc-sub">Пригласите подруг в «${esc(group.title)}»</p>
+        <input class="plain-search" id="inviteSearch" placeholder="Поиск...">
+        <div class="invite-list">
+          ${friends.map(person => `
+            <button class="pick-row" type="button" data-pick="${person.id}">
+              <img src="${esc(person.photo)}" alt="">
+              <div>
+                <strong>${esc(person.name)}</strong>
+                <span>${esc(person.city)}</span>
+              </div>
+              <span class="pick-circle ${selected.has(person.id) ? 'on' : ''}"></span>
+            </button>`).join('')}
+        </div>
+        <button class="share-link-btn" type="button" id="copyInvite"><i class="ti ti-link"></i> Скопировать ссылку-приглашение</button>
+      </div>`;
+    view.querySelectorAll('[data-pick]').forEach(button => {
+      button.onclick = () => {
+        const pid = Number(button.dataset.pick);
+        if (selected.has(pid)) selected.delete(pid);
+        else selected.add(pid);
+        render();
+      };
+    });
+    view.querySelector('#sendInvites').onclick = () => {
+      if (!selected.size) return;
+      navigate('group-hub', group.id);
+    };
+    view.querySelector('#copyInvite').onclick = () => {
+      navigate('group-hub', group.id);
+    };
+  };
+  render();
+}
+
 export function createGroupScreen() {
   clearHeader();
   let name = '';
@@ -1024,7 +1089,7 @@ export function createGroupScreen() {
     };
     view.querySelector('#createGroupBtn').onclick = () => {
       if (!name.trim()) return;
-      navigate('groups');
+      navigate('invite-friends', 0);
     };
   };
 
