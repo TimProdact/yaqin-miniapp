@@ -84,8 +84,8 @@ export function groupScreen(id) {
       <p class="group-about">${esc(group.about)}</p>
       <span class="group-city"><i class="ti ti-map-pin"></i>${esc(group.city)}</span>
       <p class="group-members">${group.members.toLocaleString('ru-RU')} участниц</p>
-      <button class="group-join" data-action="${group.joined ? 'group-chat' : 'join-group'}" data-id="${group.id}">
-        ${group.joined ? 'Открыть чат' : 'Вступить в группу'}
+      <button class="group-join" data-action="${group.joined ? 'group-hub' : 'join-group'}" data-id="${group.id}">
+        ${group.joined ? 'Открыть группу' : 'Вступить в группу'}
       </button>
     </article>`;
 }
@@ -142,7 +142,7 @@ export function groupChatScreen(id) {
                 <time>сегодня</time>
               </div>
               <p>Кто на кофе в субботу в Мирабаде?</p>
-              <button class="gchat-thread-link" type="button">1 ответ · Смотреть тред <i class="ti ti-chevron-right"></i></button>
+              <button class="gchat-thread-link" type="button" data-action="group-thread" data-id="${group.id}">1 ответ · Смотреть тред <i class="ti ti-chevron-right"></i></button>
             </div>
           </article>
         </main>
@@ -176,6 +176,176 @@ export function groupChatScreen(id) {
   };
 
   render();
+}
+
+export function groupThreadScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let draft = '';
+
+  const render = () => {
+    const has = draft.trim().length > 0;
+    view.innerHTML = `
+      <div class="group-chat-page thread">
+        <header class="gchat-top thread-top">
+          <button class="gchat-back" data-action="group-chat" data-id="${group.id}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <div class="gchat-peer center">
+            <h1>Тред в 💬 чате группы <i class="ti ti-chevron-down"></i></h1>
+            <p>🏙️ ${esc(group.title)} ⭐</p>
+          </div>
+          <span></span>
+        </header>
+        <main class="gchat-thread">
+          <article class="gchat-msg">
+            <img src="${esc(people[0].photo)}" alt="">
+            <div>
+              <div class="gchat-join-head"><b>${esc(people[0].name)}</b><time>4 д</time></div>
+              <p>Кто на кофе в субботу в Мирабаде?</p>
+            </div>
+          </article>
+          <div class="thread-divider"><span>2 ответа</span></div>
+          <article class="gchat-msg">
+            <img src="${esc(people[1].photo)}" alt="">
+            <div>
+              <div class="gchat-join-head"><b>${esc(people[1].name)}</b><time>4 д</time></div>
+              <p>Я! Давайте в Moon</p>
+              <div class="bubble-reactions">
+                <span>❤️ 1</span>
+                <i class="ti ti-mood-plus"></i>
+              </div>
+            </div>
+          </article>
+          <article class="gchat-msg">
+            <img src="${esc(people[2].photo)}" alt="">
+            <div>
+              <div class="gchat-join-head">
+                <b>${esc(people[2].name)}</b>
+                <span class="just-joined"><i class="ti ti-hand-stop"></i> Только вступила</span>
+                <time>только что</time>
+              </div>
+              <p>Тоже хочу, запишите меня</p>
+            </div>
+          </article>
+        </main>
+        <div class="message-bar">
+          <button class="msg-add" aria-label="Вложение"><i class="ti ti-plus"></i></button>
+          <label class="msg-field">
+            <input id="threadInput" placeholder="Написать сообщение" value="${esc(draft)}">
+            <i class="ti ti-mood-smile"></i>
+          </label>
+          ${has
+            ? `<button class="msg-send" aria-label="Отправить"><i class="ti ti-arrow-up"></i></button>`
+            : `<button aria-label="GIF">GIF</button>
+               <button aria-label="Фото"><i class="ti ti-photo"></i></button>
+               <button aria-label="Голос"><i class="ti ti-microphone"></i></button>`}
+        </div>
+      </div>`;
+    const input = view.querySelector('#threadInput');
+    input.oninput = () => {
+      draft = input.value;
+      const next = draft.trim().length > 0;
+      if (next !== has) render();
+    };
+    if (draft) {
+      input.focus();
+      input.setSelectionRange(draft.length, draft.length);
+    }
+  };
+  render();
+}
+
+export function groupHubScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  const rooms = [
+    { id: 'intros', icon: 'star', title: 'Знакомства' },
+    { id: 'chat', icon: 'message-circle', title: 'Чат', action: 'group-chat' },
+    { id: 'events', icon: 'calendar-event', title: 'События', action: 'group-posts' },
+    { id: 'recs', icon: 'file-text', title: 'Рекомендации' }
+  ];
+  view.innerHTML = `
+    <div class="group-hub-page">
+      <header class="hub-top">
+        <button data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <div class="hub-actions">
+          <button aria-label="Фото"><i class="ti ti-photo"></i></button>
+          <button aria-label="Поиск"><i class="ti ti-search"></i></button>
+          <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+        </div>
+      </header>
+      <div class="hub-identity">
+        <img src="${esc(group.photo)}" alt="">
+        <div>
+          <h1>${esc(group.title)}</h1>
+          <p>${group.members.toLocaleString('ru-RU')} участниц</p>
+          <p class="hub-online"><i></i> ${group.online || 3} в сети</p>
+        </div>
+        <button class="hub-invite" type="button"><i class="ti ti-user-plus"></i> Пригласить</button>
+      </div>
+      <div class="hub-tabs">
+        <button class="on">Комнаты</button>
+        <button data-action="events">События</button>
+        <button>Участницы</button>
+        <button data-action="group" data-id="${group.id}">О группе</button>
+      </div>
+      <h3 class="hub-label">КОМНАТЫ</h3>
+      <div class="hub-rooms">
+        ${rooms.map(room => `
+          <button class="hub-room" type="button" ${room.action ? `data-action="${room.action}" data-id="${group.id}"` : ''}>
+            <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
+            <b>${esc(room.title)}</b>
+          </button>`).join('')}
+      </div>
+      <button class="compose coral" data-action="group-posts" data-id="${group.id}" aria-label="Создать"><i class="ti ti-plus"></i></button>
+    </div>`;
+}
+
+export function groupPostsScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  view.innerHTML = `
+    <div class="group-posts-page">
+      <header class="gchat-top">
+        <button class="gchat-back" data-action="group-hub" data-id="${group.id}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <img class="gchat-avatar" src="${esc(group.photo)}" alt="">
+        <div class="gchat-peer">
+          <h1>События <i class="ti ti-chevron-down"></i></h1>
+        </div>
+        <button data-action="group" data-id="${group.id}" aria-label="Участницы"><i class="ti ti-users"></i></button>
+      </header>
+      <div class="posts-toolbar">
+        <button type="button">Недавнее <i class="ti ti-chevron-down"></i></button>
+        <div class="posts-view-toggle">
+          <button class="on" aria-label="Лента"><i class="ti ti-list"></i></button>
+          <button aria-label="Сетка"><i class="ti ti-layout-grid"></i></button>
+        </div>
+      </div>
+      <article class="post-card">
+        <header>
+          <img src="${esc(people[0].photo)}" alt="">
+          <div>
+            <b>${esc(people[0].name)} <span class="owner-badge">Организатор</span></b>
+            <time>Вчера в 17:58</time>
+          </div>
+          <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+        </header>
+        <h2>Создала комнату «События»</h2>
+        <div class="post-reacts">
+          <button type="button">👏 0</button>
+          <button type="button"><i class="ti ti-mood-plus"></i></button>
+        </div>
+        <footer>
+          <span>0 комментариев</span>
+          <span class="ago">Создано 1 д назад</span>
+        </footer>
+      </article>
+      <section class="posts-welcome">
+        <span class="welcome-mark">✿</span>
+        <h2>Добро пожаловать в События</h2>
+        <button type="button"><i class="ti ti-pencil"></i> Изменить название</button>
+      </section>
+      <button class="create-post-bar" type="button"><i class="ti ti-pencil"></i> Создать пост</button>
+    </div>`;
 }
 
 export function createGroupScreen() {

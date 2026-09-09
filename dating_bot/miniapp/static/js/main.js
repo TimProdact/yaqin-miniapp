@@ -18,7 +18,10 @@ import {
   eventScreen,
   createGroupScreen,
   joinGroupScreen,
-  groupChatScreen
+  groupChatScreen,
+  groupThreadScreen,
+  groupHubScreen,
+  groupPostsScreen
 } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
@@ -68,6 +71,9 @@ registerScreens({
   'create-group': createGroupScreen,
   'join-group': joinGroupScreen,
   'group-chat': groupChatScreen,
+  'group-thread': groupThreadScreen,
+  'group-hub': groupHubScreen,
+  'group-posts': groupPostsScreen,
   activity: activityScreen,
   me: meScreen,
   settings: settingsScreen,
