@@ -738,6 +738,9 @@ body[data-route='dark-mode'] .view {
 body[data-route='notifications'] .nav,
 body[data-route='account'] .nav,
 body[data-route='announcements'] .nav,
+body[data-route='privacy'] .nav,
+body[data-route='help'] .nav,
+body[data-route='legal'] .nav,
 body[data-route='share-profile'] .nav {
   display: none;
 }
