@@ -257,47 +257,63 @@ export function groupThreadScreen(id) {
 export function groupHubScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
+  let menuOpen = false;
   const rooms = [
     { id: 'intros', icon: 'star', title: 'Знакомства' },
     { id: 'chat', icon: 'message-circle', title: 'Чат', action: 'group-chat' },
     { id: 'events', icon: 'calendar-event', title: 'События', action: 'group-posts' },
     { id: 'recs', icon: 'file-text', title: 'Рекомендации' }
   ];
-  view.innerHTML = `
-    <div class="group-hub-page">
-      <header class="hub-top">
-        <button data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <div class="hub-actions">
-          <button aria-label="Фото"><i class="ti ti-photo"></i></button>
-          <button aria-label="Поиск"><i class="ti ti-search"></i></button>
-          <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="group-hub-page">
+        <header class="hub-top">
+          <button data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <div class="hub-actions">
+            <button aria-label="Фото"><i class="ti ti-photo"></i></button>
+            <button aria-label="Поиск"><i class="ti ti-search"></i></button>
+            <button id="hubMenu" aria-label="Ещё"><i class="ti ti-dots"></i></button>
+          </div>
+        </header>
+        ${menuOpen ? `
+          <div class="hub-menu-pop">
+            <button type="button"><i class="ti ti-arrows-sort"></i> Упорядочить комнаты</button>
+            <button type="button"><i class="ti ti-users"></i> Участницы</button>
+            <button type="button" data-action="group-notifications" data-id="${group.id}"><i class="ti ti-settings"></i> Настройки</button>
+            <button type="button" data-action="report-flow" data-id="1"><i class="ti ti-flag"></i> Жалобы</button>
+          </div>` : ''}
+        <div class="hub-identity">
+          <img src="${esc(group.photo)}" alt="">
+          <div>
+            <h1>${esc(group.title)}</h1>
+            <p>${group.members.toLocaleString('ru-RU')} участниц</p>
+            <p class="hub-online"><i></i> ${group.online || 3} в сети</p>
+          </div>
+          <button class="hub-invite" type="button"><i class="ti ti-user-plus"></i> Пригласить</button>
         </div>
-      </header>
-      <div class="hub-identity">
-        <img src="${esc(group.photo)}" alt="">
-        <div>
-          <h1>${esc(group.title)}</h1>
-          <p>${group.members.toLocaleString('ru-RU')} участниц</p>
-          <p class="hub-online"><i></i> ${group.online || 3} в сети</p>
+        <div class="hub-tabs">
+          <button class="on">Комнаты</button>
+          <button data-action="events">События</button>
+          <button>Участницы</button>
+          <button data-action="group" data-id="${group.id}">О группе</button>
         </div>
-        <button class="hub-invite" type="button"><i class="ti ti-user-plus"></i> Пригласить</button>
-      </div>
-      <div class="hub-tabs">
-        <button class="on">Комнаты</button>
-        <button data-action="events">События</button>
-        <button>Участницы</button>
-        <button data-action="group" data-id="${group.id}">О группе</button>
-      </div>
-      <h3 class="hub-label">КОМНАТЫ</h3>
-      <div class="hub-rooms">
-        ${rooms.map(room => `
-          <button class="hub-room" type="button" ${room.action ? `data-action="${room.action}" data-id="${group.id}"` : ''}>
-            <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
-            <b>${esc(room.title)}</b>
-          </button>`).join('')}
-      </div>
-      <button class="compose coral" data-action="group-posts" data-id="${group.id}" aria-label="Создать"><i class="ti ti-plus"></i></button>
-    </div>`;
+        <h3 class="hub-label">КОМНАТЫ</h3>
+        <div class="hub-rooms">
+          ${rooms.map(room => `
+            <button class="hub-room" type="button" ${room.action ? `data-action="${room.action}" data-id="${group.id}"` : ''}>
+              <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
+              <b>${esc(room.title)}</b>
+            </button>`).join('')}
+        </div>
+        <button class="compose coral" data-action="create-post" data-id="${group.id}" aria-label="Создать"><i class="ti ti-plus"></i></button>
+      </div>`;
+    view.querySelector('#hubMenu').onclick = () => {
+      menuOpen = !menuOpen;
+      render();
+    };
+  };
+  render();
 }
 
 export function groupPostsScreen(id) {
@@ -344,8 +360,62 @@ export function groupPostsScreen(id) {
         <h2>Добро пожаловать в События</h2>
         <button type="button"><i class="ti ti-pencil"></i> Изменить название</button>
       </section>
-      <button class="create-post-bar" type="button"><i class="ti ti-pencil"></i> Создать пост</button>
+      <button class="create-post-bar" type="button" data-action="create-post" data-id="${group.id}"><i class="ti ti-pencil"></i> Создать пост</button>
     </div>`;
+}
+
+export function createPostScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  const me = people[0];
+  let title = '';
+  let body = '';
+
+  const render = () => {
+    const canPost = title.trim().length > 0 || body.trim().length > 0;
+    view.innerHTML = `
+      <div class="create-post-page">
+        <header class="modal-head">
+          <button data-action="group-posts" data-id="${group.id}" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <span></span>
+          <button class="head-action coral ${canPost ? 'on' : ''}" id="publishPost" ${canPost ? '' : 'disabled'}>Опубликовать</button>
+        </header>
+        <div class="create-post-author">
+          <img src="${esc(me.photo)}" alt="">
+          <b>${esc(me.name)}</b>
+        </div>
+        <input class="create-post-title" id="postTitle" placeholder="Добавить заголовок" value="${esc(title)}">
+        <textarea class="create-post-body" id="postBody" placeholder="О чём думаете?" rows="6">${esc(body)}</textarea>
+        <div class="create-post-tools">
+          <button type="button" aria-label="Фото"><i class="ti ti-photo"></i></button>
+          <button type="button" aria-label="Файл"><i class="ti ti-file"></i></button>
+          <button type="button" aria-label="GIF">GIF</button>
+          <button type="button" aria-label="Событие"><i class="ti ti-calendar-event"></i></button>
+          <button type="button" aria-label="Опрос"><i class="ti ti-chart-bar"></i></button>
+          <button type="button" aria-label="Эмодзи"><i class="ti ti-mood-smile"></i></button>
+          <button type="button" aria-label="Формат">Aa</button>
+        </div>
+      </div>`;
+    view.querySelector('#postTitle').oninput = event => {
+      title = event.target.value;
+      const btn = view.querySelector('#publishPost');
+      const ok = title.trim() || body.trim();
+      btn.disabled = !ok;
+      btn.classList.toggle('on', Boolean(ok));
+    };
+    view.querySelector('#postBody').oninput = event => {
+      body = event.target.value;
+      const btn = view.querySelector('#publishPost');
+      const ok = title.trim() || body.trim();
+      btn.disabled = !ok;
+      btn.classList.toggle('on', Boolean(ok));
+    };
+    view.querySelector('#publishPost').onclick = () => {
+      if (!title.trim() && !body.trim()) return;
+      navigate('group-posts', group.id);
+    };
+  };
+  render();
 }
 
 export function createGroupScreen() {
@@ -478,7 +548,7 @@ export function joinGroupScreen(id) {
         return;
       }
       group.joined = true;
-      navigate('group-chat', group.id);
+      navigate('group-hub', group.id);
     };
   };
 
