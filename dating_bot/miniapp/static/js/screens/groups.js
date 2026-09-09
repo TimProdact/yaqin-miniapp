@@ -195,6 +195,7 @@ export function groupChatScreen(id) {
             <button type="button" id="closeWelcome" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           </div>` : ''}
 
+        <button class="jump-latest" type="button" id="jumpLatest">К новым <i class="ti ti-chevron-down"></i></button>
         ${attachOpen ? `
           <div class="attach-menu">
             <button type="button" data-gattach="photo"><span>Загрузить фото</span><i class="ti ti-photo"></i></button>
@@ -222,6 +223,9 @@ export function groupChatScreen(id) {
     });
     view.querySelector('#closeNew')?.addEventListener('click', () => {
       view.querySelector('.gchat-newbar')?.remove();
+    });
+    view.querySelector('#jumpLatest')?.addEventListener('click', () => {
+      view.querySelector('.gchat-thread')?.scrollTo({ top: 9999, behavior: 'smooth' });
     });
     view.querySelector('#gAttach')?.addEventListener('click', () => {
       attachOpen = !attachOpen;
