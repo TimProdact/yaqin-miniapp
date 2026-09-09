@@ -28,7 +28,11 @@ import {
   organizeRoomsScreen,
   postCommentsScreen,
   inviteFriendsScreen,
-  createEventScreen
+  inviteSheetScreen,
+  inviteDmScreen,
+  groupPinsScreen,
+  createEventScreen,
+  leaveGroupConfirm
 } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
@@ -96,6 +100,9 @@ registerScreens({
   'organize-rooms': organizeRoomsScreen,
   'post-comments': postCommentsScreen,
   'invite-friends': inviteFriendsScreen,
+  'invite-sheet': inviteSheetScreen,
+  'invite-dm': inviteDmScreen,
+  'group-pins': groupPinsScreen,
   'create-event': createEventScreen,
   activity: activityScreen,
   me: meScreen,
@@ -170,6 +177,7 @@ async function handleAction(target) {
   if (action === 'feedback') return showFeedbackSheet();
   if (action === 'add-email') return showAddEmailSheet();
   if (action === 'delete-account') return showDeleteAccountDialog();
+  if (action === 'leave-group') return leaveGroupConfirm(id);
   if (action === 'announcement-latest') return showAnnouncementLatest();
   return navigate(action, id === undefined ? undefined : Number(id));
 }
