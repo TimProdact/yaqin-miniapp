@@ -2304,3 +2304,30 @@ html[data-theme='dark'] .gchat-pinned {
   background: #111;
   border-color: #2c2c2e;
 }
+
+.mention-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 12px;
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+.mention-strip button {
+  border: 0;
+  background: #f2f2f7;
+  border-radius: 999px;
+  padding: 6px 10px 6px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+.mention-strip img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}

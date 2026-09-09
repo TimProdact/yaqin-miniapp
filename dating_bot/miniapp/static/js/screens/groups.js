@@ -121,6 +121,7 @@ export function groupChatScreen(id) {
   let welcome = true;
   let attachOpen = false;
   let draft = '';
+  let mentionOpen = false;
 
   const render = () => {
     const has = draft.trim().length > 0;
@@ -204,6 +205,10 @@ export function groupChatScreen(id) {
           </div>` : ''}
 
         <button class="jump-latest" type="button" id="jumpLatest">К новым <i class="ti ti-chevron-down"></i></button>
+        ${mentionOpen ? `
+          <div class="mention-strip">
+            ${people.slice(0,3).map(person => `<button type="button" data-mention="${esc(person.name)}"><img src="${esc(person.photo)}" alt=""><span>${esc(person.name)}</span></button>`).join('')}
+          </div>` : ''}
         ${attachOpen ? `
           <div class="attach-menu">
             <button type="button" data-gattach="photo"><span>Загрузить фото</span><i class="ti ti-photo"></i></button>
@@ -251,8 +256,18 @@ export function groupChatScreen(id) {
     const input = view.querySelector('#gMsg');
     input?.addEventListener('input', () => {
       draft = input.value;
+      const nextMention = /(?:^|\s)@$/.test(draft) || /(?:^|\s)@[\wа-яё]*$/i.test(draft);
+      const mentionChanged = nextMention !== mentionOpen;
+      mentionOpen = nextMention;
       const next = draft.trim().length > 0;
-      if (next !== has) render();
+      if (next !== has || mentionChanged) render();
+    });
+    view.querySelectorAll('[data-mention]').forEach(button => {
+      button.onclick = () => {
+        draft = draft.replace(/@[^\s]*$/, `@${button.dataset.mention} `);
+        mentionOpen = false;
+        render();
+      };
     });
     view.querySelector('#gSend')?.addEventListener('click', () => {
       draft = '';
