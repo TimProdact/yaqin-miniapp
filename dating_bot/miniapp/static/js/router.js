@@ -38,6 +38,7 @@ export function goBack() {
 }
 
 export function render() {
+  document.body.dataset.route = currentRoute;
   document.body.classList.toggle('full-screen', FULL_SCREEN_ROUTES.has(currentRoute));
   document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
   syncNav();

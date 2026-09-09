@@ -8,6 +8,7 @@
 **/miniapp.log
 screenshots/
 design/**/*.png
+dating_bot/miniapp/static/_*.html
 *.png
 *.jpg
 *.jpeg

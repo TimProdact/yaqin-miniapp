@@ -15,6 +15,15 @@ export function setTitle(text, sub = '') {
     </div>`;
 }
 
+export function setDiscoverHeader(city) {
+  header.innerHTML = `
+    <div class="app-header discover-header">
+      <span class="brand"><i class="ti ti-flower"></i></span>
+      <button class="city" data-action="filters">${esc(city)} <i class="ti ti-chevron-down"></i></button>
+      <button class="filters" data-action="filters"><i class="ti ti-adjustments-horizontal"></i></button>
+    </div>`;
+}
+
 export function setBackTitle(text) {
   header.innerHTML = `
     <div class="screen-head">

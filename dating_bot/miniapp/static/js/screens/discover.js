@@ -1,4 +1,4 @@
-import { view, esc, setTitle, setBackTitle, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
+import { view, esc, setDiscoverHeader, setBackTitle, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender } from '../router.js';
 import { loadPeople } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
@@ -11,7 +11,7 @@ function findPerson(id) {
 }
 
 export async function peopleScreen(_id, token) {
-  setTitle('Ташкент');
+  setDiscoverHeader('Ташкент');
   showLoading('Ищем людей рядом...');
 
   let candidates;
@@ -35,17 +35,20 @@ export async function peopleScreen(_id, token) {
       <div class="next-edge"></div>
       <div class="profile-card" data-id="${person.id}">
         <img src="${esc(person.photo)}">
-        <div class="scrim"></div>
-        <div class="caption">
+        <div class="scrim-top"></div>
+        <div class="scrim-bottom"></div>
+        <div class="card-top">
           <h2>${esc(person.name)}</h2>
           <p>${person.age} • ${esc(person.city)}</p>
-          <span class="say-hi">👋 Передаёт привет!</span>
-          <p>${esc(person.bio)}</p>
+          <span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>
+        </div>
+        <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
+          <i class="ti ti-hand-stop"></i>
+        </button>
+        <div class="card-bottom">
+          <p class="card-bio">${esc(person.bio)}</p>
           <div class="chips">${person.tags.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
         </div>
-      </div>
-      <div class="decision-row">
-        <button class="decision like" data-action="like" data-id="${person.id}">👋</button>
       </div>
     </div>`;
 
