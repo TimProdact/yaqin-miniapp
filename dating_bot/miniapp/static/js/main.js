@@ -7,10 +7,18 @@ import {
   showPersonMenu,
   showBlockConfirm,
   showReportSent,
+  showReportFlow,
   closeSafetyOverlay
 } from './screens/safety.js';
-import { groupsScreen, groupScreen, eventsScreen, eventScreen } from './screens/groups.js';
-import { chatsScreen, chatScreen, searchChatsScreen, activityScreen } from './screens/chats.js';
+import {
+  groupsScreen,
+  groupScreen,
+  eventsScreen,
+  eventScreen,
+  createGroupScreen,
+  joinGroupScreen
+} from './screens/groups.js';
+import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
@@ -19,12 +27,16 @@ import {
   friendsScreen,
   promptsScreen,
   basicInfoScreen,
-  onboardingScreen
+  onboardingScreen,
+  blockedScreen,
+  darkModeScreen,
+  applyStoredTheme
 } from './screens/me.js';
 
 const telegram = window.Telegram?.WebApp;
 telegram?.ready();
 telegram?.expand();
+applyStoredTheme();
 
 registerScreens({
   people: peopleScreen,
@@ -37,9 +49,15 @@ registerScreens({
   event: eventScreen,
   chats: chatsScreen,
   chat: chatScreen,
+  search: searchChatsScreen,
+  'new-dm': newDmScreen,
+  'create-group': createGroupScreen,
+  'join-group': joinGroupScreen,
   activity: activityScreen,
   me: meScreen,
   settings: settingsScreen,
+  blocked: blockedScreen,
+  'dark-mode': darkModeScreen,
   edit: editScreen,
   friends: friendsScreen,
   prompts: promptsScreen,
@@ -70,12 +88,12 @@ async function handleAction(target) {
 
   if (action === 'like' || action === 'skip') return decide(action, id);
   if (action === 'back') return goBack();
-  if (action === 'search') return searchChatsScreen();
   if (action === 'save-profile') return submitProfile();
   if (action === 'close-sheet') return closeSafetyOverlay();
   if (action === 'person-menu' && person) return showPersonMenu(person);
   if (action === 'block-confirm' && person) return showBlockConfirm(person);
   if (action === 'block-user') return blockPerson(id);
+  if (action === 'report-flow' && person) return showReportFlow(person);
   if (action === 'report-user' && person) {
     const sent = await reportPerson(id);
     if (sent) showReportSent(person);

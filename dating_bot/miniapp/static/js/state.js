@@ -6,7 +6,8 @@ const initialState = {
   blocked: [],
   profile: null,
   onboarded: true,
-  filters: { ageMin: 18, ageMax: 40, distance: 50 }
+  filters: { ageMin: 18, ageMax: 40, distance: 50 },
+  theme: { dark: false, followSystem: true }
 };
 
 export function getState() {

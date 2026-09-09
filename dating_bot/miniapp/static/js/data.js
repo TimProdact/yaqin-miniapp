@@ -145,6 +145,7 @@ export const events = [
 
 export const chats = [
   {
+    personId: 1,
     name: 'Малика',
     preview: 'Тоже люблю этот район!',
     photo: people[0].photo,
@@ -156,6 +157,7 @@ export const chats = [
     ]
   },
   {
+    personId: 3,
     name: 'Аня',
     preview: 'Договорились, в субботу',
     photo: people[2].photo,
@@ -167,6 +169,7 @@ export const chats = [
     ]
   },
   {
+    personId: null,
     name: 'Команда Yaqin',
     preview: 'Добро пожаловать в Yaqin ✨',
     photo: null,

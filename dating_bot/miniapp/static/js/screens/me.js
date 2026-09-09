@@ -1,5 +1,5 @@
-import { defaultProfile, groups, promptPhoto } from '../data.js';
-import { getState } from '../state.js';
+import { defaultProfile, groups, promptPhoto, people } from '../data.js';
+import { getState, saveState } from '../state.js';
 import { view, esc, setBackTitle, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender } from '../router.js';
 import { loadMatches, loadProfile, loadVerification } from '../repository.js';
@@ -128,7 +128,7 @@ export function settingsScreen() {
           <span>Приватность</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row" type="button">
+        <button class="settings-row" data-action="blocked" type="button">
           <span class="settings-icon red"><i class="ti ti-eye-off"></i></span>
           <span>Заблокированные</span>
           <i class="ti ti-chevron-right"></i>
@@ -138,7 +138,7 @@ export function settingsScreen() {
           <span>Новости функций</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row" type="button">
+        <button class="settings-row" data-action="dark-mode" type="button">
           <span class="settings-icon blue"><i class="ti ti-bulb"></i></span>
           <span>Тёмная тема</span>
           <i class="ti ti-chevron-right"></i>
@@ -166,6 +166,82 @@ export function settingsScreen() {
     </div>`;
 }
 
+export function blockedScreen() {
+  clearHeader();
+  const { blocked } = getState();
+  const rows = people.filter(person => blocked.includes(person.id));
+
+  view.innerHTML = `
+    <div class="settings-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Заблокированные</h1>
+        <span></span>
+      </header>
+      ${rows.length
+        ? `<div class="blocked-list">${rows.map(person => `
+            <div class="blocked-row">
+              <img src="${esc(person.photo)}" alt="">
+              <div>
+                <strong>${esc(person.name)}</strong>
+                <span>${esc(person.city)}</span>
+              </div>
+              <button type="button" data-unblock="${person.id}">Разблок.</button>
+            </div>`).join('')}</div>`
+        : `<div class="blocked-empty">
+            <div class="empty-badge"><i class="ti ti-ban"></i></div>
+            <h2>Пока никого нет<br>в блоке</h2>
+            <p>Если кого-то заблокируете, имя появится здесь.</p>
+          </div>`}
+    </div>`;
+
+  view.querySelectorAll('[data-unblock]').forEach(button => {
+    button.onclick = () => {
+      const id = Number(button.dataset.unblock);
+      const state = getState();
+      saveState({ ...state, blocked: state.blocked.filter(item => item !== id) });
+      blockedScreen();
+    };
+  });
+}
+
+export function darkModeScreen() {
+  clearHeader();
+  const theme = getState().theme || { dark: false, followSystem: true };
+
+  const apply = next => {
+    saveState({ ...getState(), theme: next });
+    document.documentElement.dataset.theme = next.followSystem ? 'system' : next.dark ? 'dark' : 'light';
+    darkModeScreen();
+  };
+
+  view.innerHTML = `
+    <div class="settings-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Тёмная тема</h1>
+        <span></span>
+      </header>
+      <section class="settings-block">
+        <label class="settings-row toggle">
+          <span>Тёмная тема</span>
+          <input type="checkbox" id="darkToggle" ${theme.dark && !theme.followSystem ? 'checked' : ''} ${theme.followSystem ? 'disabled' : ''}>
+        </label>
+        <label class="settings-row toggle stacked">
+          <span>Как в системе<br><small>Yaqin подстроится под светлую или тёмную тему устройства</small></span>
+          <input type="checkbox" id="systemToggle" ${theme.followSystem ? 'checked' : ''}>
+        </label>
+      </section>
+    </div>`;
+
+  view.querySelector('#darkToggle').onchange = event => {
+    apply({ dark: event.target.checked, followSystem: false });
+  };
+  view.querySelector('#systemToggle').onchange = event => {
+    apply({ dark: theme.dark, followSystem: event.target.checked });
+  };
+}
+
 export async function editScreen(_id, token) {
   setBackTitle('Редактировать анкету');
   showLoading('Загружаем анкету...');
@@ -180,7 +256,7 @@ export async function editScreen(_id, token) {
   if (!isCurrentRender(token)) return;
 
   view.innerHTML = `
-    <div class="screen-content form">
+    <div class="screen-content edit-page">
       <input class="input" id="profileName" placeholder="Имя" maxlength="40" value="${esc(profile.name)}">
       <input class="input" id="profileAge" placeholder="Возраст" type="number" min="18" max="100" value="${profile.age}">
       <input class="input" id="profileCity" placeholder="Город" maxlength="60" value="${esc(profile.city)}">
@@ -190,14 +266,14 @@ export async function editScreen(_id, token) {
 }
 
 export async function friendsScreen(_id, token) {
-  setBackTitle('Мои подруги');
+  setBackTitle('Подруги');
   showLoading('Загружаем список...');
 
   let matches;
   try {
     matches = await loadMatches();
   } catch {
-    if (isCurrentRender(token)) showError('Не удалось загрузить взаимные симпатии.');
+    if (isCurrentRender(token)) showError('Не удалось загрузить список.');
     return;
   }
   if (!isCurrentRender(token)) return;
@@ -209,11 +285,10 @@ export async function friendsScreen(_id, token) {
 
   view.innerHTML = `
     <div class="screen-content">
-      <h1>Мои подруги</h1>
       ${matches.map(person => `
-        <div class="match-row">
-          <img class="match-photo" src="${esc(person.photo)}">
-          <div class="match-info"><b>${esc(person.name)}</b><span>${esc(person.city)}</span></div>
+        <div class="chat-row" data-action="person" data-id="${person.id}">
+          <div class="chat-avatar"><img src="${esc(person.photo)}"></div>
+          <div><strong>${esc(person.name)}</strong><span>${person.age} • ${esc(person.city)}</span></div>
         </div>`).join('')}
     </div>`;
 }
@@ -222,33 +297,29 @@ export function promptsScreen() {
   setBackTitle('Фотоответы');
   view.innerHTML = `
     <div class="screen-content">
-      <h1>Фотоответы</h1>
-      <div class="prompt-card">
-        <img src="${esc(promptPhoto)}">
-        <p>Недавние кадры из вашей галереи</p>
-      </div>
+      <img src="${esc(promptPhoto)}" style="width:100%;border-radius:20px">
+      <p>Скоро здесь можно будет выбрать фото из галереи Telegram.</p>
     </div>`;
 }
 
 export function basicInfoScreen() {
   setBackTitle('Основное');
   view.innerHTML = `
-    <div class="screen-content me-box">
-      <h4>Работа</h4><div class="big-chips"><span>Дизайнер</span></div>
-      <h4>Языки</h4><div class="big-chips"><span>русский</span><span>узбекский</span></div>
-      <h4>Пол</h4><div class="big-chips"><span>Женщина</span></div>
-      <h4>Статус</h4><div class="big-chips"><span>Свободна</span></div>
+    <div class="screen-content">
+      <div class="me-box"><h4>Пол</h4><div class="big-chips"><span>Женщина</span></div></div>
     </div>`;
 }
 
 export function onboardingScreen() {
   clearHeader();
   view.innerHTML = `
-    <div class="onboarding">
-      <div class="onboarding-mark">✿</div>
-      <h1>Добро пожаловать в Yaqin</h1>
-      <p>Знакомьтесь, находите подруг и почувствуйте свой город ближе.</p>
-      <button class="button" data-action="people">Создать анкету</button>
-      <small>Только для девушек 18+</small>
+    <div class="connected-page">
+      <h1>Добро пожаловать<br>в Yaqin</h1>
+      <button class="button" data-action="people">Начать</button>
     </div>`;
+}
+
+export function applyStoredTheme() {
+  const theme = getState().theme || { dark: false, followSystem: true };
+  document.documentElement.dataset.theme = theme.followSystem ? 'system' : theme.dark ? 'dark' : 'light';
 }
