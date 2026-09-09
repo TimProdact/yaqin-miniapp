@@ -1,0 +1,201 @@
+/* Анкета целиком. Метрики с design/bff-ios-jan-2026/05-profile-view/*.png (393pt). */
+
+body.sheet-view .app {
+  padding-top: 0;
+}
+body.sheet-view .app-header,
+body.sheet-view .nav {
+  display: none;
+}
+body.sheet-view .view {
+  padding: 0 !important;
+  background: #fdfafe;
+}
+
+.person-view {
+  padding-bottom: 48px;
+}
+
+.person-hero {
+  position: relative;
+  height: 528px;
+  background: #d7d1cd;
+  touch-action: pan-y;
+}
+.person-hero-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-icon {
+  position: absolute;
+  top: max(44px, calc(env(safe-area-inset-top, 0px) + 12px));
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+}
+.hero-icon.back {
+  left: 16px;
+}
+.hero-icon.more {
+  right: 16px;
+}
+
+.hero-dots {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 79px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.hero-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+}
+.hero-dots span.on {
+  background: #fff;
+}
+
+.person-head {
+  position: relative;
+  z-index: 1;
+  margin-top: -28px;
+  padding: 60px 34px 34px;
+  border-radius: 28px 28px 0 0;
+  background: #fff;
+}
+.person-head h1 {
+  margin: 0;
+  max-width: 72%;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #171719;
+}
+.person-meta {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 1.25;
+  color: #55555c;
+}
+.person-bio {
+  margin: 22px 0 0;
+  max-width: 82%;
+  font-size: 17px;
+  line-height: 28px;
+  color: #171719;
+}
+
+.hero-wave {
+  position: absolute;
+  top: 33px;
+  right: 26px;
+  width: 66px;
+  height: 66px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff292;
+  color: #171719;
+  font-size: 34px;
+  display: grid;
+  place-items: center;
+  box-shadow: none;
+}
+.hero-wave i {
+  stroke-width: 1.6;
+}
+
+.person-section {
+  margin: 26px 0 12px;
+  padding: 0 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #171719;
+}
+
+.person-card {
+  margin: 0 8px;
+  padding: 22px 18px;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.chip-group + .chip-group {
+  margin-top: 24px;
+}
+.chip-group h4,
+.info-row h4 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #55555c;
+}
+
+.chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.person-view .chip {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 19px;
+  background: #171719;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.group-rail {
+  display: flex;
+  gap: 10px;
+  padding: 0 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.group-rail::-webkit-scrollbar {
+  display: none;
+}
+.group-tile {
+  flex: 0 0 auto;
+  width: 148px;
+  padding: 10px;
+  border-radius: 20px;
+  background: #fff;
+  text-align: center;
+}
+.group-tile img {
+  width: 100%;
+  height: 148px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+.group-tile span {
+  display: block;
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 20px;
+  color: #171719;
+}
+
+.info-row + .info-row {
+  margin-top: 20px;
+}

@@ -11,6 +11,7 @@ const PLACEHOLDER_PHOTO =
   );
 
 function toPerson(item) {
+  const photo = item.photo_url ? api.absoluteUrl(item.photo_url) : PLACEHOLDER_PHOTO;
   return {
     id: item.user_id,
     name: item.name,
@@ -18,7 +19,11 @@ function toPerson(item) {
     city: item.city,
     bio: item.about,
     tags: [],
-    photo: item.photo_url ? api.absoluteUrl(item.photo_url) : PLACEHOLDER_PHOTO
+    looking: [],
+    groups: [],
+    basic: [],
+    photo,
+    photos: [photo]
   };
 }
 

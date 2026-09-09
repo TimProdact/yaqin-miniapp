@@ -1,6 +1,7 @@
 const screens = new Map();
 
 const FULL_SCREEN_ROUTES = new Set(['connected', 'chat', 'onboarding']);
+const SHEET_ROUTES = new Set(['person']);
 const PROFILE_OPEN_ROUTES = new Set(['me']);
 
 const TAB_ROUTES = new Set(['people', 'groups', 'chats', 'activity', 'me']);
@@ -41,6 +42,7 @@ export function render() {
   document.body.dataset.route = currentRoute;
   document.body.classList.toggle('full-screen', FULL_SCREEN_ROUTES.has(currentRoute));
   document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
+  document.body.classList.toggle('sheet-view', SHEET_ROUTES.has(currentRoute));
   syncNav();
   const screen = screens.get(currentRoute);
   if (screen) screen(selectedId, ++renderToken);

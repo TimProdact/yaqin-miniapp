@@ -1,3 +1,12 @@
+const PHOTOS = {
+  malika: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=1000&q=85',
+  mila: 'https://images.pexels.com/photos/4531546/pexels-photo-4531546.jpeg?auto=compress&cs=tinysrgb&w=800&q=80',
+  anya: 'https://images.pexels.com/photos/9148018/pexels-photo-9148018.jpeg?auto=compress&cs=tinysrgb&w=800&q=80',
+  city: 'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=900&q=85',
+  coffee: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85',
+  books: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=85'
+};
+
 export const people = [
   {
     id: 1,
@@ -5,8 +14,20 @@ export const people = [
     age: 26,
     city: 'Ташкент, Мирабад',
     bio: 'Ищу компанию для прогулок по городу и вечернего кофе 💕',
-    tags: ['фото', 'книги', 'кофе', 'бег'],
-    photo: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=1000&q=85'
+    tags: ['фото', 'книги', 'кофе', 'бег', 'йога', 'еда', 'рынок', 'прогулки', 'спорт', 'путешествия'],
+    looking: ['кофе', 'прогулки', 'книжный клуб', 'бег', 'кафе'],
+    photo: PHOTOS.malika,
+    photos: [PHOTOS.malika, PHOTOS.city, PHOTOS.coffee],
+    groups: [
+      { title: 'Девушки Ташкента', photo: PHOTOS.mila },
+      { title: 'Книжный клуб', photo: PHOTOS.books },
+      { title: 'Утренние пробежки', photo: PHOTOS.city }
+    ],
+    basic: [
+      { label: 'Работа', value: 'Дизайнер' },
+      { label: 'Языки', value: 'узбекский, русский' },
+      { label: 'Учёба', value: 'ТУИТ' }
+    ]
   },
   {
     id: 2,
@@ -15,7 +36,14 @@ export const people = [
     city: 'Ташкент, Юнусабад',
     bio: 'Йога, матча и новые места в городе.',
     tags: ['йога', 'матча', 'кино'],
-    photo: 'https://images.pexels.com/photos/4531546/pexels-photo-4531546.jpeg?auto=compress&cs=tinysrgb&w=800&q=80'
+    looking: ['йога вдвоём', 'завтраки'],
+    photo: PHOTOS.mila,
+    photos: [PHOTOS.mila, PHOTOS.coffee],
+    groups: [{ title: 'Юнусабад: спорт и йога', photo: PHOTOS.anya }],
+    basic: [
+      { label: 'Работа', value: 'Тренер по йоге' },
+      { label: 'Языки', value: 'узбекский, английский' }
+    ]
   },
   {
     id: 3,
@@ -24,7 +52,14 @@ export const people = [
     city: 'Самарканд',
     bio: 'Люблю вино, керамику и спокойные разговоры.',
     tags: ['керамика', 'вино', 'музыка'],
-    photo: 'https://images.pexels.com/photos/9148018/pexels-photo-9148018.jpeg?auto=compress&cs=tinysrgb&w=800&q=80'
+    looking: ['мастер-классы', 'вечерние прогулки'],
+    photo: PHOTOS.anya,
+    photos: [PHOTOS.anya, PHOTOS.books],
+    groups: [{ title: 'Керамика по выходным', photo: PHOTOS.books }],
+    basic: [
+      { label: 'Работа', value: 'Керамистка' },
+      { label: 'Языки', value: 'русский, английский' }
+    ]
   }
 ];
 
