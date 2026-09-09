@@ -16,10 +16,13 @@ const FULL_SCREEN_ROUTES = new Set([
   'notifications',
   'account',
   'announcements',
-  'share-profile'
+  'share-profile',
+  'edit-photos',
+  'group-notifications',
+  'edit'
 ]);
 const SHEET_ROUTES = new Set(['person', 'group', 'event']);
-const PROFILE_OPEN_ROUTES = new Set(['me', 'events']);
+const PROFILE_OPEN_ROUTES = new Set(['me', 'events', 'friends']);
 
 const TAB_ROUTES = new Set(['people', 'groups', 'chats', 'activity', 'me']);
 

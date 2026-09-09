@@ -2,6 +2,7 @@ import { registerScreens, navigate, goBack, render } from './router.js';
 import { view, header, showError } from './dom.js';
 import { decide, blockPerson, reportPerson } from './actions.js';
 import { saveProfile } from './repository.js';
+import { chats } from './data.js';
 import { peopleScreen, personScreen, filtersScreen, connectedScreen, getPersonById, showSkippedPeople } from './screens/discover.js';
 import {
   showPersonMenu,
@@ -18,12 +19,13 @@ import {
   createGroupScreen,
   joinGroupScreen
 } from './screens/groups.js';
-import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen } from './screens/chats.js';
+import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
   settingsScreen,
   editScreen,
+  editPhotosScreen,
   friendsScreen,
   promptsScreen,
   basicInfoScreen,
@@ -71,6 +73,8 @@ registerScreens({
   account: accountScreen,
   announcements: announcementsScreen,
   'share-profile': shareProfileScreen,
+  'edit-photos': editPhotosScreen,
+  'group-notifications': groupNotificationsScreen,
   edit: editScreen,
   friends: friendsScreen,
   prompts: promptsScreen,
@@ -105,7 +109,13 @@ async function handleAction(target) {
   if (action === 'close-sheet') {
     closeSafetyOverlay();
     closeSettingsOverlay();
+    closeMessageMenu();
     return;
+  }
+  if (action === 'message-menu') {
+    const chat = chats.find(item => item.personId === Number(id)) || chats[0];
+    const message = chat?.messages?.[Number(target.dataset.msg || 0)];
+    return showMessageMenu(person || { id: Number(id), name: message?.name, photo: chat?.photo }, message);
   }
   if (action === 'person-menu' && person) return showPersonMenu(person);
   if (action === 'block-confirm' && person) return showBlockConfirm(person);

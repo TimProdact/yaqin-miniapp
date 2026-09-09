@@ -75,6 +75,7 @@ export async function meScreen(_id, token) {
       <div class="me-hero">
         <img src="${esc(profile.photo)}">
         <button class="edit-profile" data-action="edit">Редактировать</button>
+        <button class="edit-photos-btn" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
         <div class="me-dots"><span class="on"></span><span></span></div>
       </div>
       <section class="me-info">
@@ -267,7 +268,7 @@ export function darkModeScreen() {
 }
 
 export async function editScreen(_id, token) {
-  setBackTitle('Редактировать анкету');
+  clearHeader();
   showLoading('Загружаем анкету...');
 
   let profile;
@@ -280,18 +281,77 @@ export async function editScreen(_id, token) {
   if (!isCurrentRender(token)) return;
 
   view.innerHTML = `
-    <div class="screen-content edit-page">
-      <input class="input" id="profileName" placeholder="Имя" maxlength="40" value="${esc(profile.name)}">
-      <input class="input" id="profileAge" placeholder="Возраст" type="number" min="18" max="100" value="${profile.age}">
-      <input class="input" id="profileCity" placeholder="Город" maxlength="60" value="${esc(profile.city)}">
-      <textarea class="textarea" id="profileAbout" maxlength="500" placeholder="О себе">${esc(profile.bio)}</textarea>
-      <button class="button" data-action="save-profile">Сохранить</button>
+    <div class="edit-profile-page">
+      <div class="edit-hero">
+        <img src="${esc(profile.photo)}" alt="">
+        <button class="edit-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <button class="edit-done" data-action="save-profile">Готово</button>
+        <div class="me-dots"><span class="on"></span><span></span></div>
+        <button class="edit-photos-fab" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
+      </div>
+      <section class="edit-card">
+        <div class="edit-identity">
+          <input class="edit-name" id="profileName" maxlength="40" value="${esc(profile.name)}">
+          <p>
+            <input class="edit-age" id="profileAge" type="number" min="18" max="100" value="${profile.age}">
+            ·
+            <input class="edit-city" id="profileCity" maxlength="60" value="${esc(profile.city)}">
+            <i class="ti ti-pencil"></i>
+          </p>
+        </div>
+        <textarea class="edit-motto" id="profileAbout" maxlength="120" placeholder="короткий девиз">${esc(profile.bio)}</textarea>
+        <h3 class="settings-label">О себе</h3>
+        <div class="me-box">
+          <h4>Чем увлекаюсь <i class="ti ti-pencil"></i></h4>
+          <div class="big-chips">${chipList(profile.tags || [])}</div>
+          <h4>Чего хочу <i class="ti ti-pencil"></i></h4>
+          <div class="big-chips">${chipList(profile.looking || [])}</div>
+        </div>
+      </section>
+    </div>`;
+}
+
+export async function editPhotosScreen(_id, token) {
+  clearHeader();
+  showLoading('Загружаем фото...');
+  let profile;
+  try {
+    profile = (await loadProfile()) || { ...defaultProfile, ...(getState().profile || {}) };
+  } catch {
+    if (isCurrentRender(token)) showError('Не удалось загрузить фото.');
+    return;
+  }
+  if (!isCurrentRender(token)) return;
+
+  const photos = [...(profile.photos || [profile.photo, promptPhoto].filter(Boolean))];
+  while (photos.length < 6) photos.push(null);
+
+  view.innerHTML = `
+    <div class="edit-photos-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <span></span>
+        <span></span>
+      </header>
+      <h1>Ваши фото</h1>
+      <p class="photos-lead">Загрузите хотя бы два фото, чтобы другие видели, как вы выглядите.</p>
+      <div class="photos-grid">
+        ${photos.map((photo, index) => photo
+          ? `<div class="photo-slot filled">
+              <img src="${esc(photo)}" alt="">
+              <span class="photo-badge">${index === 0 ? '<i class="ti ti-check"></i> Главное' : index + 1}</span>
+              ${index ? '<button type="button" class="photo-remove" aria-label="Удалить"><i class="ti ti-x"></i></button>' : ''}
+            </div>`
+          : `<button type="button" class="photo-slot empty" aria-label="Добавить"><i class="ti ti-plus"></i></button>`
+        ).join('')}
+      </div>
+      <button class="photos-save" data-action="back">Сохранить</button>
     </div>`;
 }
 
 export async function friendsScreen(_id, token) {
-  setBackTitle('Подруги');
-  showLoading('Загружаем список...');
+  clearHeader();
+  showLoading('Загружаем подруг...');
 
   let matches;
   try {
@@ -302,18 +362,52 @@ export async function friendsScreen(_id, token) {
   }
   if (!isCurrentRender(token)) return;
 
-  if (!matches.length) {
-    showPlaceholder('✿', 'Пока нет взаимных симпатий', 'Отправляйте приветы — мэтчи появятся здесь.');
-    return;
-  }
+  const requests = people.filter(person => !matches.some(match => match.id === person.id)).slice(0, 1);
+  const friends = matches.length ? matches : people.slice(0, 3);
 
   view.innerHTML = `
-    <div class="screen-content">
-      ${matches.map(person => `
-        <div class="chat-row" data-action="person" data-id="${person.id}">
-          <div class="chat-avatar"><img src="${esc(person.photo)}"></div>
-          <div><strong>${esc(person.name)}</strong><span>${person.age} • ${esc(person.city)}</span></div>
+    <div class="me-page friends-page">
+      <div class="me-top">
+        <h1>Профиль</h1>
+        <div>
+          <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
+          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+        </div>
+      </div>
+      <div class="me-tabs">
+        <button data-action="me">Анкета</button>
+        <button data-action="events">События</button>
+        <button class="active">Подруги${requests.length ? ` <b class="tab-dot">${requests.length}</b>` : ''}</button>
+      </div>
+
+      ${requests.length ? `
+        <h2 class="friends-label">Заявки · ${requests.length}</h2>
+        ${requests.map(person => `
+          <div class="friend-row">
+            <img src="${esc(person.photo)}" alt="">
+            <div>
+              <strong>${esc(person.name)}</strong>
+              <span>${person.age} · ${esc(person.city)}</span>
+            </div>
+            <button class="friend-decline" type="button" aria-label="Отклонить"><i class="ti ti-x"></i></button>
+            <button class="friend-add" type="button">Добавить</button>
+          </div>`).join('')}
+      ` : ''}
+
+      <h2 class="friends-label">Все подруги · ${friends.length}</h2>
+      ${friends.map(person => `
+        <div class="friend-row">
+          <img src="${esc(person.photo)}" alt="">
+          <div>
+            <strong>${esc(person.name)}</strong>
+            <span>${person.age} · ${esc(person.city)}</span>
+          </div>
+          <button class="friend-msg" data-action="chat" data-id="0" aria-label="Написать"><i class="ti ti-send"></i></button>
         </div>`).join('')}
+      <button class="add-friends" type="button" data-action="people">
+        <span class="add-box"><i class="ti ti-plus"></i></span>
+        Добавить подруг
+      </button>
     </div>`;
 }
 
@@ -371,7 +465,7 @@ export function notificationsScreen() {
       <h3 class="settings-label">Уведомления групп</h3>
       <section class="settings-block">
         ${mine.map(group => `
-          <button class="settings-row group-notif" type="button">
+          <button class="settings-row group-notif" type="button" data-action="group-notifications" data-id="${group.id}">
             <img class="notif-avatar" src="${esc(group.photo)}" alt="">
             <span>${esc(group.title)}<br><small>Все уведомления</small></span>
             <i class="ti ti-chevron-right"></i>

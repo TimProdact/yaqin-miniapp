@@ -169,6 +169,15 @@ export const chats = [
     ]
   },
   {
+    personId: 2,
+    name: 'Мила',
+    preview: '',
+    photo: people[1].photo,
+    unread: false,
+    time: '',
+    messages: []
+  },
+  {
     personId: null,
     name: 'Команда Yaqin',
     preview: 'Добро пожаловать в Yaqin ✨',
@@ -214,7 +223,8 @@ export const defaultProfile = {
   bio: 'Ищу подруг для прогулок и кофе в городе 💕',
   tags: ['фото', 'книги', 'кофе', 'бег', 'йога', 'еда'],
   looking: ['кофе', 'прогулки', 'книжный клуб'],
-  photo: people[0].photo
+  photo: people[0].photo,
+  photos: [people[0].photo, PHOTOS.city, PHOTOS.coffee, PHOTOS.books]
 };
 
 export const promptPhoto = PHOTOS.city;

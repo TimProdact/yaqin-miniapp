@@ -1,4 +1,4 @@
-import { chats, people, activity } from '../data.js';
+import { chats, people, activity, groups } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 
 function avatar(photo, team = false) {
@@ -144,6 +144,9 @@ export function chatScreen(id) {
   clearHeader();
   const chat = chats[Number(id) || 0];
   const messages = chat.messages || [];
+  const person = people.find(item => item.id === chat.personId);
+  const pills = person?.looking?.slice(0, 3) || ['кофе'];
+  const empty = messages.length === 0;
 
   view.innerHTML = `
     <div class="chat-page">
@@ -159,18 +162,20 @@ export function chatScreen(id) {
         ${chat.personId ? `<button data-action="report-flow" data-id="${chat.personId}" aria-label="Ещё"><i class="ti ti-dots"></i></button>` : '<span></span>'}
       </header>
 
-      <main class="chat-thread">
+      <main class="chat-thread ${empty ? 'start' : ''}">
         <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
-        <p class="chat-meta">Вы познакомились с ${esc(chat.name)}</p>
-        <span class="chat-pill">кофе</span>
-        ${messages.map(message => `
-          <div class="chat-bubble">
+        <p class="chat-meta">${empty
+          ? `Это начало вашей переписки · ${esc(chat.name)}`
+          : `Вы познакомились · ${esc(chat.name)}`}</p>
+        <div class="chat-pills">${pills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
+        ${messages.map((message, index) => `
+          <button class="chat-bubble" type="button" data-action="message-menu" data-id="${chat.personId || 0}" data-msg="${index}">
             ${avatar(chat.photo, chat.team)}
             <div>
               <div class="bubble-head"><b>${esc(message.name)}</b><time>${esc(message.time)}</time></div>
               <p>${esc(message.text)}</p>
             </div>
-          </div>`).join('')}
+          </button>`).join('')}
       </main>
 
       <div class="message-bar">
@@ -184,6 +189,101 @@ export function chatScreen(id) {
         <button aria-label="Голос"><i class="ti ti-microphone"></i></button>
       </div>
     </div>`;
+}
+
+export function showMessageMenu(person, message) {
+  const first = esc((person?.name || message?.name || 'подруга').split(' ')[0]);
+  const photo = person?.photo || message?.photo || people[0].photo;
+  closeMessageMenu();
+  const overlay = document.createElement('div');
+  overlay.className = 'safety-overlay message-menu-overlay';
+  overlay.innerHTML = `
+    <div class="message-menu-stack">
+      <div class="reaction-bar">
+        ${['❤️', '🔥', '👍', '👎', '😂'].map(emoji => `<button type="button" data-action="close-sheet">${emoji}</button>`).join('')}
+        <button type="button" data-action="close-sheet" aria-label="Ещё"><i class="ti ti-mood-plus"></i></button>
+      </div>
+      <div class="message-sheet">
+        <button type="button" data-action="close-sheet">
+          <span class="reply-icon"><img src="${esc(photo)}" alt=""><i class="ti ti-arrow-back-up"></i></span>
+          Ответить · ${first}
+        </button>
+        <button type="button" data-action="close-sheet">
+          <span class="sheet-icon blue"><i class="ti ti-copy"></i></span>
+          Скопировать текст
+        </button>
+        <button type="button" data-action="report-flow" data-id="${person?.id || 0}">
+          <span class="sheet-icon red"><i class="ti ti-flag"></i></span>
+          Пожаловаться на сообщение
+        </button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) closeMessageMenu();
+  });
+  document.body.appendChild(overlay);
+  document.body.classList.add('safety-open');
+  messageMenuCloser = () => {
+    overlay.remove();
+    document.body.classList.remove('safety-open');
+    messageMenuCloser = null;
+  };
+}
+
+let messageMenuCloser = null;
+export function closeMessageMenu() {
+  messageMenuCloser?.();
+}
+
+export function groupNotificationsScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let mode = 'you';
+  const toggles = { joins: false, replies: true, updates: true, reactions: true };
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="settings-page">
+        <header class="filters-head">
+          <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <h1>Уведомления</h1>
+          <span></span>
+        </header>
+        <p class="settings-hint group-title">${esc(group.title)}</p>
+        <h3 class="settings-label">Уведомления</h3>
+        <section class="settings-block">
+          ${[
+            ['all', 'Все', 'Уведомления о всех новых сообщениях и активности (рекомендуется)'],
+            ['you', 'Только для вас', 'Только упоминания и ответы вам'],
+            ['none', 'Ничего', 'Не получать уведомления об этой группе']
+          ].map(([value, title, text]) => `
+            <button class="settings-row stacked-btn radio-row" type="button" data-mode="${value}">
+              <span>${title}<br><small>${text}</small></span>
+              <i class="radio ${mode === value ? 'on' : ''}">${mode === value ? '<i class="ti ti-check"></i>' : ''}</i>
+            </button>`).join('')}
+        </section>
+        <section class="settings-block">
+          <label class="settings-row toggle stacked"><span>Новые участницы</span><input type="checkbox" data-key="joins" ${toggles.joins ? 'checked' : ''}></label>
+          <label class="settings-row toggle stacked"><span>Ответы в ваших тредах</span><input type="checkbox" data-key="replies" ${toggles.replies ? 'checked' : ''}></label>
+          <label class="settings-row toggle stacked"><span>Обновления группы</span><input type="checkbox" data-key="updates" ${toggles.updates ? 'checked' : ''}></label>
+          <label class="settings-row toggle stacked"><span>Реакции на ваши сообщения</span><input type="checkbox" data-key="reactions" ${toggles.reactions ? 'checked' : ''}></label>
+        </section>
+      </div>`;
+
+    view.querySelectorAll('[data-mode]').forEach(button => {
+      button.onclick = () => {
+        mode = button.dataset.mode;
+        render();
+      };
+    });
+    view.querySelectorAll('[data-key]').forEach(input => {
+      input.onchange = () => {
+        toggles[input.dataset.key] = input.checked;
+      };
+    });
+  };
+
+  render();
 }
 
 export function activityScreen() {
