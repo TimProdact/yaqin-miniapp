@@ -31,6 +31,7 @@ import {
   inviteSheetScreen,
   inviteDmScreen,
   groupPinsScreen,
+  groupMediaScreen,
   createEventScreen,
   leaveGroupConfirm
 } from './screens/groups.js';
@@ -103,6 +104,7 @@ registerScreens({
   'invite-sheet': inviteSheetScreen,
   'invite-dm': inviteDmScreen,
   'group-pins': groupPinsScreen,
+  'group-media': groupMediaScreen,
   'create-event': createEventScreen,
   activity: activityScreen,
   me: meScreen,

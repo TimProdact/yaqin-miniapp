@@ -389,21 +389,39 @@ export function groupHubScreen(id) {
   const group = groups[Number(id) || 0] || groups[0];
   let menuOpen = false;
   let tab = 'rooms';
+  let memberQuery = '';
+  let onlineOnly = false;
   const rooms = [
-    { id: 'intros', icon: 'star', title: 'Знакомства' },
-    { id: 'chat', icon: 'message-circle', title: 'Чат', action: 'group-chat' },
-    { id: 'events', icon: 'calendar-event', title: 'События', action: 'group-posts' },
-    { id: 'recs', icon: 'file-text', title: 'Рекомендации' }
+    { id: 'intros', icon: 'star', title: 'Знакомства', subtitle: 'представьтесь здесь' },
+    { id: 'chat', icon: 'message-circle', title: 'Чат', subtitle: 'общий разговор группы', action: 'group-chat' },
+    { id: 'events', icon: 'calendar-event', title: 'События', subtitle: 'посты про встречи', action: 'group-posts' },
+    { id: 'recs', icon: 'file-text', title: 'Рекомендации', subtitle: 'места и идеи' }
   ];
-  const members = [people[0], people[1], people[2]];
+  const members = people.slice(0, 4).map((person, index) => ({
+    ...person,
+    role: index === 0 ? 'Организатор' : 'Участница',
+    city: person.city || 'Ташкент',
+    online: index < 2
+  }));
+  const pastEvents = [
+    { title: 'Утренний кофе-walk', when: 'Завершено 5 дн. назад', went: true, photo: PHOTOS.coffee },
+    { title: 'Пилатес + матча', when: 'Завершено неделю назад', went: true, photo: PHOTOS.event },
+    { title: 'Книжный вечер', when: 'Завершено 2 нед. назад', went: false, photo: PHOTOS.books }
+  ];
 
   const render = () => {
+    const filtered = members.filter(person => {
+      if (onlineOnly && !person.online) return false;
+      if (!memberQuery.trim()) return true;
+      return person.name.toLowerCase().includes(memberQuery.toLowerCase());
+    });
+
     view.innerHTML = `
       <div class="group-hub-page">
         <header class="hub-top">
           <button data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
           <div class="hub-actions">
-            <button aria-label="Фото"><i class="ti ti-photo"></i></button>
+            <button data-action="group-media" data-id="${group.id}" aria-label="Медиа"><i class="ti ti-photo"></i></button>
             <button data-action="group-search" data-id="${group.id}" aria-label="Поиск"><i class="ti ti-search"></i></button>
             <button id="hubMenu" aria-label="Ещё"><i class="ti ti-dots"></i></button>
           </div>
@@ -426,38 +444,81 @@ export function groupHubScreen(id) {
         </div>
         <div class="hub-tabs">
           <button class="${tab === 'rooms' ? 'on' : ''}" data-tab="rooms">Комнаты</button>
-          <button class="${tab === 'events' ? 'on' : ''}" data-action="events">События</button>
+          <button class="${tab === 'events' ? 'on' : ''}" data-tab="events">События</button>
           <button class="${tab === 'members' ? 'on' : ''}" data-tab="members">Участницы</button>
-          <button data-action="group" data-id="${group.id}">О группе</button>
+          <button class="${tab === 'info' ? 'on' : ''}" data-tab="info">О группе</button>
         </div>
         ${tab === 'members' ? `
-          <h3 class="hub-label">УЧАСТНИЦЫ</h3>
+          <div class="hub-members-tools">
+            <label class="plain-search-wrap">
+              <i class="ti ti-search"></i>
+              <input class="plain-search" id="memberSearch" placeholder="Поиск" value="${esc(memberQuery)}">
+            </label>
+            <button type="button" class="online-chip ${onlineOnly ? 'on' : ''}" id="onlineOnly">Онлайн · ${members.filter(m => m.online).length}</button>
+          </div>
           <div class="hub-members">
-            ${members.map((person, index) => `
+            ${filtered.map(person => `
               <button class="hub-member" type="button" data-action="person" data-id="${person.id}">
-                <img src="${esc(person.photo)}" alt="">
+                <span class="hub-member-ava">
+                  <img src="${esc(person.photo)}" alt="">
+                  ${person.online ? '<i class="dot"></i>' : ''}
+                </span>
                 <div>
                   <strong>${esc(person.name)}</strong>
-                  <span>${index === 0 ? 'Организатор' : 'Участница'}</span>
+                  <span>${esc(person.city)}</span>
                 </div>
-              </button>`).join('')}
-          </div>` : `
+              </button>`).join('') || '<p class="muted">Никого не нашли</p>'}
+          </div>` : ''}
+        ${tab === 'events' ? `
+          <h3 class="hub-label">ПРОШЛЫЕ</h3>
+          <div class="hub-past-events">
+            ${pastEvents.map(item => `
+              <article class="hub-past-card">
+                <img src="${esc(item.photo)}" alt="">
+                <div>
+                  <b>${esc(item.title)}</b>
+                  <span>${esc(item.when)}</span>
+                  ${item.went ? '<em>Я ходила</em>' : ''}
+                </div>
+              </article>`).join('')}
+          </div>
+          <button class="hub-create-event" type="button" data-action="create-event" data-id="${group.id}"><i class="ti ti-calendar-plus"></i> Создать событие</button>` : ''}
+        ${tab === 'info' ? `
+          <section class="hub-info">
+            <h3>Об этой группе</h3>
+            <p>${esc(group.about)}</p>
+            <div class="hub-info-stats">
+              <div><b>2024</b><span>основана</span></div>
+              <div><b>${group.members.toLocaleString('ru-RU')}</b><span>участниц</span></div>
+            </div>
+            <div class="hub-welcome-block">
+              <h4>Добро пожаловать в ${esc(group.title)}</h4>
+              <p>Представьтесь в комнате «Знакомства» и загляните в события.</p>
+              <button type="button" data-action="group-posts" data-id="${group.id}">Открыть комнаты</button>
+            </div>
+            <button class="hub-info-link" type="button" data-action="group" data-id="${group.id}">Подробнее о группе</button>
+          </section>` : ''}
+        ${tab === 'rooms' ? `
           <h3 class="hub-label">КОМНАТЫ</h3>
           <div class="hub-rooms">
             ${rooms.map(room => `
               <button class="hub-room" type="button" ${room.action ? `data-action="${room.action}" data-id="${group.id}"` : ''}>
                 <span class="hub-room-icon"><i class="ti ti-${room.icon}"></i></span>
-                <b>${esc(room.title)}</b>
+                <div class="hub-room-copy">
+                  <b>${esc(room.title)}</b>
+                  <span>${esc(room.subtitle)}</span>
+                </div>
               </button>`).join('')}
           </div>
+          <button class="join-more-rooms" type="button" data-action="organize-rooms" data-id="${group.id}">Ещё комнаты</button>
           <h3 class="hub-label">МУЗЫКА <i class="ti ti-chevron-down"></i></h3>
-          <button class="hub-room" type="button">
+          <button class="hub-room" type="button" data-action="group-chat" data-id="${group.id}">
             <span class="hub-room-icon"><i class="ti ti-music"></i></span>
             <div class="hub-room-copy">
               <b>Топ треков недели</b>
               <span>Кидайте самый частый трек сюда</span>
             </div>
-          </button>`}
+          </button>` : ''}
         <button class="compose coral" data-action="create-post" data-id="${group.id}" aria-label="Создать"><i class="ti ti-plus"></i></button>
       </div>`;
     view.querySelector('#hubMenu').onclick = () => {
@@ -469,9 +530,73 @@ export function groupHubScreen(id) {
       menuOpen = false;
       render();
     });
+    view.querySelector('#memberSearch')?.addEventListener('input', event => {
+      memberQuery = event.target.value;
+      render();
+    });
+    view.querySelector('#onlineOnly')?.addEventListener('click', () => {
+      onlineOnly = !onlineOnly;
+      render();
+    });
     view.querySelectorAll('[data-tab]').forEach(button => {
       button.onclick = () => {
         tab = button.dataset.tab;
+        menuOpen = false;
+        render();
+      };
+    });
+    if (memberQuery) {
+      const input = view.querySelector('#memberSearch');
+      input?.focus();
+      input?.setSelectionRange(memberQuery.length, memberQuery.length);
+    }
+  };
+  render();
+}
+
+export function groupMediaScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let section = 'upcoming';
+  const upcoming = events.slice(0, 3).map((event, index) => ({
+    ...event,
+    badge: index === 0 ? 'скоро' : 'открыто'
+  }));
+  const media = [PHOTOS.coffee, PHOTOS.city, PHOTOS.palms, PHOTOS.event, PHOTOS.books, people[0].photo].filter(Boolean);
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="group-media-page">
+        <header class="modal-head">
+          <button data-action="group-hub" data-id="${group.id}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <h1>${esc(group.title)}</h1>
+          <span></span>
+        </header>
+        <div class="media-seg">
+          <button class="${section === 'upcoming' ? 'on' : ''}" data-sec="upcoming">События</button>
+          <button class="${section === 'media' ? 'on' : ''}" data-sec="media">Медиа</button>
+        </div>
+        ${section === 'upcoming' ? `
+          <h3 class="hub-label">СКОРО</h3>
+          <div class="media-upcoming">
+            ${upcoming.map(event => `
+              <article class="media-event-card" data-action="event" data-id="${event.id}">
+                <img src="${esc(event.photo || PHOTOS.event)}" alt="">
+                <div>
+                  <b>${esc(event.title)}</b>
+                  <span>${esc(event.when || event.date || 'скоро')}</span>
+                  <span class="place">${esc(event.place || event.city || 'Ташкент')}</span>
+                </div>
+                <button type="button" data-action="event" data-id="${event.id}">Подробнее</button>
+              </article>`).join('')}
+          </div>` : `
+          <div class="media-grid">
+            ${media.map(src => `<img src="${esc(src)}" alt="">`).join('')}
+          </div>`}
+      </div>`;
+    view.querySelectorAll('[data-sec]').forEach(button => {
+      button.onclick = () => {
+        section = button.dataset.sec;
         render();
       };
     });

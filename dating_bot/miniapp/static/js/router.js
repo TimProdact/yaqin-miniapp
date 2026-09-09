@@ -24,6 +24,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'invite-sheet',
   'invite-dm',
   'group-pins',
+  'group-media',
   'create-event',
   'blocked',
   'dark-mode',
