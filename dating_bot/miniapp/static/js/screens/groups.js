@@ -71,23 +71,47 @@ export function groupsScreen() {
 export function groupScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0];
+  let menuOpen = false;
 
-  view.innerHTML = `
-    <article class="group-sheet">
-      <div class="sheet-handle"></div>
-      <header class="sheet-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
-      </header>
-      <img class="group-cover" src="${esc(group.photo)}" alt="">
-      <h1>${esc(group.title)}</h1>
-      <p class="group-about">${esc(group.about)}</p>
-      <span class="group-city"><i class="ti ti-map-pin"></i>${esc(group.city)}</span>
-      <p class="group-members">${group.members.toLocaleString('ru-RU')} участниц</p>
-      <button class="group-join" data-action="${group.joined ? 'group-hub' : 'join-group'}" data-id="${group.id}">
-        ${group.joined ? 'Открыть группу' : 'Вступить в группу'}
-      </button>
-    </article>`;
+  const render = () => {
+    view.innerHTML = `
+      <article class="group-sheet">
+        <div class="sheet-handle"></div>
+        <header class="sheet-head">
+          <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <button id="groupSheetMenu" aria-label="Ещё"><i class="ti ti-dots"></i></button>
+        </header>
+        ${menuOpen ? `
+          <div class="group-sheet-menu">
+            <button type="button" data-action="share-profile">Поделиться</button>
+            <button type="button" data-action="report-flow" data-id="1">Пожаловаться</button>
+            ${group.joined ? `<button type="button" class="danger" id="leaveGroup">Покинуть группу</button>` : ''}
+          </div>` : ''}
+        <img class="group-cover" src="${esc(group.photo)}" alt="">
+        <h1>${esc(group.title)}</h1>
+        <p class="group-about">${esc(group.about)}</p>
+        <span class="group-city"><i class="ti ti-map-pin"></i>${esc(group.city)}</span>
+        <p class="group-members">${group.members.toLocaleString('ru-RU')} участниц · ${group.online || 3} онлайн</p>
+        ${group.joined ? `
+          <div class="group-quick">
+            <button data-action="group-hub" data-id="${group.id}">Комнаты</button>
+            <button data-action="group-chat" data-id="${group.id}">Чат</button>
+            <button data-action="invite-friends" data-id="${group.id}">Пригласить</button>
+          </div>` : ''}
+        <button class="group-join" data-action="${group.joined ? 'group-hub' : 'join-group'}" data-id="${group.id}">
+          ${group.joined ? 'Открыть группу' : 'Вступить в группу'}
+        </button>
+      </article>`;
+    view.querySelector('#groupSheetMenu').onclick = () => {
+      menuOpen = !menuOpen;
+      render();
+    };
+    view.querySelector('#leaveGroup')?.addEventListener('click', () => {
+      group.joined = false;
+      navigate('groups');
+    });
+  };
+  render();
 }
 
 export function groupChatScreen(id) {
@@ -96,12 +120,15 @@ export function groupChatScreen(id) {
   const arrivals = group.arrivals || [];
   const question = group.joinQuestion || 'Расскажите немного о себе';
   let welcome = true;
+  let attachOpen = false;
+  let draft = '';
 
   const render = () => {
+    const has = draft.trim().length > 0;
     view.innerHTML = `
       <div class="group-chat-page">
         <header class="gchat-top">
-          <button class="gchat-back" data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <button class="gchat-back" data-action="group-hub" data-id="${group.id}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
           <img class="gchat-avatar" src="${esc(group.photo)}" alt="">
           <div class="gchat-peer">
             <h1>Чат группы <i class="ti ti-chevron-down"></i></h1>
@@ -154,15 +181,24 @@ export function groupChatScreen(id) {
             <button type="button" id="closeWelcome" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           </div>` : ''}
 
+        ${attachOpen ? `
+          <div class="attach-menu">
+            <button type="button" data-gattach="photo"><span>Загрузить фото</span><i class="ti ti-photo"></i></button>
+            <button type="button" data-gattach="camera"><span>Сделать фото</span><i class="ti ti-camera"></i></button>
+            <button type="button" data-gattach="file"><span>Загрузить файл</span><i class="ti ti-file"></i></button>
+          </div>` : ''}
+
         <div class="message-bar">
-          <button class="msg-add" aria-label="Вложение"><i class="ti ti-plus"></i></button>
+          <button class="msg-add ${attachOpen ? 'open' : ''}" id="gAttach" aria-label="Вложение"><i class="ti ti-${attachOpen ? 'x' : 'plus'}"></i></button>
           <label class="msg-field">
-            <input placeholder="Написать сообщение">
+            <input id="gMsg" placeholder="Написать сообщение" value="${esc(draft)}">
             <i class="ti ti-mood-smile"></i>
           </label>
-          <button aria-label="GIF">GIF</button>
-          <button aria-label="Фото"><i class="ti ti-photo"></i></button>
-          <button aria-label="Голос"><i class="ti ti-microphone"></i></button>
+          ${has
+            ? `<button class="msg-send" id="gSend" aria-label="Отправить"><i class="ti ti-arrow-up"></i></button>`
+            : `<button aria-label="GIF">GIF</button>
+               <button aria-label="Фото"><i class="ti ti-photo"></i></button>
+               <button aria-label="Голос"><i class="ti ti-microphone"></i></button>`}
         </div>
       </div>`;
 
@@ -173,6 +209,32 @@ export function groupChatScreen(id) {
     view.querySelector('#closeNew')?.addEventListener('click', () => {
       view.querySelector('.gchat-newbar')?.remove();
     });
+    view.querySelector('#gAttach')?.addEventListener('click', () => {
+      attachOpen = !attachOpen;
+      render();
+    });
+    view.querySelectorAll('[data-gattach]').forEach(button => {
+      button.onclick = () => {
+        attachOpen = false;
+        render();
+      };
+    });
+    const input = view.querySelector('#gMsg');
+    input?.addEventListener('input', () => {
+      draft = input.value;
+      const next = draft.trim().length > 0;
+      if (next !== has) render();
+    });
+    view.querySelector('#gSend')?.addEventListener('click', () => {
+      draft = '';
+      attachOpen = false;
+      welcome = false;
+      render();
+    });
+    if (draft) {
+      input?.focus();
+      input?.setSelectionRange(draft.length, draft.length);
+    }
   };
 
   render();
@@ -1188,32 +1250,42 @@ export function eventsScreen() {
 export function eventScreen(id) {
   clearHeader();
   const event = events[Number(id) || 0];
+  let rsvp = 'going';
 
-  view.innerHTML = `
-    <article class="event-sheet">
-      <header class="sheet-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        <div>
-          <button aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
-          <button aria-label="Ещё"><i class="ti ti-dots-vertical"></i></button>
+  const render = () => {
+    view.innerHTML = `
+      <article class="event-sheet">
+        <header class="sheet-head">
+          <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <div>
+            <button aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
+            <button aria-label="Ещё"><i class="ti ti-dots-vertical"></i></button>
+          </div>
+        </header>
+        <img class="event-cover" src="${esc(event.photo)}" alt="">
+        <h1>${esc(event.title)}</h1>
+        <ul class="event-meta">
+          <li><i class="ti ti-users"></i>${esc(event.group)}</li>
+          <li><i class="ti ti-user"></i>Создала ${esc(event.host)}</li>
+          <li><i class="ti ti-clock"></i>${esc(event.when)}</li>
+          <li><i class="ti ti-map-pin"></i><div><b>${esc(event.place)}</b><span>${esc(event.address)}</span></div></li>
+          <li><i class="ti ti-check"></i>${event.going + (rsvp === 'going' ? 0 : 0)} человек идут</li>
+        </ul>
+        <div class="event-avatars">
+          ${[people[0].photo, people[1].photo, people[2].photo].map((src, index) => `<img src="${esc(src)}" alt="" style="--i:${index}">`).join('')}
         </div>
-      </header>
-      <img class="event-cover" src="${esc(event.photo)}" alt="">
-      <h1>${esc(event.title)}</h1>
-      <ul class="event-meta">
-        <li><i class="ti ti-users"></i>${esc(event.group)}</li>
-        <li><i class="ti ti-user"></i>Создала ${esc(event.host)}</li>
-        <li><i class="ti ti-clock"></i>${esc(event.when)}</li>
-        <li><i class="ti ti-map-pin"></i><div><b>${esc(event.place)}</b><span>${esc(event.address)}</span></div></li>
-        <li><i class="ti ti-check"></i>${event.going} человек идут</li>
-      </ul>
-      <div class="event-avatars">
-        ${Array.from({ length: 6 }, (_, index) => `<span style="--i:${index}"></span>`).join('')}
-      </div>
-      <div class="event-rsvp">
-        <button type="button">В другой раз 😢</button>
-        <button type="button">Интересно 👋</button>
-        <button type="button" class="on">Иду 👍</button>
-      </div>
-    </article>`;
+        <div class="event-rsvp">
+          <button type="button" data-rsvp="later" class="${rsvp === 'later' ? 'on' : ''}">В другой раз 😢</button>
+          <button type="button" data-rsvp="maybe" class="${rsvp === 'maybe' ? 'on' : ''}">Интересно 👋</button>
+          <button type="button" data-rsvp="going" class="${rsvp === 'going' ? 'on' : ''}">Иду 👍</button>
+        </div>
+      </article>`;
+    view.querySelectorAll('[data-rsvp]').forEach(button => {
+      button.onclick = () => {
+        rsvp = button.dataset.rsvp;
+        render();
+      };
+    });
+  };
+  render();
 }

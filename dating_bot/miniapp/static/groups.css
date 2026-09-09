@@ -2161,3 +2161,50 @@ body[data-route='invite-friends'] .view { padding: 0 !important; background: #ff
   justify-content: center;
   gap: 8px;
 }
+
+.group-sheet { position: relative; }
+.group-sheet-menu {
+  position: absolute;
+  top: 48px;
+  right: 16px;
+  z-index: 20;
+  min-width: 180px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.16);
+  overflow: hidden;
+  padding: 6px 0;
+}
+.group-sheet-menu button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 15px;
+}
+.group-sheet-menu .danger { color: #ff3b30; }
+.group-quick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.group-quick button {
+  border: 1px solid #e5e5ea;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.event-avatars img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  margin-left: -8px;
+}
+.event-avatars img:first-child { margin-left: 0; }
