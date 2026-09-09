@@ -2208,3 +2208,16 @@ body[data-route='invite-friends'] .view { padding: 0 !important; background: #ff
   margin-left: -8px;
 }
 .event-avatars img:first-child { margin-left: 0; }
+
+body[data-route='create-event'] .nav { display: none; }
+body[data-route='create-event'] .view { padding: 0 !important; background: #fff; }
+.create-event-page {
+  min-height: 100%;
+  background: #fff;
+  padding: 0 16px 40px;
+}
+.create-name.smaller {
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 8px;
+}

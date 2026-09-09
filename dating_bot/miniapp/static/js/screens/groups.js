@@ -1207,13 +1207,69 @@ export function joinGroupScreen(id) {
   render();
 }
 
+export function createEventScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let title = '';
+  let place = '';
+  let when = 'Вс, 21 сен · 11:00';
+
+  const render = () => {
+    const ready = title.trim().length > 1 && place.trim().length > 1;
+    view.innerHTML = `
+      <div class="create-event-page">
+        <header class="modal-head">
+          <button data-action="events" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Новое событие</h1>
+          <button class="head-action coral ${ready ? 'on' : ''}" id="createEventBtn" ${ready ? '' : 'disabled'}>Создать</button>
+        </header>
+        <p class="loc-sub">В группе «${esc(group.title)}»</p>
+        <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}">
+        <input class="create-name smaller" id="eventPlace" placeholder="Место" value="${esc(place)}">
+        <button class="settings-row" type="button" id="eventWhen">
+          <span class="settings-icon blue"><i class="ti ti-calendar-event"></i></span>
+          <span>Когда<br><small>${esc(when)}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon green"><i class="ti ti-map-pin"></i></span>
+          <span>Адрес<br><small>Ташкент</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </div>`;
+    view.querySelector('#eventTitle').oninput = event => {
+      title = event.target.value;
+      const btn = view.querySelector('#createEventBtn');
+      const ok = title.trim().length > 1 && place.trim().length > 1;
+      btn.disabled = !ok;
+      btn.classList.toggle('on', ok);
+    };
+    view.querySelector('#eventPlace').oninput = event => {
+      place = event.target.value;
+      const btn = view.querySelector('#createEventBtn');
+      const ok = title.trim().length > 1 && place.trim().length > 1;
+      btn.disabled = !ok;
+      btn.classList.toggle('on', ok);
+    };
+    view.querySelector('#eventWhen').onclick = () => {
+      when = when.includes('21') ? 'Сб, 20 сен · 10:00' : 'Вс, 21 сен · 11:00';
+      render();
+    };
+    view.querySelector('#createEventBtn').onclick = () => {
+      if (!ready && !(title.trim().length > 1 && place.trim().length > 1)) return;
+      navigate('event', 0);
+    };
+  };
+  render();
+}
+
 export function eventsScreen() {
   clearHeader();
   view.innerHTML = `
     <div class="events-page">
       <header class="chats-head">
         <h1>События</h1>
-        <button data-action="me" aria-label="Профиль"><i class="ti ti-user"></i></button>
+        <button data-action="create-event" data-id="0" aria-label="Создать"><i class="ti ti-plus"></i></button>
       </header>
 
       <section class="events-calendar">

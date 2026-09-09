@@ -21,6 +21,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'organize-rooms',
   'post-comments',
   'invite-friends',
+  'create-event',
   'blocked',
   'dark-mode',
   'notifications',

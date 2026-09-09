@@ -27,7 +27,8 @@ import {
   groupSettingsScreen,
   organizeRoomsScreen,
   postCommentsScreen,
-  inviteFriendsScreen
+  inviteFriendsScreen,
+  createEventScreen
 } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
@@ -86,6 +87,7 @@ registerScreens({
   'organize-rooms': organizeRoomsScreen,
   'post-comments': postCommentsScreen,
   'invite-friends': inviteFriendsScreen,
+  'create-event': createEventScreen,
   activity: activityScreen,
   me: meScreen,
   settings: settingsScreen,
