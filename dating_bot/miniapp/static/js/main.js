@@ -22,7 +22,9 @@ import {
   groupThreadScreen,
   groupHubScreen,
   groupPostsScreen,
-  createPostScreen
+  createPostScreen,
+  groupSearchScreen,
+  groupSettingsScreen
 } from './screens/groups.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
@@ -76,6 +78,8 @@ registerScreens({
   'group-hub': groupHubScreen,
   'group-posts': groupPostsScreen,
   'create-post': createPostScreen,
+  'group-search': groupSearchScreen,
+  'group-settings': groupSettingsScreen,
   activity: activityScreen,
   me: meScreen,
   settings: settingsScreen,

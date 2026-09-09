@@ -16,6 +16,8 @@ const FULL_SCREEN_ROUTES = new Set([
   'group-hub',
   'group-posts',
   'create-post',
+  'group-search',
+  'group-settings',
   'blocked',
   'dark-mode',
   'notifications',

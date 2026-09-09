@@ -1657,3 +1657,51 @@ body[data-route='create-post'] .view { padding: 0 !important; background: #fff; 
   padding: 8px;
   font-weight: 700;
 }
+
+body[data-route='group-search'] .nav,
+body[data-route='group-settings'] .nav { display: none; }
+body[data-route='group-search'] .view,
+body[data-route='group-settings'] .view { padding: 0 !important; background: #fff; }
+
+.group-search-page, .group-settings-page {
+  min-height: 100%;
+  background: #fff;
+  padding: 0 16px 40px;
+}
+.group-search-empty {
+  text-align: center;
+  padding: 48px 20px;
+}
+.search-illus {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 18px;
+  border-radius: 22px;
+  background: #e8efff;
+  color: #3b6ef5;
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+}
+.group-search-empty h2 { margin: 0 0 8px; font-size: 22px; }
+.group-search-empty p { margin: 0; color: #8e8e93; font-size: 15px; }
+
+.gset-hero {
+  text-align: center;
+  padding: 12px 8px 24px;
+}
+.gset-hero img {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  object-fit: cover;
+  margin-bottom: 14px;
+}
+.gset-hero h2 { margin: 0 0 8px; font-size: 20px; }
+.gset-hero p { margin: 0; color: #6b6b73; font-size: 14px; line-height: 1.4; }
+.settings-icon.pink { background: #ffe3ea; color: #ff5a5f; }
+.settings-icon.green { background: #e4f8ea; color: #34c759; }
+.settings-icon.purple { background: #efe8ff; color: #8b5cf6; }
+.settings-icon.orange { background: #fff0e0; color: #ff9500; }
+.settings-icon.red { background: #ffe8e8; color: #ff3b30; }
+.settings-row.danger span:nth-child(2) { color: #ff3b30; }

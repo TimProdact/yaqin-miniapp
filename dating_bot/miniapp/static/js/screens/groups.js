@@ -272,7 +272,7 @@ export function groupHubScreen(id) {
           <button data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
           <div class="hub-actions">
             <button aria-label="Фото"><i class="ti ti-photo"></i></button>
-            <button aria-label="Поиск"><i class="ti ti-search"></i></button>
+            <button data-action="group-search" data-id="${group.id}" aria-label="Поиск"><i class="ti ti-search"></i></button>
             <button id="hubMenu" aria-label="Ещё"><i class="ti ti-dots"></i></button>
           </div>
         </header>
@@ -280,7 +280,7 @@ export function groupHubScreen(id) {
           <div class="hub-menu-pop">
             <button type="button"><i class="ti ti-arrows-sort"></i> Упорядочить комнаты</button>
             <button type="button"><i class="ti ti-users"></i> Участницы</button>
-            <button type="button" data-action="group-notifications" data-id="${group.id}"><i class="ti ti-settings"></i> Настройки</button>
+            <button type="button" data-action="group-settings" data-id="${group.id}"><i class="ti ti-settings"></i> Настройки</button>
             <button type="button" data-action="report-flow" data-id="1"><i class="ti ti-flag"></i> Жалобы</button>
           </div>` : ''}
         <div class="hub-identity">
@@ -416,6 +416,109 @@ export function createPostScreen(id) {
     };
   };
   render();
+}
+
+export function groupSearchScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  let query = '';
+  const render = () => {
+    const term = query.trim().toLowerCase();
+    const hits = term
+      ? (group.arrivals || []).filter(item =>
+          item.name.toLowerCase().includes(term) || item.answer.toLowerCase().includes(term)
+        )
+      : [];
+    view.innerHTML = `
+      <div class="group-search-page">
+        <header class="modal-head">
+          <button data-action="group-hub" data-id="${group.id}" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Поиск · ${esc(group.title)}</h1>
+          <span></span>
+        </header>
+        <div class="search-box">
+          <i class="ti ti-search"></i>
+          <input id="groupSearch" placeholder="Поиск сообщений" value="${esc(query)}" autofocus>
+        </div>
+        ${term
+          ? `<div class="search-results">${hits.map(item => `
+              <button class="chat-row" type="button" data-action="group-chat" data-id="${group.id}">
+                <img class="gchat-avatar" src="${esc(item.photo)}" alt="">
+                <div class="chat-copy"><strong>${esc(item.name)}</strong><span>${esc(item.answer)}</span></div>
+              </button>`).join('') || '<p class="search-none">Ничего не найдено</p>'}</div>`
+          : `<div class="group-search-empty">
+              <div class="search-illus"><i class="ti ti-search"></i></div>
+              <h2>Найдите сообщения в группе</h2>
+              <p>Попробуйте «кофе», «встреча» или «книга»</p>
+            </div>`}
+      </div>`;
+    const input = view.querySelector('#groupSearch');
+    input.focus();
+    input.oninput = () => {
+      query = input.value;
+      render();
+    };
+  };
+  render();
+}
+
+export function groupSettingsScreen(id) {
+  clearHeader();
+  const group = groups[Number(id) || 0] || groups[0];
+  view.innerHTML = `
+    <div class="group-settings-page">
+      <header class="modal-head">
+        <button data-action="group-hub" data-id="${group.id}" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <h1>Настройки группы</h1>
+        <span></span>
+      </header>
+      <div class="gset-hero">
+        <img src="${esc(group.photo)}" alt="">
+        <h2>${esc(group.title)}</h2>
+        <p>${esc(group.about)}</p>
+      </div>
+      <h3 class="settings-label">Параметры группы</h3>
+      <div class="settings-block">
+        <button class="settings-row" type="button" data-action="group" data-id="${group.id}">
+          <span class="settings-icon blue"><i class="ti ti-home"></i></span>
+          <span>О группе</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon pink"><i class="ti ti-lock"></i></span>
+          <span>Конфиденциальность</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="group-notifications" data-id="${group.id}">
+          <span class="settings-icon green"><i class="ti ti-bell"></i></span>
+          <span>Уведомления</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button">
+          <span class="settings-icon purple"><i class="ti ti-mood-smile"></i></span>
+          <span>Свои эмодзи</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </div>
+      <h3 class="settings-label">Управление</h3>
+      <div class="settings-block">
+        <button class="settings-row" type="button">
+          <span class="settings-icon orange"><i class="ti ti-crown"></i></span>
+          <span>Роли и права</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="report-flow" data-id="1">
+          <span class="settings-icon red"><i class="ti ti-flag"></i></span>
+          <span>Пожаловаться на группу</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row danger" type="button" data-action="groups">
+          <span class="settings-icon red"><i class="ti ti-logout"></i></span>
+          <span>Покинуть группу</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </div>
+    </div>`;
 }
 
 export function createGroupScreen() {
