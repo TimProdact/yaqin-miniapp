@@ -1,4 +1,4 @@
-const PHOTOS = {
+export const PHOTOS = {
   malika: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=1000&q=85',
   mila: 'https://images.pexels.com/photos/4531546/pexels-photo-4531546.jpeg?auto=compress&cs=tinysrgb&w=800&q=80',
   anya: 'https://images.pexels.com/photos/9148018/pexels-photo-9148018.jpeg?auto=compress&cs=tinysrgb&w=800&q=80',
@@ -152,8 +152,33 @@ export const chats = [
     unread: true,
     time: '1 д',
     messages: [
-      { from: 'them', name: 'Малика', text: 'Привет! Какие фильмы любишь?', time: '1 д' },
-      { from: 'them', name: 'Малика', text: 'Тоже люблю этот район!', time: '1 д' }
+      {
+        from: 'them',
+        name: 'Малика',
+        text: 'Привет! Какие фильмы любишь?\nМило, у нас похожие вкусы!',
+        time: '1 д',
+        reaction: '❤️'
+      },
+      {
+        from: 'them',
+        name: 'Малика',
+        text: 'пригласила вас в группу',
+        time: '5 мин',
+        link: {
+          url: 'https://t.me/yaqin_bot?start=g_books',
+          domain: 'yaqin.uz',
+          title: 'Книжный клуб в Yaqin',
+          desc: 'Ташкент — читаем и обсуждаем по субботам 📚',
+          image: PHOTOS.books
+        }
+      },
+      {
+        from: 'them',
+        name: 'Малика',
+        text: 'привет! 🤣',
+        time: 'только что',
+        replyTo: 'Мило, у нас похожие вкусы!'
+      }
     ]
   },
   {
@@ -165,7 +190,7 @@ export const chats = [
     time: '1 д',
     messages: [
       { from: 'them', name: 'Аня', text: 'Давай в субботу на керамику?', time: '2 д' },
-      { from: 'them', name: 'Аня', text: 'Договорились, в субботу', time: '1 д' }
+      { from: 'them', name: 'Аня', text: 'Договорились, в субботу', time: '1 д', image: PHOTOS.coffee }
     ]
   },
   {

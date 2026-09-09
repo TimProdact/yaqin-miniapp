@@ -412,11 +412,48 @@ export async function friendsScreen(_id, token) {
 }
 
 export function promptsScreen() {
-  setBackTitle('Фотоответы');
+  clearHeader();
   view.innerHTML = `
-    <div class="screen-content">
-      <img src="${esc(promptPhoto)}" style="width:100%;border-radius:20px">
-      <p>Скоро здесь можно будет выбрать фото из галереи Telegram.</p>
+    <div class="prompts-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Фото из жизни</h1>
+        <span></span>
+      </header>
+      <p class="prompts-lead">Добавьте кадры, которые расскажут о вас — селфи не обязательны.</p>
+
+      <article class="prompt-life-card">
+        <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+        <h2>Мой последний концерт<br>(или мечта о нём)</h2>
+        <button class="prompt-add" type="button" data-action="camera-roll"><i class="ti ti-camera"></i>Добавить фото</button>
+      </article>
+      <article class="prompt-life-card">
+        <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+        <h2>Недавняя гиперфиксация</h2>
+        <button class="prompt-add" type="button" data-action="camera-roll"><i class="ti ti-camera"></i>Добавить фото</button>
+      </article>
+      <article class="prompt-life-card">
+        <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+        <h2>Любимое место в городе</h2>
+        <button class="prompt-add" type="button" data-action="camera-roll"><i class="ti ti-camera"></i>Добавить фото</button>
+      </article>
+
+      <button class="photos-save" data-action="back">Далее</button>
+    </div>`;
+}
+
+export function cameraRollScreen() {
+  clearHeader();
+  view.innerHTML = `
+    <div class="camera-roll-page">
+      <button class="ob-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+      <div class="roll-visual">
+        <div class="roll-card back"><img src="${esc(promptPhoto)}" alt=""><span>Моё любимое место</span></div>
+        <div class="roll-card front"><img src="${esc(defaultProfile.photo)}" alt=""><span>Прошлые выходные</span></div>
+      </div>
+      <h1>Поделитесь фото<br>из галереи</h1>
+      <p>Несколько кадров, которые передают ваше настроение — селфи не нужны.</p>
+      <button class="ob-next on" data-action="prompts">Далее</button>
     </div>`;
 }
 

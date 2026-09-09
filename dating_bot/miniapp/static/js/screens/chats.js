@@ -1,4 +1,4 @@
-import { chats, people, activity, groups } from '../data.js';
+import { chats, people, activity, groups, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 
 function avatar(photo, team = false) {
@@ -142,11 +142,46 @@ export function newDmScreen() {
 
 export function chatScreen(id) {
   clearHeader();
-  const chat = chats[Number(id) || 0];
+  const chatId = Number(id) || 0;
+  const chat = chats[chatId];
   const messages = chat.messages || [];
   const person = people.find(item => item.id === chat.personId);
   const pills = person?.looking?.slice(0, 3) || ['кофе'];
   const empty = messages.length === 0;
+  const ui = getChatUi(chatId);
+
+  const renderMessage = (message, index) => `
+    <button class="chat-bubble" type="button" data-action="message-menu" data-id="${chat.personId || 0}" data-msg="${index}" data-chat="${chatId}">
+      ${avatar(chat.photo, chat.team)}
+      <div class="bubble-body">
+        <div class="bubble-head">
+          <b class="${message.link ? 'accent' : ''}">${esc(message.name)}</b>
+          <time>${esc(message.time)}</time>
+        </div>
+        ${message.replyTo ? `
+          <div class="bubble-quote">
+            <img src="${esc(chat.photo || people[0].photo)}" alt="">
+            <i class="ti ti-arrow-back-up"></i>
+            <span>${esc(message.replyTo)}</span>
+          </div>` : ''}
+        ${message.text ? `<p>${message.text.split('\n').map(line => esc(line)).join('<br>')}</p>` : ''}
+        ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
+        ${message.link ? `
+          <div class="link-card">
+            <img src="${esc(message.link.image)}" alt="">
+            <div>
+              <small>${esc(message.link.domain)}</small>
+              <strong>${esc(message.link.title)}</strong>
+              <span>${esc(message.link.desc)}</span>
+            </div>
+          </div>` : ''}
+        ${message.reaction ? `
+          <div class="bubble-reactions">
+            <span>${message.reaction} 1</span>
+            <i class="ti ti-mood-plus"></i>
+          </div>` : ''}
+      </div>
+    </button>`;
 
   view.innerHTML = `
     <div class="chat-page">
@@ -163,35 +198,175 @@ export function chatScreen(id) {
       </header>
 
       <main class="chat-thread ${empty ? 'start' : ''}">
-        <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
-        <p class="chat-meta">${empty
-          ? `Это начало вашей переписки · ${esc(chat.name)}`
-          : `Вы познакомились · ${esc(chat.name)}`}</p>
-        <div class="chat-pills">${pills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
-        ${messages.map((message, index) => `
-          <button class="chat-bubble" type="button" data-action="message-menu" data-id="${chat.personId || 0}" data-msg="${index}">
-            ${avatar(chat.photo, chat.team)}
-            <div>
-              <div class="bubble-head"><b>${esc(message.name)}</b><time>${esc(message.time)}</time></div>
-              <p>${esc(message.text)}</p>
-            </div>
-          </button>`).join('')}
+        ${!empty || true ? `
+          <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
+          <p class="chat-meta">${empty
+            ? `Это начало вашей переписки · ${esc(chat.name)}`
+            : `Вы познакомились · ${esc(chat.name)}`}</p>
+          <div class="chat-pills">${pills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
+        ` : ''}
+        ${messages.map(renderMessage).join('')}
       </main>
 
+      ${ui.attachOpen ? `
+        <div class="attach-menu">
+          <button type="button" data-attach="photo"><span>Загрузить фото</span><i class="ti ti-photo"></i></button>
+          <button type="button" data-attach="camera"><span>Сделать фото</span><i class="ti ti-camera"></i></button>
+          <button type="button" data-attach="audio"><span>Записать аудио</span><i class="ti ti-microphone"></i></button>
+          <button type="button" data-attach="file"><span>Загрузить файл</span><i class="ti ti-file"></i></button>
+        </div>` : ''}
+
+      ${ui.gifOpen ? `
+        <div class="gif-sheet">
+          <header><b>GIF</b><button type="button" id="closeGif"><i class="ti ti-x"></i></button></header>
+          <div class="gif-grid">
+            ${[PHOTOS.coffee, PHOTOS.city, PHOTOS.palms, PHOTOS.event].map(src => `
+              <button type="button" data-gif="${esc(src)}"><img src="${esc(src)}" alt=""></button>`).join('')}
+          </div>
+        </div>` : ''}
+
+      ${ui.reply ? `
+        <div class="reply-bar">
+          <i class="ti ti-arrow-back-up"></i>
+          <div>
+            <b>${esc(ui.reply.name)}</b>
+            <span>${esc(ui.reply.text)}</span>
+          </div>
+          <button type="button" id="clearReply" aria-label="Отмена"><i class="ti ti-x"></i></button>
+        </div>` : ''}
+
+      ${ui.attachPhoto ? `
+        <div class="draft-attach">
+          <img src="${esc(ui.attachPhoto)}" alt="">
+          <button type="button" id="clearAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
+        </div>` : ''}
+
       <div class="message-bar">
-        <button class="msg-add" aria-label="Вложение"><i class="ti ti-plus"></i></button>
+        <button class="msg-add ${ui.attachOpen ? 'open' : ''}" id="toggleAttach" aria-label="Вложение">
+          <i class="ti ti-${ui.attachOpen ? 'x' : 'plus'}"></i>
+        </button>
         <label class="msg-field">
-          <input placeholder="Написать сообщение" disabled>
+          <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
           <i class="ti ti-mood-smile"></i>
         </label>
-        <button aria-label="GIF">GIF</button>
-        <button aria-label="Фото"><i class="ti ti-photo"></i></button>
-        <button aria-label="Голос"><i class="ti ti-microphone"></i></button>
+        ${ui.draft.trim() || ui.attachPhoto
+          ? `<button class="msg-send" id="sendMsg" aria-label="Отправить"><i class="ti ti-arrow-up"></i></button>`
+          : `<button id="openGif" aria-label="GIF">GIF</button>
+             <button id="quickPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
+             <button aria-label="Голос"><i class="ti ti-microphone"></i></button>`}
       </div>
     </div>`;
+
+  const input = view.querySelector('#msgInput');
+  input?.addEventListener('input', () => {
+    ui.draft = input.value;
+    setChatUi(chatId, ui);
+    const has = ui.draft.trim() || ui.attachPhoto;
+    // lightweight toggle of send vs tools without full remount would be better; remount keeps focus issue
+    // remount only when crossing empty/nonempty boundary
+    const sendVisible = Boolean(view.querySelector('#sendMsg'));
+    if (Boolean(has) !== sendVisible) chatScreen(chatId);
+  });
+
+  view.querySelector('#toggleAttach')?.addEventListener('click', () => {
+    ui.attachOpen = !ui.attachOpen;
+    ui.gifOpen = false;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+  view.querySelector('#openGif')?.addEventListener('click', () => {
+    ui.gifOpen = !ui.gifOpen;
+    ui.attachOpen = false;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+  view.querySelector('#closeGif')?.addEventListener('click', () => {
+    ui.gifOpen = false;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+  view.querySelectorAll('[data-gif]').forEach(button => {
+    button.onclick = () => {
+      ui.attachPhoto = button.dataset.gif;
+      ui.gifOpen = false;
+      setChatUi(chatId, ui);
+      chatScreen(chatId);
+    };
+  });
+  view.querySelector('#quickPhoto')?.addEventListener('click', () => {
+    ui.attachPhoto = PHOTOS.city;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+  view.querySelectorAll('[data-attach]').forEach(button => {
+    button.onclick = () => {
+      if (button.dataset.attach === 'photo' || button.dataset.attach === 'camera') ui.attachPhoto = PHOTOS.palms;
+      ui.attachOpen = false;
+      setChatUi(chatId, ui);
+      chatScreen(chatId);
+    };
+  });
+  view.querySelector('#clearReply')?.addEventListener('click', () => {
+    ui.reply = null;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+  view.querySelector('#clearAttach')?.addEventListener('click', () => {
+    ui.attachPhoto = null;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+  view.querySelector('#sendMsg')?.addEventListener('click', () => {
+    if (!ui.draft.trim() && !ui.attachPhoto) return;
+    chat.messages = chat.messages || [];
+    chat.messages.push({
+      from: 'me',
+      name: 'Вы',
+      text: ui.draft.trim(),
+      time: 'сейчас',
+      image: ui.attachPhoto || undefined,
+      replyTo: ui.reply?.text
+    });
+    chat.preview = ui.draft.trim() || 'Фото';
+    ui.draft = '';
+    ui.attachPhoto = null;
+    ui.reply = null;
+    ui.attachOpen = false;
+    setChatUi(chatId, ui);
+    chatScreen(chatId);
+  });
+
+  if (ui.draft) {
+    input?.focus();
+    input?.setSelectionRange(ui.draft.length, ui.draft.length);
+  }
 }
 
-export function showMessageMenu(person, message) {
+const chatUiState = new Map();
+function getChatUi(id) {
+  if (!chatUiState.has(id)) {
+    chatUiState.set(id, { attachOpen: false, gifOpen: false, reply: null, draft: '', attachPhoto: null });
+  }
+  return { ...chatUiState.get(id) };
+}
+function setChatUi(id, ui) {
+  chatUiState.set(id, ui);
+}
+
+export function primeChatUi(id, patch = {}) {
+  setChatUi(id, { ...getChatUi(id), ...patch });
+  chatScreen(id);
+}
+
+export function beginReply(chatId, message, person) {
+  const ui = getChatUi(chatId);
+  ui.reply = { name: message?.name || person?.name || 'подруга', text: (message?.text || '').split('\n').pop() };
+  ui.attachOpen = false;
+  setChatUi(chatId, ui);
+  chatScreen(chatId);
+}
+
+export function showMessageMenu(person, message, chatId = 0) {
   const first = esc((person?.name || message?.name || 'подруга').split(' ')[0]);
   const photo = person?.photo || message?.photo || people[0].photo;
   closeMessageMenu();
@@ -204,7 +379,7 @@ export function showMessageMenu(person, message) {
         <button type="button" data-action="close-sheet" aria-label="Ещё"><i class="ti ti-mood-plus"></i></button>
       </div>
       <div class="message-sheet">
-        <button type="button" data-action="close-sheet">
+        <button type="button" id="replyMsg">
           <span class="reply-icon"><img src="${esc(photo)}" alt=""><i class="ti ti-arrow-back-up"></i></span>
           Ответить · ${first}
         </button>
@@ -227,6 +402,10 @@ export function showMessageMenu(person, message) {
     overlay.remove();
     document.body.classList.remove('safety-open');
     messageMenuCloser = null;
+  };
+  overlay.querySelector('#replyMsg').onclick = () => {
+    closeMessageMenu();
+    beginReply(chatId, message, person);
   };
 }
 

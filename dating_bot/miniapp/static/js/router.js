@@ -19,7 +19,9 @@ const FULL_SCREEN_ROUTES = new Set([
   'share-profile',
   'edit-photos',
   'group-notifications',
-  'edit'
+  'edit',
+  'prompts',
+  'camera-roll'
 ]);
 const SHEET_ROUTES = new Set(['person', 'group', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me', 'events', 'friends']);

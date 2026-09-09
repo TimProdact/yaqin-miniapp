@@ -28,6 +28,7 @@ import {
   editPhotosScreen,
   friendsScreen,
   promptsScreen,
+  cameraRollScreen,
   basicInfoScreen,
   blockedScreen,
   darkModeScreen,
@@ -78,6 +79,7 @@ registerScreens({
   edit: editScreen,
   friends: friendsScreen,
   prompts: promptsScreen,
+  'camera-roll': cameraRollScreen,
   basic: basicInfoScreen,
   onboarding: onboardingScreen,
   verify: verifyScreen
@@ -113,9 +115,10 @@ async function handleAction(target) {
     return;
   }
   if (action === 'message-menu') {
-    const chat = chats.find(item => item.personId === Number(id)) || chats[0];
+    const chatId = Number(target.dataset.chat || 0);
+    const chat = chats[chatId] || chats.find(item => item.personId === Number(id)) || chats[0];
     const message = chat?.messages?.[Number(target.dataset.msg || 0)];
-    return showMessageMenu(person || { id: Number(id), name: message?.name, photo: chat?.photo }, message);
+    return showMessageMenu(person || { id: Number(id), name: message?.name, photo: chat?.photo }, message, chatId);
   }
   if (action === 'person-menu' && person) return showPersonMenu(person);
   if (action === 'block-confirm' && person) return showBlockConfirm(person);
