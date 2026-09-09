@@ -141,6 +141,14 @@ export function groupChatScreen(id) {
             <span>1 новое сообщение</span>
             <button type="button" id="closeNew" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           </div>` : ''}
+        <div class="gchat-pinned">
+          <i class="ti ti-pin"></i>
+          <div>
+            <b>Закреплено</b>
+            <span>Правила: уважение, без спама, только девушки</span>
+          </div>
+          <button type="button" id="closePin" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+        </div>
 
         <main class="gchat-thread">
           ${arrivals.map(item => `
@@ -223,6 +231,9 @@ export function groupChatScreen(id) {
     });
     view.querySelector('#closeNew')?.addEventListener('click', () => {
       view.querySelector('.gchat-newbar')?.remove();
+    });
+    view.querySelector('#closePin')?.addEventListener('click', () => {
+      view.querySelector('.gchat-pinned')?.remove();
     });
     view.querySelector('#jumpLatest')?.addEventListener('click', () => {
       view.querySelector('.gchat-thread')?.scrollTo({ top: 9999, behavior: 'smooth' });

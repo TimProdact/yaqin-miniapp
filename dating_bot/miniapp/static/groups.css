@@ -2275,3 +2275,32 @@ html[data-theme='dark'] .jump-latest {
   background: #1c1c1e;
   color: #f2f2f7;
 }
+
+.gchat-pinned {
+  display: flex;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 14px;
+  background: #f7f7f8;
+  border-bottom: 1px solid #eee;
+}
+.gchat-pinned i { color: #ff5a5f; margin-top: 2px; }
+.gchat-pinned div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.gchat-pinned b { font-size: 13px; }
+.gchat-pinned span {
+  font-size: 13px;
+  color: #6b6b73;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gchat-pinned button {
+  border: 0;
+  background: none;
+  color: #8e8e93;
+  font-size: 16px;
+}
+html[data-theme='dark'] .gchat-pinned {
+  background: #111;
+  border-color: #2c2c2e;
+}
