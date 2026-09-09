@@ -1136,6 +1136,12 @@ export function showFeedbackSheet() {
   submit.onclick = () => {
     if (submit.disabled) return;
     closeSettingsOverlay();
+    const banner = document.createElement('div');
+    banner.id = 'block-banner';
+    banner.className = 'block-banner';
+    banner.textContent = 'Спасибо за отзыв';
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 2200);
   };
 }
 

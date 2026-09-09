@@ -1095,13 +1095,47 @@ export function groupSearchScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
   let query = '';
+  const corpus = [
+    {
+      room: 'Чат группы',
+      name: people[0].name,
+      photo: people[0].photo,
+      when: '17 ноя · 5:41',
+      text: 'Девочки!! зову всех на пилатес и матчу в воскресенье в Мирабаде — пакеты-подарки, снэки и кофе 💚',
+      link: 'https://yaqin.uz/events',
+      linkTitle: 'Пилатес + матча'
+    },
+    {
+      room: 'События',
+      name: people[1].name,
+      photo: people[1].photo,
+      when: 'вчера',
+      text: 'Кто на кофейную прогулку? Можно совместить с книжным клубом.',
+      link: '',
+      linkTitle: ''
+    },
+    {
+      room: 'Рекомендации',
+      name: people[2]?.name || people[0].name,
+      photo: people[2]?.photo || people[0].photo,
+      when: '3 дн.',
+      text: 'Нашла тихое место у Moon — идеально для разговора.',
+      link: '',
+      linkTitle: ''
+    }
+  ];
+
   const render = () => {
     const term = query.trim().toLowerCase();
     const hits = term
-      ? (group.arrivals || []).filter(item =>
-          item.name.toLowerCase().includes(term) || item.answer.toLowerCase().includes(term)
+      ? corpus.filter(item =>
+          item.text.toLowerCase().includes(term)
+          || item.name.toLowerCase().includes(term)
+          || item.room.toLowerCase().includes(term)
+          || item.linkTitle.toLowerCase().includes(term)
         )
       : [];
+
     view.innerHTML = `
       <div class="group-search-page">
         <header class="modal-head">
@@ -1112,25 +1146,41 @@ export function groupSearchScreen(id) {
         <div class="search-box">
           <i class="ti ti-search"></i>
           <input id="groupSearch" placeholder="Поиск сообщений" value="${esc(query)}" autofocus>
+          ${term ? `<button type="button" id="clearGroupSearch">×</button>` : ''}
         </div>
         ${term
-          ? `<div class="search-results">${hits.map(item => `
-              <button class="chat-row" type="button" data-action="group-chat" data-id="${group.id}">
-                <img class="gchat-avatar" src="${esc(item.photo)}" alt="">
-                <div class="chat-copy"><strong>${esc(item.name)}</strong><span>${esc(item.answer)}</span></div>
-              </button>`).join('') || '<p class="search-none">Ничего не найдено</p>'}</div>`
+          ? `<p class="search-count">${hits.length} результатов</p>
+             <div class="search-results group-hits">${hits.map(item => `
+              <article class="group-hit">
+                <header>
+                  <span>Сообщение в «${esc(item.room)}»</span>
+                </header>
+                <button type="button" data-action="group-chat" data-id="${group.id}">
+                  <img src="${esc(item.photo)}" alt="">
+                  <div>
+                    <b>${esc(item.name)} <time>${esc(item.when)}</time></b>
+                    <p>${esc(item.text)}</p>
+                    ${item.link ? `<span class="hit-link"><i class="ti ti-link"></i>${esc(item.linkTitle || item.link)}</span>` : ''}
+                  </div>
+                </button>
+              </article>`).join('') || '<p class="search-none">Ничего не найдено</p>'}</div>`
           : `<div class="group-search-empty">
               <div class="search-illus"><i class="ti ti-search"></i></div>
               <h2>Найдите сообщения в группе</h2>
-              <p>Попробуйте «кофе», «встреча» или «книга»</p>
+              <p>Попробуйте «пилатес», «кофе» или «книга»</p>
             </div>`}
       </div>`;
     const input = view.querySelector('#groupSearch');
     input.focus();
+    input.setSelectionRange(query.length, query.length);
     input.oninput = () => {
       query = input.value;
       render();
     };
+    view.querySelector('#clearGroupSearch')?.addEventListener('click', () => {
+      query = '';
+      render();
+    });
   };
   render();
 }
@@ -1166,61 +1216,99 @@ export function leaveGroupConfirm(id) {
 export function groupSettingsScreen(id) {
   clearHeader();
   const group = groups[Number(id) || 0] || groups[0];
-  view.innerHTML = `
-    <div class="group-settings-page">
-      <header class="modal-head">
-        <button data-action="group-hub" data-id="${group.id}" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        <h1>Настройки группы</h1>
-        <span></span>
-      </header>
-      <div class="gset-hero">
-        <img src="${esc(group.photo)}" alt="">
-        <h2>${esc(group.title)}</h2>
-        <p>${esc(group.about)}</p>
-      </div>
-      <h3 class="settings-label">Параметры группы</h3>
-      <div class="settings-block">
-        <button class="settings-row" type="button" data-action="group" data-id="${group.id}">
-          <span class="settings-icon blue"><i class="ti ti-home"></i></span>
-          <span>О группе</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button">
-          <span class="settings-icon pink"><i class="ti ti-lock"></i></span>
-          <span>Конфиденциальность</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="group-notifications" data-id="${group.id}">
-          <span class="settings-icon green"><i class="ti ti-bell"></i></span>
-          <span>Уведомления</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button">
-          <span class="settings-icon purple"><i class="ti ti-mood-smile"></i></span>
-          <span>Свои эмодзи</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-      </div>
-      <h3 class="settings-label">Управление</h3>
-      <div class="settings-block">
-        <button class="settings-row" type="button">
-          <span class="settings-icon orange"><i class="ti ti-crown"></i></span>
-          <span>Роли и права</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="report-flow" data-id="1">
-          <span class="settings-icon red"><i class="ti ti-flag"></i></span>
-          <span>Пожаловаться на группу</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row danger" type="button" id="leaveFromSettings">
-          <span class="settings-icon red"><i class="ti ti-logout"></i></span>
-          <span>Покинуть группу</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-      </div>
-    </div>`;
-  view.querySelector('#leaveFromSettings').onclick = () => leaveGroupConfirm(group.id);
+  let privacyOpen = false;
+  let privacy = 'open';
+
+  const render = () => {
+    view.innerHTML = `
+      <div class="group-settings-page">
+        <header class="modal-head">
+          <button data-action="group-hub" data-id="${group.id}" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Настройки группы</h1>
+          <span></span>
+        </header>
+        <div class="gset-hero">
+          <img src="${esc(group.photo)}" alt="">
+          <h2>${esc(group.title)}</h2>
+          <p>${esc(group.about)}</p>
+        </div>
+        <h3 class="settings-label">Параметры группы</h3>
+        <div class="settings-block">
+          <button class="settings-row" type="button" data-action="group" data-id="${group.id}">
+            <span class="settings-icon blue"><i class="ti ti-home"></i></span>
+            <span>О группе</span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" id="openPrivacy">
+            <span class="settings-icon pink"><i class="ti ti-lock"></i></span>
+            <span>Конфиденциальность<br><small>${privacy === 'open' ? 'Открытая' : privacy === 'locked' ? 'По заявке' : 'Секретная'}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" data-action="group-notifications" data-id="${group.id}">
+            <span class="settings-icon green"><i class="ti ti-bell"></i></span>
+            <span>Уведомления</span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button">
+            <span class="settings-icon purple"><i class="ti ti-mood-smile"></i></span>
+            <span>Свои эмодзи</span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+        </div>
+        <h3 class="settings-label">Управление</h3>
+        <div class="settings-block">
+          <button class="settings-row" type="button">
+            <span class="settings-icon orange"><i class="ti ti-crown"></i></span>
+            <span>Роли и права</span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" data-action="report-flow" data-id="1">
+            <span class="settings-icon red"><i class="ti ti-flag"></i></span>
+            <span>Пожаловаться на группу</span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row danger" type="button" data-action="leave-group" data-id="${group.id}">
+            <span class="settings-icon red"><i class="ti ti-logout"></i></span>
+            <span>Покинуть группу</span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+        </div>
+        ${privacyOpen ? `
+          <div class="edit-sheet">
+            <header>
+              <h2>Конфиденциальность</h2>
+              <button type="button" id="closePrivacy">Готово</button>
+            </header>
+            <div class="edit-radio-list">
+              ${[
+                ['open', 'Открытая', 'Любая может вступить'],
+                ['locked', 'По заявке', 'Вступление после ответа на вопросы'],
+                ['secret', 'Секретная', 'Только по приглашению']
+              ].map(([key, title, desc]) => `
+                <button type="button" class="${privacy === key ? 'on' : ''}" data-privacy="${key}">
+                  <span><b>${title}</b><small style="display:block;color:#8e8e93;font-weight:500">${desc}</small></span>
+                  ${privacy === key ? '<i class="ti ti-check"></i>' : ''}
+                </button>`).join('')}
+            </div>
+          </div>` : ''}
+      </div>`;
+    view.querySelector('#openPrivacy').onclick = () => {
+      privacyOpen = true;
+      render();
+    };
+    view.querySelector('#closePrivacy')?.addEventListener('click', () => {
+      privacyOpen = false;
+      render();
+    });
+    view.querySelectorAll('[data-privacy]').forEach(button => {
+      button.onclick = () => {
+        privacy = button.dataset.privacy;
+        privacyOpen = false;
+        render();
+      };
+    });
+  };
+  render();
 }
 
 export function postCommentsScreen(id) {

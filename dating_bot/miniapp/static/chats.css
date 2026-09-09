@@ -210,6 +210,12 @@
   font-size: 15px;
   line-height: 1.4;
 }
+.chats-empty .empty-primary {
+  margin: 22px auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .search-box {
   height: 48px;

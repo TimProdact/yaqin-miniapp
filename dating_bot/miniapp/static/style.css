@@ -58,11 +58,37 @@ html[data-theme='dark'] .group-hub-page,
 html[data-theme='dark'] .group-posts-page,
 html[data-theme='dark'] .group-search-page,
 html[data-theme='dark'] .group-settings-page,
+html[data-theme='dark'] .group-media-page,
+html[data-theme='dark'] .group-pins-page,
+html[data-theme='dark'] .group-location-page,
+html[data-theme='dark'] .group-theme-page,
+html[data-theme='dark'] .group-tags-page,
 html[data-theme='dark'] .create-post-page,
 html[data-theme='dark'] .create-event-page,
 html[data-theme='dark'] .invite-friends-page,
+html[data-theme='dark'] .invite-dm-page,
+html[data-theme='dark'] .invite-sheet-page,
 html[data-theme='dark'] .organize-rooms-page,
 html[data-theme='dark'] .post-comments-page,
+html[data-theme='dark'] .edit-profile-page,
+html[data-theme='dark'] .edit-photos-page,
+html[data-theme='dark'] .share-page,
+html[data-theme='dark'] .profile-groups-page,
+html[data-theme='dark'] .my-events-page,
+html[data-theme='dark'] .friends-page,
+html[data-theme='dark'] .filters-page,
+html[data-theme='dark'] .connected-page,
+html[data-theme='dark'] .ob-start,
+html[data-theme='dark'] .ob-plain,
+html[data-theme='dark'] .ob-form,
+html[data-theme='dark'] .ob-card,
+html[data-theme='dark'] .verify-intro,
+html[data-theme='dark'] .verify-identity,
+html[data-theme='dark'] .verify-capture,
+html[data-theme='dark'] .verify-submitted,
+html[data-theme='dark'] .camera-roll-page,
+html[data-theme='dark'] .prompts-page,
+html[data-theme='dark'] .prompt-picker-page,
 html[data-theme='dark'] .nav,
 html[data-theme='dark'] .settings-row,
 html[data-theme='dark'] .settings-block,
@@ -76,24 +102,39 @@ html[data-theme='dark'] .chat-row,
 html[data-theme='dark'] .pick-row,
 html[data-theme='dark'] .hub-room,
 html[data-theme='dark'] .post-card,
-html[data-theme='dark'] .organize-row {
+html[data-theme='dark'] .organize-row,
+html[data-theme='dark'] .group-hit {
   border-color: #2c2c2e;
   color: #f2f2f7;
   background: #111;
 }
 html[data-theme='dark'] .hub-tabs button,
-html[data-theme='dark'] .hub-room-icon {
+html[data-theme='dark'] .hub-room-icon,
+html[data-theme='dark'] .chat-tabs button,
+html[data-theme='dark'] .search-box,
+html[data-theme='dark'] .plain-search {
   background: #1c1c1e;
   color: #f2f2f7;
 }
-html[data-theme='dark'] .hub-tabs .on {
+html[data-theme='dark'] .hub-tabs .on,
+html[data-theme='dark'] .chat-tabs button.active {
   background: #f2f2f7;
   color: #000;
 }
 html[data-theme='dark'] .post-card,
 html[data-theme='dark'] .create-post-bar,
 html[data-theme='dark'] .gchat-top,
-html[data-theme='dark'] .message-bar {
+html[data-theme='dark'] .message-bar,
+html[data-theme='dark'] .edit-sheet,
+html[data-theme='dark'] .group-hit {
   background: #111 !important;
   border-color: #2c2c2e;
+}
+html[data-theme='dark'] .group-hit p,
+html[data-theme='dark'] .search-count,
+html[data-theme='dark'] .chats-empty p {
+  color: #98989f;
+}
+html[data-theme='dark'] .group-hit .hit-link {
+  background: #2c2c2e;
 }

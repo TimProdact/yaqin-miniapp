@@ -8,98 +8,151 @@ function avatar(photo, team = false) {
 
 export function chatsScreen() {
   clearHeader();
-  const hasChats = chats.length > 0;
+  let tab = 'dms';
+  const groupChats = groups.filter(group => group.joined !== false).slice(0, 3);
 
-  view.innerHTML = `
-    <div class="chats-page">
-      <header class="chats-head">
-        <h1>Мои чаты</h1>
-        <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
-      </header>
+  const render = () => {
+    const hasChats = chats.length > 0;
+    view.innerHTML = `
+      <div class="chats-page">
+        <header class="chats-head">
+          <h1>Мои чаты</h1>
+          <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
+        </header>
 
-      ${hasChats ? `
-        <h2 class="chats-section">Новые знакомства</h2>
-        <div class="new-friends">
-          <div class="new-friend">
-            <img src="${esc(people[0].photo)}">
-            <b>НОВОЕ</b>
-          </div>
+        ${tab === 'dms' && hasChats ? `
+          <h2 class="chats-section">Новые знакомства</h2>
+          <div class="new-friends">
+            <div class="new-friend">
+              <img src="${esc(people[0].photo)}" alt="">
+              <b>НОВОЕ</b>
+            </div>
+          </div>` : ''}
+
+        <div class="chat-tabs">
+          <button class="${tab === 'dms' ? 'active' : ''}" data-ctab="dms">Личные${hasChats ? ' <span class="tab-badge">2</span>' : ''}</button>
+          <button class="${tab === 'groups' ? 'active' : ''}" data-ctab="groups">Группы</button>
+          <button class="${tab === 'events' ? 'active' : ''}" data-ctab="events">События</button>
         </div>
-      ` : ''}
 
-      <div class="chat-tabs">
-        <button class="active">Личные${hasChats ? ' <span class="tab-badge">2</span>' : ''}</button>
-        <button>Группы</button>
-        <button>События</button>
-      </div>
+        ${tab === 'dms' ? (hasChats
+          ? `<div class="chat-list">${chats.map((chat, index) => `
+              <button class="chat-row" data-action="chat" data-id="${index}">
+                ${avatar(chat.photo, chat.team)}
+                <div class="chat-copy">
+                  <strong>${esc(chat.name)}</strong>
+                  <span>${esc(chat.preview)} · ${esc(chat.time)}</span>
+                </div>
+                ${chat.unread ? '<i class="unread-dot"></i>' : ''}
+              </button>`).join('')}</div>`
+          : `<div class="chats-empty">
+              <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
+              <h2>Пока нет личных чатов</h2>
+              <p>Когда отправите или получите сообщение, оно появится здесь.</p>
+            </div>`) : ''}
 
-      ${hasChats
-        ? `<div class="chat-list">${chats.map((chat, index) => `
-            <button class="chat-row" data-action="chat" data-id="${index}">
-              ${avatar(chat.photo, chat.team)}
-              <div class="chat-copy">
-                <strong>${esc(chat.name)}</strong>
-                <span>${esc(chat.preview)} · ${esc(chat.time)}</span>
-              </div>
-              ${chat.unread ? '<i class="unread-dot"></i>' : ''}
-            </button>`).join('')}</div>`
-        : `<div class="chats-empty">
-            <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
-            <h2>Пока нет личных чатов</h2>
-            <p>Когда отправите или получите сообщение, оно появится здесь.</p>
-          </div>`}
+        ${tab === 'groups' ? `
+          <div class="chat-list">
+            ${groupChats.map(group => `
+              <button class="chat-row" data-action="group-chat" data-id="${group.id}">
+                ${avatar(group.photo)}
+                <div class="chat-copy">
+                  <strong>${esc(group.title)}</strong>
+                  <span>${esc(group.active || 'чат группы')}</span>
+                </div>
+              </button>`).join('') || `
+              <div class="chats-empty">
+                <div class="empty-badge"><i class="ti ti-users"></i></div>
+                <h2>Пока нет групповых чатов</h2>
+                <p>Вступите в группу — переписка появится здесь.</p>
+              </div>`}
+          </div>` : ''}
 
-      <button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>
-    </div>`;
+        ${tab === 'events' ? `
+          <div class="chats-empty">
+            <div class="empty-badge"><i class="ti ti-calendar-event"></i></div>
+            <h2>Пока нет чатов событий</h2>
+            <p>Когда отметите «Иду», чат события появится здесь.</p>
+            <button class="empty-primary" type="button" data-action="events">Смотреть события</button>
+          </div>` : ''}
+
+        <button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>
+      </div>`;
+
+    view.querySelectorAll('[data-ctab]').forEach(button => {
+      button.onclick = () => {
+        tab = button.dataset.ctab;
+        render();
+      };
+    });
+  };
+  render();
 }
 
 export function searchChatsScreen(queryOrId = '') {
   clearHeader();
-  const query = typeof queryOrId === 'string' ? queryOrId : '';
-  const term = query.trim().toLowerCase();
-  const rows = chats.filter(chat =>
-    !term || chat.name.toLowerCase().includes(term) || chat.preview.toLowerCase().includes(term)
-  );
+  let query = typeof queryOrId === 'string' ? queryOrId : '';
 
-  view.innerHTML = `
-    <div class="search-page">
-      <header class="modal-head">
-        <button data-action="chats" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        <h1>Поиск чатов</h1>
-        <span></span>
-      </header>
-      <div class="search-box">
-        <i class="ti ti-search"></i>
-        <input id="chatSearch" placeholder="Поиск переписок..." value="${esc(query)}" autofocus>
-        ${term ? '<button type="button" id="clearSearch">×</button>' : ''}
-      </div>
-      <div class="search-results">
-        ${term
-          ? rows.map((chat, index) => `
-            <button class="chat-row" data-action="chat" data-id="${index}">
-              ${avatar(chat.photo, chat.team)}
-              <div class="chat-copy"><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)}</span></div>
-            </button>`).join('') || '<p class="search-none">Ничего не найдено</p>'
-          : `<div class="chats-empty compact">
-              <div class="empty-badge"><i class="ti ti-user"></i></div>
-              <h2>Поиск чатов</h2>
-            </div>`}
-      </div>
-    </div>`;
+  const render = () => {
+    const term = query.trim().toLowerCase();
+    const rows = chats
+      .map((chat, index) => ({ chat, index }))
+      .filter(({ chat }) =>
+        !term || chat.name.toLowerCase().includes(term) || chat.preview.toLowerCase().includes(term)
+      );
 
-  const input = view.querySelector('#chatSearch');
-  input.focus();
-  input.oninput = () => searchChatsScreen(input.value);
-  view.querySelector('#clearSearch')?.addEventListener('click', () => searchChatsScreen(''));
+    view.innerHTML = `
+      <div class="search-page">
+        <header class="modal-head">
+          <button data-action="chats" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Поиск чатов</h1>
+          <span></span>
+        </header>
+        <div class="search-box">
+          <i class="ti ti-search"></i>
+          <input id="chatSearch" placeholder="Поиск переписок..." value="${esc(query)}" autofocus>
+          ${term ? '<button type="button" id="clearSearch">×</button>' : ''}
+        </div>
+        <div class="search-results">
+          ${term
+            ? rows.map(({ chat, index }) => `
+              <button class="chat-row" data-action="chat" data-id="${index}">
+                ${avatar(chat.photo, chat.team)}
+                <div class="chat-copy"><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)} · ${esc(chat.time)}</span></div>
+              </button>`).join('') || '<p class="search-none">Ничего не найдено</p>'
+            : `<div class="chats-empty compact">
+                <div class="empty-badge"><i class="ti ti-messages"></i></div>
+                <h2>Поиск переписок</h2>
+                <p>Введите имя или фрагмент сообщения</p>
+              </div>`}
+        </div>
+      </div>`;
+
+    const input = view.querySelector('#chatSearch');
+    input.focus();
+    input.setSelectionRange(query.length, query.length);
+    input.oninput = () => {
+      query = input.value;
+      render();
+    };
+    view.querySelector('#clearSearch')?.addEventListener('click', () => {
+      query = '';
+      render();
+    });
+  };
+  render();
 }
 
 export function newDmScreen() {
   clearHeader();
   const friends = people.slice(0, 3);
-  const members = [people[1]];
+  const members = people.slice(1, 3);
   let selected = new Set();
+  let query = '';
 
   const render = () => {
+    const term = query.trim().toLowerCase();
+    const filter = list => list.filter(person => !term || person.name.toLowerCase().includes(term));
     view.innerHTML = `
       <div class="new-dm-page">
         <header class="modal-head">
@@ -108,15 +161,19 @@ export function newDmScreen() {
           <button class="head-action ${selected.size ? 'on' : ''}" data-action="chat" data-id="0" ${selected.size ? '' : 'disabled'}>Чат</button>
         </header>
         <h2 class="invite-title">Пригласите в чат</h2>
-        <input class="plain-search" id="dmSearch" placeholder="Поиск...">
+        <input class="plain-search" id="dmSearch" placeholder="Поиск..." value="${esc(query)}">
 
         <h3 class="list-label">Подруги</h3>
-        ${friends.map(person => row(person)).join('')}
+        ${filter(friends).map(person => row(person)).join('') || '<p class="search-none">Никого не нашли</p>'}
 
         <h3 class="list-label">Из общих групп</h3>
-        ${members.map(person => row(person)).join('')}
+        ${filter(members).map(person => row(person)).join('')}
       </div>`;
 
+    view.querySelector('#dmSearch').oninput = event => {
+      query = event.target.value;
+      render();
+    };
     view.querySelectorAll('[data-pick]').forEach(button => {
       button.onclick = () => {
         const id = Number(button.dataset.pick);
@@ -125,6 +182,11 @@ export function newDmScreen() {
         render();
       };
     });
+    if (query) {
+      const input = view.querySelector('#dmSearch');
+      input.focus();
+      input.setSelectionRange(query.length, query.length);
+    }
   };
 
   const row = person => `
