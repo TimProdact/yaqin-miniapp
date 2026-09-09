@@ -77,20 +77,19 @@ function applyTelegramSafeArea() {
     const safeBottom = Number(telegram?.safeAreaInset?.bottom || 0);
     const contentBottom = Number(telegram?.contentSafeAreaInset?.bottom || 0);
 
-    // Telegram docs: sum device safe area + content safe area (TG chrome).
-    // Cap each part so a bad WebView value cannot push the UI off-screen.
-    const cappedSafe = Math.min(Math.max(safeTop, 0), 80);
-    const cappedContent = Math.min(Math.max(contentTop, 0), 96);
+    // Sum device + Telegram chrome, but never invent a huge empty band.
+    const cappedSafe = Math.min(Math.max(safeTop, 0), 59);
+    const cappedContent = Math.min(Math.max(contentTop, 0), 72);
     let top = cappedSafe + cappedContent;
 
-    // In Telegram expanded Mini App, header controls need ~44–56px even if API is 0.
-    const inTelegram = Boolean(telegram?.initData || telegram?.platform);
-    if (inTelegram && top < 48) top = 54;
-    if (top > 140) top = 140;
+    // Soft fallback only when Telegram reports nothing at all.
+    const inTelegram = Boolean(telegram?.initDataUnsafe || telegram?.initData || telegram?.platform);
+    if (inTelegram && top === 0) top = 12;
+    if (top > 100) top = 100;
 
     const bottom = Math.min(
-      Math.max(safeBottom, 0) + Math.min(Math.max(contentBottom, 0), 48),
-      96
+      Math.max(safeBottom, 0) + Math.min(Math.max(contentBottom, 0), 34),
+      64
     );
 
     root.style.setProperty('--tg-safe-area-inset-top', `${cappedSafe}px`);

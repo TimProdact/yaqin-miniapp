@@ -7,41 +7,42 @@ html[data-theme='dark'],
 html[data-theme='system'] {
   color-scheme: light dark;
 }
+
+html[data-theme='dark'] {
+  --yaqin-bg: #000;
+  --yaqin-surface: #000;
+  --yaqin-text: #f2f2f7;
+  --yaqin-muted: #98989f;
+  --yaqin-sep: #2c2c2e;
+}
+
 @media (prefers-color-scheme: dark) {
-  html[data-theme='system'] body {
-    background: #000;
-    color: #f2f2f7;
-  }
-  html[data-theme='system'] .chats-page,
-  html[data-theme='system'] .activity-page,
-  html[data-theme='system'] .search-page,
-  html[data-theme='system'] .groups-page,
-  html[data-theme='system'] .events-page,
-  html[data-theme='system'] .settings-page,
-  html[data-theme='system'] .me-page,
-  html[data-theme='system'] .create-group-page,
-  html[data-theme='system'] .join-page,
-  html[data-theme='system'] .new-dm-page,
-  html[data-theme='system'] .chat-page,
-  html[data-theme='system'] .nav,
-  html[data-theme='system'] .settings-row,
-  html[data-theme='system'] .settings-block,
-  html[data-theme='system'] .report-flow,
-  html[data-theme='system'] .report-overlay {
-    background: #000 !important;
-    color: #f2f2f7;
-  }
-  html[data-theme='system'] .settings-row,
-  html[data-theme='system'] .chat-row,
-  html[data-theme='system'] .pick-row {
-    border-color: #2c2c2e;
-    color: #f2f2f7;
+  html[data-theme='system'] {
+    --yaqin-bg: #000;
+    --yaqin-surface: #000;
+    --yaqin-text: #f2f2f7;
+    --yaqin-muted: #98989f;
+    --yaqin-sep: #2c2c2e;
   }
 }
-html[data-theme='dark'] body {
-  background: #000;
+
+html[data-theme='dark'] html,
+html[data-theme='dark'] body,
+html[data-theme='dark'] .app,
+html[data-theme='dark'] .view,
+html[data-theme='dark'] .app-header,
+html[data-theme='dark'] .chats-head,
+html[data-theme='dark'] .modal-head,
+html[data-theme='dark'] .filters-head,
+html[data-theme='dark'] .me-top,
+html[data-theme='dark'] .me-tabs,
+html[data-theme='dark'] .gchat-top,
+html[data-theme='dark'] .picker-head,
+html[data-theme='dark'] .sheet-head {
+  background: #000 !important;
   color: #f2f2f7;
 }
+
 html[data-theme='dark'] .chats-page,
 html[data-theme='dark'] .activity-page,
 html[data-theme='dark'] .search-page,
@@ -97,17 +98,46 @@ html[data-theme='dark'] .report-overlay {
   background: #000 !important;
   color: #f2f2f7;
 }
+
+/* Surfaces / rows */
 html[data-theme='dark'] .settings-row,
 html[data-theme='dark'] .chat-row,
 html[data-theme='dark'] .pick-row,
 html[data-theme='dark'] .hub-room,
 html[data-theme='dark'] .post-card,
 html[data-theme='dark'] .organize-row,
-html[data-theme='dark'] .group-hit {
-  border-color: #2c2c2e;
-  color: #f2f2f7;
-  background: #111;
+html[data-theme='dark'] .group-hit,
+html[data-theme='dark'] .group-row,
+html[data-theme='dark'] .group-row.active,
+html[data-theme='dark'] .discover-group,
+html[data-theme='dark'] .activity-card,
+html[data-theme='dark'] .activity-item,
+html[data-theme='dark'] .event-card,
+html[data-theme='dark'] .my-event-card {
+  border-color: #2c2c2e !important;
+  color: #f2f2f7 !important;
+  background: #1c1c1e !important;
 }
+
+html[data-theme='dark'] .group-row strong,
+html[data-theme='dark'] .discover-group b,
+html[data-theme='dark'] .activity-card b,
+html[data-theme='dark'] .chat-copy strong,
+html[data-theme='dark'] .event-copy strong,
+html[data-theme='dark'] .my-event-card strong {
+  color: #f2f2f7 !important;
+}
+
+html[data-theme='dark'] .group-row span,
+html[data-theme='dark'] .discover-group span,
+html[data-theme='dark'] .activity-card span,
+html[data-theme='dark'] .chat-copy span,
+html[data-theme='dark'] .groups-sort,
+html[data-theme='dark'] .chats-section,
+html[data-theme='dark'] .groups-discover-title {
+  color: #98989f !important;
+}
+
 html[data-theme='dark'] .hub-tabs button,
 html[data-theme='dark'] .hub-room-icon,
 html[data-theme='dark'] .chat-tabs button,
@@ -116,11 +146,13 @@ html[data-theme='dark'] .plain-search {
   background: #1c1c1e;
   color: #f2f2f7;
 }
+
 html[data-theme='dark'] .hub-tabs .on,
 html[data-theme='dark'] .chat-tabs button.active {
   background: #f2f2f7;
   color: #000;
 }
+
 html[data-theme='dark'] .post-card,
 html[data-theme='dark'] .create-post-bar,
 html[data-theme='dark'] .gchat-top,
@@ -130,11 +162,62 @@ html[data-theme='dark'] .group-hit {
   background: #111 !important;
   border-color: #2c2c2e;
 }
+
 html[data-theme='dark'] .group-hit p,
 html[data-theme='dark'] .search-count,
-html[data-theme='dark'] .chats-empty p {
+html[data-theme='dark'] .chats-empty p,
+html[data-theme='dark'] .nav button {
   color: #98989f;
 }
+
+html[data-theme='dark'] .nav button.active {
+  color: #f2f2f7;
+}
+
 html[data-theme='dark'] .group-hit .hit-link {
   background: #2c2c2e;
 }
+
+html[data-theme='dark'] .chats-head,
+html[data-theme='dark'] .chats-head h1,
+html[data-theme='dark'] .chats-head button,
+html[data-theme='dark'] .modal-head,
+html[data-theme='dark'] .modal-head h1,
+html[data-theme='dark'] .modal-head button {
+  background: #000 !important;
+  color: #f2f2f7 !important;
+}
+
+html[data-theme='dark'] .discover-group button,
+html[data-theme='dark'] .activity-card > button:not(.activity-card-x) {
+  background: #f2f2f7 !important;
+  color: #000 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme='system'] body,
+  html[data-theme='system'] .app,
+  html[data-theme='system'] .view,
+  html[data-theme='system'] .nav,
+  html[data-theme='system'] .chats-page,
+  html[data-theme='system'] .activity-page,
+  html[data-theme='system'] .groups-page,
+  html[data-theme='system'] .chats-head,
+  html[data-theme='system'] .modal-head {
+    background: #000 !important;
+    color: #f2f2f7;
+  }
+  html[data-theme='system'] .group-row,
+  html[data-theme='system'] .group-row.active,
+  html[data-theme='system'] .discover-group,
+  html[data-theme='system'] .activity-card {
+    background: #1c1c1e !important;
+    color: #f2f2f7 !important;
+  }
+  html[data-theme='system'] .group-row strong,
+  html[data-theme='system'] .discover-group b,
+  html[data-theme='system'] .activity-card b {
+    color: #f2f2f7 !important;
+  }
+}
+

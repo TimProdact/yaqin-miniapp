@@ -20,7 +20,7 @@
   gap: 12px;
   margin: 0 -20px;
   padding: 0 20px;
-  background: #fff;
+  background: var(--yaqin-surface, #fff);
 }
 .chats-head h1 {
   margin: 0;

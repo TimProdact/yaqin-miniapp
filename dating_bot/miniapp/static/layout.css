@@ -1,12 +1,17 @@
 html, body {
   overflow: hidden;
   height: 100%;
-  background: #e6e1e7;
+  background: var(--yaqin-bg, #fff);
 }
 
 :root {
+  --yaqin-bg: #fff;
+  --yaqin-surface: #fff;
+  --yaqin-text: #171719;
+  --yaqin-muted: #8e8e93;
+  --yaqin-sep: #f0f0f2;
   /* Telegram injects --tg-safe-area-* and --tg-content-safe-area-*.
-     We also set --yaqin-safe-top from JS (sum + clamp + fallback). */
+     JS sets --yaqin-safe-top (sum + clamp). */
   --yaqin-safe-top: max(
     env(safe-area-inset-top, 0px),
     var(--tg-safe-area-inset-top, 0px)
@@ -19,16 +24,16 @@ html, body {
 
 .app {
   width: 100%;
-  max-width: 442px;
+  max-width: 100%;
   height: 100dvh;
   min-height: 100dvh;
-  /* device notch + Telegram header controls (close / more) */
   padding-top: var(--yaqin-safe-top);
   display: flex;
   flex-direction: column;
-  margin: auto;
-  background: #fff;
-  box-shadow: 0 0 0 1px #00000010;
+  margin: 0 auto;
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  box-shadow: none;
 }
 
 .brand-footer { display: none; }
@@ -36,7 +41,8 @@ html, body {
   flex: 0 0 auto;
   position: relative;
   z-index: 20;
-  background: #fff;
+  background: var(--yaqin-surface);
+  color: var(--yaqin-text);
 }
 
 .view {
@@ -47,15 +53,18 @@ html, body {
   overscroll-behavior: contain;
   position: relative;
   z-index: 1;
+  background: var(--yaqin-bg);
 }
 
 .nav {
   bottom: 0 !important;
   z-index: 30 !important;
-  padding-bottom: max(32px, var(--yaqin-safe-bottom), env(safe-area-inset-bottom, 32px)) !important;
+  background: var(--yaqin-surface) !important;
+  border-top-color: var(--yaqin-sep) !important;
+  padding-bottom: max(12px, var(--yaqin-safe-bottom), env(safe-area-inset-bottom, 12px)) !important;
 }
 
-body:not(.full-screen) .view { padding-bottom: 108px; }
+body:not(.full-screen) .view { padding-bottom: 96px; }
 body.profile-open .view {
   height: auto !important;
   padding-bottom: 0 !important;
@@ -67,7 +76,7 @@ body.full-screen .view {
   padding-bottom: 0;
 }
 
-/* Page headers stay above scrolling content */
+/* Page headers stay above scrolling content — same surface as theme */
 .chats-head,
 .modal-head,
 .filters-head,
@@ -78,7 +87,8 @@ body.full-screen .view {
   position: sticky;
   top: 0;
   z-index: 15;
-  background: #fff;
+  background: var(--yaqin-surface);
+  color: var(--yaqin-text);
 }
 
 .chats-head,
@@ -94,20 +104,28 @@ body.full-screen .view {
   position: sticky;
   top: 64px;
   z-index: 14;
-  background: #fff;
+  background: var(--yaqin-surface);
 }
 
 .gchat-top {
-  border-bottom: 1px solid #f0f0f2;
+  border-bottom: 1px solid var(--yaqin-sep);
 }
 
-/* Floating CTAs must not sit under Telegram chrome at top */
 .compose {
-  bottom: calc(108px + var(--yaqin-safe-bottom, 0px)) !important;
+  bottom: calc(96px + var(--yaqin-safe-bottom, 0px)) !important;
 }
 
-@media (max-width: 442px) {
-  .app { box-shadow: none; }
+/* Desktop / wide preview only */
+@media (min-width: 520px) {
+  html, body { background: #e6e1e7; }
+  html[data-theme='dark'] body,
+  html[data-theme='dark'] {
+    background: #111;
+  }
+  .app {
+    max-width: 442px;
+    box-shadow: 0 0 0 1px #00000010;
+  }
 }
 
 /* Видимая ошибка вместо белого экрана */
