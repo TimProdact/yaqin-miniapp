@@ -462,6 +462,7 @@ export function groupPostsScreen(id) {
   let roomOpen = false;
   let room = 'События';
   let postMenu = null;
+  let viewMode = 'list';
   const rooms = ['Знакомства', 'Чат', 'События', 'Рекомендации'];
 
   const render = () => {
@@ -490,10 +491,11 @@ export function groupPostsScreen(id) {
         <div class="posts-toolbar">
           <button type="button">Недавнее <i class="ti ti-chevron-down"></i></button>
           <div class="posts-view-toggle">
-            <button class="on" aria-label="Лента"><i class="ti ti-list"></i></button>
-            <button aria-label="Сетка"><i class="ti ti-layout-grid"></i></button>
+            <button class="${viewMode === 'list' ? 'on' : ''}" data-view="list" aria-label="Лента"><i class="ti ti-list"></i></button>
+            <button class="${viewMode === 'grid' ? 'on' : ''}" data-view="grid" aria-label="Сетка"><i class="ti ti-layout-grid"></i></button>
           </div>
         </div>
+        <div class="posts-feed ${viewMode}">
         <article class="post-card">
           <header>
             <img src="${esc(people[0].photo)}" alt="">
@@ -542,6 +544,7 @@ export function groupPostsScreen(id) {
           </footer>
           <button class="post-open-comments" type="button" data-action="post-comments" data-id="${group.id}">Смотреть комментарии</button>
         </article>
+        </div>
         <section class="posts-welcome">
           <span class="welcome-mark">✿</span>
           <h2>Добро пожаловать в ${esc(room)}</h2>
@@ -549,6 +552,12 @@ export function groupPostsScreen(id) {
         </section>
         <button class="create-post-bar" type="button" data-action="create-post" data-id="${group.id}"><i class="ti ti-pencil"></i> Создать пост</button>
       </div>`;
+    view.querySelectorAll('[data-view]').forEach(button => {
+      button.onclick = () => {
+        viewMode = button.dataset.view;
+        render();
+      };
+    });
     view.querySelector('#toggleRooms').onclick = () => {
       roomOpen = !roomOpen;
       postMenu = null;
