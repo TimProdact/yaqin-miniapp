@@ -415,6 +415,15 @@
   font-size: 15px;
   color: #171719;
 }
+.msg-emoji {
+  border: 0;
+  background: none;
+  color: #8e8e93;
+  font-size: 22px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
 
 /* Activity */
 .activity-list {

@@ -1,6 +1,7 @@
 import { groups, events, people, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { navigate } from '../router.js';
+import { getState, saveState } from '../state.js';
 
 const JOIN_QUESTIONS = [
   {
@@ -2236,10 +2237,15 @@ export function createEventScreen(id) {
 export function eventsScreen() {
   clearHeader();
   let month = 'Сентябрь 2026';
+  let selectedDay = 14;
   const emptyMonths = ['Октябрь 2026', 'Ноябрь 2026', 'Декабрь 2026'];
+  const rsvpMap = getState().rsvp || {};
 
   const render = () => {
     const empty = month !== 'Сентябрь 2026';
+    const dayEvents = empty ? [] : events.filter(event => Number(event.day) === selectedDay);
+    const shown = dayEvents.length ? dayEvents : (empty ? [] : events);
+
     view.innerHTML = `
       <div class="events-page">
         <header class="chats-head">
@@ -2259,15 +2265,18 @@ export function eventsScreen() {
               ${Array.from({ length: 30 }, (_, index) => {
                 const day = index + 1;
                 const marked = events.some(event => Number(event.day) === day);
-                const selected = day === 14;
-                return `<button class="${selected ? 'on' : ''} ${marked ? 'dot' : ''}" type="button">${day}</button>`;
+                const selected = day === selectedDay;
+                return `<button class="${selected ? 'on' : ''} ${marked ? 'dot' : ''}" type="button" data-day="${day}">${day}</button>`;
               }).join('')}
             </div>`}
         </section>
 
         ${empty ? '' : `
           <div class="events-list">
-            ${events.map(event => `
+            ${shown.map(event => {
+              const mine = rsvpMap[event.id];
+              const badge = mine === 'going' ? 'Иду' : mine === 'maybe' ? 'Интересно' : mine === 'later' ? 'Позже' : 'RSVP';
+              return `
               <button class="event-card" data-action="event" data-id="${event.id}">
                 <div class="event-date"><span>${esc(event.month)}</span><b>${esc(event.day)}</b></div>
                 <div class="event-copy">
@@ -2276,10 +2285,11 @@ export function eventsScreen() {
                   <span class="where">${esc(event.place)}</span>
                   <div class="event-foot">
                     <span>${event.going} идут</span>
-                    <em>RSVP</em>
+                    <em>${badge}</em>
                   </div>
                 </div>
-              </button>`).join('')}
+              </button>`;
+            }).join('') || '<p class="settings-hint">На этот день событий нет</p>'}
           </div>`}
       </div>`;
     view.querySelector('#cycleMonth').onclick = () => {
@@ -2288,6 +2298,12 @@ export function eventsScreen() {
       month = all[(index + 1) % all.length];
       render();
     };
+    view.querySelectorAll('[data-day]').forEach(button => {
+      button.onclick = () => {
+        selectedDay = Number(button.dataset.day);
+        render();
+      };
+    });
   };
   render();
 }
@@ -2295,14 +2311,21 @@ export function eventsScreen() {
 export function eventScreen(id) {
   clearHeader();
   const event = events[Number(id) || 0];
-  let rsvp = 'going';
+  const eventId = event?.id ?? 0;
+  let rsvp = (getState().rsvp || {})[eventId] || 'going';
   let rsvpOpen = false;
   let rsvpTab = 'going';
+  let menuOpen = false;
 
   const lists = {
     going: people.slice(0, 4),
     maybe: people.slice(1, 3),
     later: people.slice(2, 4)
+  };
+
+  const saveRsvp = value => {
+    rsvp = value;
+    saveState({ ...getState(), rsvp: { ...(getState().rsvp || {}), [eventId]: value } });
   };
 
   const render = () => {
@@ -2311,10 +2334,15 @@ export function eventScreen(id) {
         <header class="sheet-head">
           <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <div>
-            <button aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
-            <button aria-label="Ещё"><i class="ti ti-dots-vertical"></i></button>
+            <button type="button" id="shareEvent" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
+            <button type="button" id="eventMore" aria-label="Ещё"><i class="ti ti-dots-vertical"></i></button>
           </div>
         </header>
+        ${menuOpen ? `
+          <div class="chat-menu-pop event-menu-pop">
+            <button type="button" data-action="report-flow" data-id="1">Пожаловаться</button>
+            <button type="button" id="copyEventLink">Скопировать ссылку</button>
+          </div>` : ''}
         <img class="event-cover" src="${esc(event.photo)}" alt="">
         <h1>${esc(event.title)}</h1>
         <ul class="event-meta">
@@ -2366,7 +2394,7 @@ export function eventScreen(id) {
       </article>`;
     view.querySelectorAll('[data-rsvp]').forEach(button => {
       button.onclick = () => {
-        rsvp = button.dataset.rsvp;
+        saveRsvp(button.dataset.rsvp);
         render();
       };
     });
@@ -2383,6 +2411,37 @@ export function eventScreen(id) {
         rsvpTab = button.dataset.rtab;
         render();
       };
+    });
+    view.querySelector('#shareEvent')?.addEventListener('click', async () => {
+      const link = `https://yaqin.uz/events/${eventId}`;
+      const telegram = window.Telegram?.WebApp;
+      if (telegram?.openTelegramLink) {
+        telegram.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(event.title)}`);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(link);
+      } catch {
+        /* ignore */
+      }
+      const banner = document.createElement('div');
+      banner.className = 'block-banner';
+      banner.textContent = 'Ссылка скопирована';
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 1600);
+    });
+    view.querySelector('#eventMore')?.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      render();
+    });
+    view.querySelector('#copyEventLink')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(`https://yaqin.uz/events/${eventId}`);
+      } catch {
+        /* ignore */
+      }
+      menuOpen = false;
+      render();
     });
   };
   render();

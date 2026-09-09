@@ -20,6 +20,7 @@ export const people = [
     looking: ['кофе', 'прогулки', 'книжный клуб', 'бег', 'кафе'],
     photo: PHOTOS.malika,
     photos: [PHOTOS.malika, PHOTOS.city, PHOTOS.coffee],
+    distanceKm: 4,
     groups: [
       { title: 'Девушки Ташкента', photo: PHOTOS.mila },
       { title: 'Книжный клуб', photo: PHOTOS.books },
@@ -41,6 +42,7 @@ export const people = [
     looking: ['йога вдвоём', 'завтраки'],
     photo: PHOTOS.mila,
     photos: [PHOTOS.mila, PHOTOS.coffee],
+    distanceKm: 12,
     groups: [{ title: 'Юнусабад: спорт и йога', photo: PHOTOS.anya }],
     basic: [
       { label: 'Работа', value: 'Тренер по йоге' },
@@ -57,6 +59,7 @@ export const people = [
     looking: ['мастер-классы', 'вечерние прогулки'],
     photo: PHOTOS.anya,
     photos: [PHOTOS.anya, PHOTOS.books],
+    distanceKm: 48,
     groups: [{ title: 'Керамика по выходным', photo: PHOTOS.books }],
     basic: [
       { label: 'Работа', value: 'Керамистка' },

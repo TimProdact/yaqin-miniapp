@@ -4,6 +4,7 @@ import { view, esc, setBackTitle, clearHeader, chipList, showLoading, showError,
 import { isCurrentRender, navigate } from '../router.js';
 import { loadMatches, loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
+import { chatIdForPerson } from './chats.js';
 
 let closeOverlay = null;
 
@@ -836,7 +837,7 @@ export async function friendsScreen(_id, token) {
               <strong>${esc(person.name)}</strong>
               <span>${person.age} · ${esc(person.city)}</span>
             </div>
-            <button class="friend-msg" data-action="chat" data-id="0" aria-label="Написать"><i class="ti ti-send"></i></button>
+            <button class="friend-msg" data-action="chat" data-id="${chatIdForPerson(person.id)}" aria-label="Написать"><i class="ti ti-send"></i></button>
           </div>`).join('')}
         <button class="add-friends" type="button" data-action="people">
           <span class="add-box"><i class="ti ti-plus"></i></span>
@@ -864,6 +865,14 @@ export async function friendsScreen(_id, token) {
         render();
       };
     });
+    view.querySelectorAll('.friend-row img, .friend-row strong').forEach(node => {
+      const row = node.closest('.friend-row');
+      const person = friends.find(item => item.name === row?.querySelector('strong')?.textContent)
+        || requests.find(item => item.name === row?.querySelector('strong')?.textContent);
+      if (!person) return;
+      node.style.cursor = 'pointer';
+      node.onclick = () => navigate('person', person.id);
+    });
   };
   render();
 }
@@ -872,6 +881,7 @@ export function myEventsScreen() {
   clearHeader();
   let month = 'Сентябрь 2026';
   const emptyMonths = ['Июль 2026', 'Август 2026', 'Октябрь 2026', 'Ноябрь 2026'];
+  const rsvpMap = getState().rsvp || {};
 
   const render = () => {
     const empty = month !== 'Сентябрь 2026';
@@ -896,7 +906,10 @@ export function myEventsScreen() {
             <p>В этом месяце пока нет событий</p>
           </div>` : `
           <div class="my-events-list">
-            ${events.map(event => `
+            ${events.map(event => {
+              const mine = rsvpMap[event.id];
+              const badge = mine === 'going' ? 'Иду' : mine === 'maybe' ? 'Интересно' : mine === 'later' ? 'Позже' : 'RSVP';
+              return `
               <article class="my-event-card" data-action="event" data-id="${event.id}">
                 <div class="event-date"><span>${esc(event.month)}</span><b>${esc(event.day)}</b></div>
                 <div>
@@ -905,10 +918,11 @@ export function myEventsScreen() {
                   <span>${esc(event.place)}</span>
                   <div class="event-foot">
                     <span>${event.going} идут</span>
-                    <em>RSVP</em>
+                    <em>${badge}</em>
                   </div>
                 </div>
-              </article>`).join('')}
+              </article>`;
+            }).join('')}
           </div>`}
       </div>`;
     view.querySelector('#cycleMyMonth').onclick = () => {
@@ -956,45 +970,57 @@ export function profileGroupsScreen() {
 
 export function promptsScreen(idOrForce = '') {
   clearHeader();
-  const filled = String(idOrForce) === 'filled' || String(idOrForce) === '1';
-  const prompts = [
-    { id: 'concert', title: 'Мой последний концерт<br>(или мечта о нём)' },
-    { id: 'hyper', title: 'Недавняя гиперфиксация' },
-    { id: 'place', title: 'Любимое место в городе' }
+  const saved = getState().profile?.prompts || {};
+  let prompts = [
+    { id: 'concert', title: 'Мой последний концерт<br>(или мечта о нём)', photo: saved.concert || null },
+    { id: 'hyper', title: 'Недавняя гиперфиксация', photo: saved.hyper || null },
+    { id: 'place', title: 'Любимое место в городе', photo: saved.place || null }
   ];
-  const photo = promptPhoto;
+  if (String(idOrForce) === 'filled' || String(idOrForce) === '1') {
+    prompts[0].photo = prompts[0].photo || promptPhoto;
+  }
 
-  view.innerHTML = `
-    <div class="prompts-page">
-      <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <h1>Фото из жизни</h1>
-        <span></span>
-      </header>
-      <p class="prompts-lead">Добавьте кадры, которые расскажут о вас — селфи не обязательны.</p>
+  const render = () => {
+    view.innerHTML = `
+      <div class="prompts-page">
+        <header class="filters-head">
+          <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          <h1>Фото из жизни</h1>
+          <span></span>
+        </header>
+        <p class="prompts-lead">Добавьте кадры, которые расскажут о вас — селфи не обязательны.</p>
 
-      ${prompts.map((item, index) => {
-        if (filled && index === 0) {
-          return `
-            <article class="prompt-filled-card">
-              <img src="${esc(photo)}" alt="">
-              <button class="prompt-edit" type="button" data-action="prompt-picker" data-id="${item.id}" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
-            </article>`;
-        }
-        return `
-          <article class="prompt-life-card" data-prompt="${item.id}">
-            <button class="prompt-dismiss" type="button" aria-label="Скрыть"><i class="ti ti-x"></i></button>
-            <h2>${item.title}</h2>
-            <button class="prompt-add" type="button" data-action="prompt-picker" data-id="${item.id}"><i class="ti ti-camera"></i>Добавить фото</button>
-          </article>`;
-      }).join('')}
+        ${prompts.map(item => item.photo
+          ? `<article class="prompt-filled-card" data-id="${item.id}">
+              <img src="${esc(item.photo)}" alt="">
+              <button class="prompt-edit" type="button" data-pick="${item.id}" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+            </article>`
+          : `<article class="prompt-life-card" data-prompt="${item.id}">
+              <button class="prompt-dismiss" type="button" data-dismiss="${item.id}" aria-label="Скрыть"><i class="ti ti-x"></i></button>
+              <h2>${item.title}</h2>
+              <button class="prompt-add" type="button" data-pick="${item.id}"><i class="ti ti-camera"></i>Добавить фото</button>
+            </article>`
+        ).join('')}
 
-      <button class="photos-save" data-action="back">Далее</button>
-    </div>`;
+        <button class="photos-save" type="button" id="savePrompts">Сохранить</button>
+      </div>`;
 
-  view.querySelectorAll('.prompt-dismiss').forEach(button => {
-    button.onclick = () => button.closest('.prompt-life-card')?.remove();
-  });
+    view.querySelectorAll('[data-dismiss]').forEach(button => {
+      button.onclick = () => {
+        prompts = prompts.filter(item => item.id !== button.dataset.dismiss);
+        render();
+      };
+    });
+    view.querySelectorAll('[data-pick]').forEach(button => {
+      button.onclick = () => navigate('prompt-picker', button.dataset.pick);
+    });
+    view.querySelector('#savePrompts').onclick = async () => {
+      const map = Object.fromEntries(prompts.filter(item => item.photo).map(item => [item.id, item.photo]));
+      await saveProfile({ prompts: map });
+      navigate('me');
+    };
+  };
+  render();
 }
 
 export function promptPickerScreen(id = 'food') {
@@ -1006,39 +1032,56 @@ export function promptPickerScreen(id = 'food') {
     food: 'Недавние фото еды из вашей галереи'
   };
   const title = labels[id] || labels.food;
-  const filled = id === 'filled' || id === '1';
-  const slots = filled
-    ? [promptPhoto, null, null, null, null, null]
-    : [null, null, null, null, null, null];
+  const pool = [promptPhoto, PHOTOS.city, PHOTOS.coffee, PHOTOS.books, PHOTOS.palms, PHOTOS.event];
+  let slots = [...(getState().profile?.promptSlots?.[id] || Array(6).fill(null))];
+  while (slots.length < 6) slots.push(null);
 
-  view.innerHTML = `
-    <div class="prompt-picker-page">
-      <header class="picker-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-      </header>
-      <div class="prompt-title-pill">
-        <span>${esc(title)}</span>
-        <i class="ti ti-pencil"></i>
-      </div>
-      <div class="prompt-pick-grid">
-        ${slots.map((photo, index) => photo
-          ? `<button type="button" class="pick-slot filled" data-clear="${index}">
-              <img src="${esc(photo)}" alt="">
-              ${index === 0 ? '<span class="pick-main">Главное</span>' : ''}
-              <i class="ti ti-x clear"></i>
-            </button>`
-          : `<button type="button" class="pick-slot empty" data-add="${index}"><i class="ti ti-plus"></i></button>`
-        ).join('')}
-      </div>
-      <button class="photos-save" data-action="back">Сохранить</button>
-    </div>`;
+  const render = () => {
+    view.innerHTML = `
+      <div class="prompt-picker-page">
+        <header class="picker-head">
+          <button data-action="prompts" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        </header>
+        <div class="prompt-title-pill">
+          <span>${esc(title)}</span>
+          <i class="ti ti-pencil"></i>
+        </div>
+        <div class="prompt-pick-grid">
+          ${slots.map((photo, index) => photo
+            ? `<button type="button" class="pick-slot filled" data-clear="${index}">
+                <img src="${esc(photo)}" alt="">
+                ${index === 0 ? '<span class="pick-main">Главное</span>' : ''}
+                <i class="ti ti-x clear"></i>
+              </button>`
+            : `<button type="button" class="pick-slot empty" data-add="${index}"><i class="ti ti-plus"></i></button>`
+          ).join('')}
+        </div>
+        <button class="photos-save" type="button" id="savePicker">Сохранить</button>
+      </div>`;
 
-  view.querySelectorAll('[data-add]').forEach(button => {
-    button.onclick = () => promptPickerScreen('filled');
-  });
-  view.querySelectorAll('[data-clear]').forEach(button => {
-    button.onclick = () => promptPickerScreen(id === 'filled' ? 'food' : id);
-  });
+    view.querySelectorAll('[data-add]').forEach(button => {
+      button.onclick = () => {
+        const index = Number(button.dataset.add);
+        slots[index] = pool[index % pool.length];
+        render();
+      };
+    });
+    view.querySelectorAll('[data-clear]').forEach(button => {
+      button.onclick = () => {
+        slots[Number(button.dataset.clear)] = null;
+        render();
+      };
+    });
+    view.querySelector('#savePicker').onclick = async () => {
+      const main = slots.find(Boolean) || null;
+      const profile = getState().profile || {};
+      const prompts = { ...(profile.prompts || {}), [id]: main };
+      const promptSlots = { ...(profile.promptSlots || {}), [id]: slots };
+      await saveProfile({ prompts, promptSlots });
+      navigate('prompts');
+    };
+  };
+  render();
 }
 
 export function cameraRollScreen() {

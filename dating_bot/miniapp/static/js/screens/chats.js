@@ -1,6 +1,11 @@
 import { chats, people, activity, groups, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 
+export function chatIdForPerson(personId) {
+  const index = chats.findIndex(chat => chat.personId === Number(personId));
+  return index >= 0 ? index : 0;
+}
+
 function avatar(photo, team = false) {
   if (team) return `<div class="chat-avatar team"><i class="ti ti-flower"></i></div>`;
   return `<div class="chat-avatar">${photo ? `<img src="${esc(photo)}">` : '✿'}</div>`;
@@ -351,7 +356,7 @@ export function chatScreen(id) {
         </button>
         <label class="msg-field">
           <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
-          <i class="ti ti-mood-smile"></i>
+          <button type="button" class="msg-emoji" id="emojiBtn" aria-label="Эмодзи"><i class="ti ti-mood-smile"></i></button>
         </label>
         ${hasDraft
           ? `<button class="msg-send" id="sendMsg" aria-label="Отправить"><i class="ti ti-arrow-up"></i></button>`
@@ -377,6 +382,18 @@ export function chatScreen(id) {
   });
   view.querySelector('#removeFriend')?.addEventListener('click', () => {
     ui.menuOpen = false;
+    setChatUi(chatId, ui);
+    const banner = document.createElement('div');
+    banner.className = 'block-banner';
+    banner.textContent = 'Удалено из подруг';
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 1800);
+    chatScreen(chatId);
+  });
+
+  view.querySelector('#emojiBtn')?.addEventListener('click', event => {
+    event.preventDefault();
+    ui.draft = `${ui.draft || ''}😊`;
     setChatUi(chatId, ui);
     chatScreen(chatId);
   });
@@ -435,6 +452,17 @@ export function chatScreen(id) {
     button.onclick = () => {
       const kind = button.dataset.attach;
       if (kind === 'photo' || kind === 'camera') ui.attachPhoto = PHOTOS.palms;
+      if (kind === 'file') {
+        ui.attachOpen = false;
+        setChatUi(chatId, ui);
+        const banner = document.createElement('div');
+        banner.className = 'block-banner';
+        banner.textContent = 'Файл прикреплён (демо)';
+        document.body.appendChild(banner);
+        setTimeout(() => banner.remove(), 1600);
+        chatScreen(chatId);
+        return;
+      }
       if (kind === 'audio') {
         ui.attachOpen = false;
         setChatUi(chatId, ui);
@@ -565,15 +593,15 @@ export function showMessageMenu(person, message, chatId = 0) {
   overlay.innerHTML = `
     <div class="message-menu-stack">
       <div class="reaction-bar">
-        ${['❤️', '🔥', '👍', '👎', '😂'].map(emoji => `<button type="button" data-action="close-sheet">${emoji}</button>`).join('')}
-        <button type="button" data-action="close-sheet" aria-label="Ещё"><i class="ti ti-mood-plus"></i></button>
+        ${['❤️', '🔥', '👍', '👎', '😂'].map(emoji => `<button type="button" data-react="${emoji}">${emoji}</button>`).join('')}
+        <button type="button" data-react="✨" aria-label="Ещё"><i class="ti ti-mood-plus"></i></button>
       </div>
       <div class="message-sheet">
         <button type="button" id="replyMsg">
           <span class="reply-icon"><img src="${esc(photo)}" alt=""><i class="ti ti-arrow-back-up"></i></span>
           Ответить · ${first}
         </button>
-        <button type="button" data-action="close-sheet">
+        <button type="button" id="copyMsg">
           <span class="sheet-icon blue"><i class="ti ti-copy"></i></span>
           Скопировать текст
         </button>
@@ -593,9 +621,30 @@ export function showMessageMenu(person, message, chatId = 0) {
     document.body.classList.remove('safety-open');
     messageMenuCloser = null;
   };
+  overlay.querySelectorAll('[data-react]').forEach(button => {
+    button.onclick = () => {
+      if (message) message.reaction = button.dataset.react;
+      closeMessageMenu();
+      chatScreen(chatId);
+    };
+  });
   overlay.querySelector('#replyMsg').onclick = () => {
     closeMessageMenu();
     beginReply(chatId, message, person);
+  };
+  overlay.querySelector('#copyMsg').onclick = async () => {
+    const text = message?.text || '';
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      /* ignore */
+    }
+    closeMessageMenu();
+    const banner = document.createElement('div');
+    banner.className = 'block-banner';
+    banner.textContent = text ? 'Скопировано' : 'Нечего копировать';
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 1600);
   };
 }
 

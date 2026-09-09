@@ -72,6 +72,17 @@ body.full-screen .view {
 .connected-wave i {
   stroke-width: 1.5;
 }
+.connected-cta {
+  margin: 22px auto 8px;
+  width: min(100%, 280px);
+  border: 0;
+  border-radius: 999px;
+  background: #171719;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 16px 20px;
+}
 
 .chat-page {
   height: 100%;

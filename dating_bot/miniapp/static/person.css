@@ -178,9 +178,11 @@ body.sheet-view .view {
   flex: 0 0 auto;
   width: 148px;
   padding: 10px;
+  border: 0;
   border-radius: 20px;
   background: #fff;
   text-align: center;
+  color: inherit;
 }
 .group-tile img {
   width: 100%;
@@ -198,4 +200,28 @@ body.sheet-view .view {
 
 .info-row + .info-row {
   margin-top: 20px;
+}
+
+.person-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 10px;
+  padding: 8px 4px 28px;
+}
+.person-skip,
+.person-wave {
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 12px;
+}
+.person-skip {
+  border: 1.5px solid #171719;
+  background: #fff;
+  color: #171719;
+}
+.person-wave {
+  border: 0;
+  background: #fff292;
+  color: #171719;
 }

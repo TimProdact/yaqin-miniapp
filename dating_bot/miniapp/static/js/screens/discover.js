@@ -3,9 +3,10 @@ import { isCurrentRender, navigate } from '../router.js';
 import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
-import { people as demoPeople } from '../data.js';
+import { people as demoPeople, groups as demoGroups } from '../data.js';
 import { getState } from '../state.js';
 import { closeSafetyOverlay } from './safety.js';
+import { chatIdForPerson } from './chats.js';
 
 let lastShown = [];
 
@@ -116,11 +117,15 @@ export function personScreen(id) {
       ${person.groups?.length ? `
         <h3 class="person-section">Группы</h3>
         <div class="group-rail">
-          ${person.groups.map(group => `
-            <div class="group-tile">
+          ${person.groups.map(group => {
+            const match = demoGroups.find(item => item.title === group.title);
+            const attrs = match ? `data-action="group" data-id="${match.id}"` : '';
+            return `
+            <button type="button" class="group-tile" ${attrs}>
               <img src="${esc(group.photo)}">
               <span>${esc(group.title)}</span>
-            </div>`).join('')}
+            </button>`;
+          }).join('')}
         </div>` : ''}
 
       ${person.basic?.length ? `
@@ -132,6 +137,11 @@ export function personScreen(id) {
               <span class="chip">${esc(item.value)}</span>
             </div>`).join('')}
         </section>` : ''}
+
+      <div class="person-actions">
+        <button class="person-skip" type="button" data-action="skip" data-id="${person.id}">Пропустить</button>
+        <button class="person-wave" type="button" data-action="like" data-id="${person.id}">Передать привет</button>
+      </div>
     </article>`;
 
   bindPersonHero(photos);
@@ -258,15 +268,17 @@ export function connectedScreen(id) {
 
   const firstName = person.name.split(' ')[0];
   const withName = firstName.replace(/а$/i, 'ой').replace(/я$/i, 'ей');
+  const chatIndex = chatIdForPerson(person.id);
 
   view.innerHTML = `
     <div class="connected-page">
       <button class="connected-back" data-action="people" aria-label="Закрыть"><i class="ti ti-refresh"></i></button>
       <h1>Вы познакомились<br>с ${esc(withName)}</h1>
-      <div class="connected-photo" data-action="chat" data-id="0">
+      <div class="connected-photo" data-action="chat" data-id="${chatIndex}">
         <img src="${esc(person.photo)}">
         <div class="connected-wave"><i class="ti ti-hand-stop"></i></div>
       </div>
+      <button class="connected-cta" type="button" data-action="chat" data-id="${chatIndex}">Написать ${esc(firstName)}</button>
     </div>`;
 }
 

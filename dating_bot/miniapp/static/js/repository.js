@@ -34,6 +34,8 @@ export async function loadPeople({ includeSkipped = false } = {}) {
   return candidates.filter(person => {
     if (hidden.includes(person.id)) return false;
     if (person.age < filters.ageMin || person.age > filters.ageMax) return false;
+    const km = person.distanceKm ?? 10;
+    if (km > (filters.distance || 50)) return false;
     return true;
   });
 }
