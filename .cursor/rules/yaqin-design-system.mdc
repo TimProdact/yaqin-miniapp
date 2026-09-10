@@ -11,10 +11,10 @@ CSS-токены: `dating_bot/miniapp/static/tokens.css`.
 ## Обязательно
 
 - Новые/правимые стили — через `var(--yaqin-*)`, не сырые `#fff` / случайные `15px`/`36px`.
-- Page gutter = `--yaqin-gutter` (20px). Page title = `--yaqin-fs-title` (28/700).
+- Page gutter = `--yaqin-gutter` (по умолчанию узкий inset Mini App). Экраны анкеты/события могут задавать локально ~20px (`--person-gutter`).
 - Primary fill = `--yaqin-ink`. Accent = `--yaqin-yellow`. Danger = `--yaqin-danger`.
-- Pills/кнопки = `--yaqin-radius-pill`. Cards = `--yaqin-radius-md`–`lg`.
-- Dark: оболочка `.app`/body/view/headers = `--yaqin-bg`; карточки = `--yaqin-surface-raised`. Запрещены белые карточки со светлым текстом и белая рамка вокруг чёрных страниц.
+- Pills/кнопки = `--yaqin-radius-pill`. Cards = `--yaqin-radius-md`–`lg`. Parent-блоки страниц = radius ~28px (см. `yaqin-block-grouping.mdc`).
+- Dark: оболочка `.app`/body/view/headers = `--yaqin-bg`; **parent-блоки секций** = `--yaqin-surface-raised`; вложенные item’ы внутри блока = снова `--yaqin-bg`. Запрещены белые карточки со светлым текстом и белая рамка вокруг чёрных страниц.
 - Safe-area: `--yaqin-safe-top/bottom` (sum TG insets + clamp); фон отступа = `--yaqin-bg`.
 - Перед новым экраном — PNG из соответствующего flow BFF; имена полей/сущностей не выдумывать.
 
