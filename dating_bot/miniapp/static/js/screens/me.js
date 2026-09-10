@@ -5,16 +5,13 @@ import { isCurrentRender, navigate } from '../router.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
 import {
-  PURPOSE_TYPES,
-  WORLD_VIEWS,
-  ZODIAC_SIGNS,
-  EDUCATION_LEVELS,
-  CHILDREN_STATUS,
-  ATTITUDES,
   INTEREST_OPTIONS,
   LANGUAGE_OPTIONS,
+  LOOKING_OPTIONS,
+  MEDIA_OPTIONS,
   interestsOf,
-  purposeLabel,
+  lookingOf,
+  mediaOf,
   basicRowsFromProfile
 } from '../profile-fields.js';
 
@@ -117,12 +114,13 @@ export async function meScreen(_id, token) {
         <p class="me-bio">${esc(profile.bio)}</p>
       </section>
       <section class="me-section">${verificationRow(verification)}</section>
-      ${interestsOf(profile).length || purposeLabel(profile.purposeType) ? `
+      ${interestsOf(profile).length || lookingOf(profile).length || mediaOf(profile).length ? `
       <section class="me-section">
         <h3>О себе</h3>
         <div class="me-box">
-          ${purposeLabel(profile.purposeType) ? `<h4>Я ищу</h4><div class="big-chips"><span>${esc(purposeLabel(profile.purposeType))}</span></div>` : ''}
           ${interestsOf(profile).length ? `<h4>Интересы</h4><div class="big-chips">${chipList(interestsOf(profile))}</div>` : ''}
+          ${lookingOf(profile).length ? `<h4>Чего хочу</h4><div class="big-chips">${chipList(lookingOf(profile))}</div>` : ''}
+          ${mediaOf(profile).length ? `<h4>Сейчас смотрю / читаю</h4><div class="big-chips">${chipList(mediaOf(profile))}</div>` : ''}
         </div>
       </section>` : ''}
       <section class="me-section">
@@ -130,9 +128,18 @@ export async function meScreen(_id, token) {
         <div class="me-box" data-action="basic">
           ${basicRowsFromProfile(profile).map(row => `
             <h4>${esc(row.label)}</h4><div class="big-chips"><span>${esc(row.value)}</span></div>
-          `).join('') || '<p class="muted">Добавьте данные в редактировании</p>'}
+          `).join('') || '<p class="muted">Добавьте работу и языки</p>'}
         </div>
       </section>
+      ${profile.instagram || profile.tiktok || profile.website ? `
+      <section class="me-section">
+        <h3>Ссылки</h3>
+        <div class="me-box">
+          ${profile.instagram ? `<h4>Instagram</h4><div class="big-chips"><span>${esc(profile.instagram)}</span></div>` : ''}
+          ${profile.tiktok ? `<h4>TikTok</h4><div class="big-chips"><span>${esc(profile.tiktok)}</span></div>` : ''}
+          ${profile.website ? `<h4>Сайт</h4><div class="big-chips"><span>${esc(profile.website)}</span></div>` : ''}
+        </div>
+      </section>` : ''}
     </div>`;
 
   view.querySelectorAll('[data-open-taneesh]').forEach(button => {
@@ -448,30 +455,20 @@ export async function editScreen(_id, token) {
   const draft = {
     name: profile.name || '',
     age: profile.age || 25,
-    city: profile.city || '',
+    city: profile.city || 'Ташкент',
     bio: profile.bio || '',
-    purposeType: Number(profile.purposeType) || 3,
     interests: [...interestsOf(profile)],
-    height: profile.height || '',
-    worldView: profile.worldView || '',
-    zodiacSign: profile.zodiacSign || '',
-    education: profile.education || '',
-    hasChildren: profile.hasChildren || '',
-    alcoholAttitude: profile.alcoholAttitude || '',
-    smokingAttitude: profile.smokingAttitude || '',
-    languages: [...(profile.languages || [])]
+    looking: [...lookingOf(profile)],
+    media: [...mediaOf(profile)],
+    work: profile.work || '',
+    languages: [...(profile.languages || [])],
+    instagram: profile.instagram || '',
+    tiktok: profile.tiktok || '',
+    website: profile.website || ''
   };
-  let sheet = null; // interests | purpose | worldView | zodiacSign | education | hasChildren | alcoholAttitude | smokingAttitude | languages
-
-  const enumLabel = (list, id, fallback = 'Добавить') =>
-    list.find(item => item.id === Number(id))?.label || fallback;
+  let sheet = null; // interests | looking | media | languages
 
   const render = () => {
-    const purposeText = PURPOSE_TYPES.find(item => item.id === draft.purposeType);
-    const purposeDisplay = purposeText
-      ? `${purposeText.emoji} ${purposeText.label}`
-      : 'Добавить';
-
     view.innerHTML = `
       <div class="edit-profile-page">
         <div class="edit-hero">
@@ -487,35 +484,45 @@ export async function editScreen(_id, token) {
             <p>
               <input class="edit-age" id="profileAge" type="number" min="18" max="100" value="${draft.age}">
               ·
-              <input class="edit-city" id="profileCity" maxlength="60" value="${esc(draft.city)}">
-              <i class="ti ti-pencil"></i>
+              <span class="edit-city-static">${esc(draft.city || 'Ташкент')}</span>
             </p>
           </div>
           <textarea class="edit-motto" id="profileAbout" maxlength="120" placeholder="короткий девиз">${esc(draft.bio)}</textarea>
 
           <h3 class="settings-label">О себе</h3>
           <div class="me-box">
-            <button type="button" class="edit-block-head" data-sheet="purpose">
-              <h4>Я ищу</h4><i class="ti ti-pencil"></i>
-            </button>
-            <div class="big-chips"><span>${esc(purposeDisplay)}</span></div>
             <button type="button" class="edit-block-head" data-sheet="interests">
               <h4>Интересы</h4><i class="ti ti-pencil"></i>
             </button>
             <div class="big-chips">${chipList(draft.interests)}</div>
+            <button type="button" class="edit-block-head" data-sheet="looking">
+              <h4>Чего хочу</h4><i class="ti ti-pencil"></i>
+            </button>
+            <div class="big-chips">${chipList(draft.looking)}</div>
+            <button type="button" class="edit-block-head" data-sheet="media">
+              <h4>Сейчас смотрю / читаю</h4><i class="ti ti-pencil"></i>
+            </button>
+            <div class="big-chips">${chipList(draft.media)}</div>
           </div>
 
           <h3 class="settings-label">Основное</h3>
           <div class="edit-basic-list">
             ${[
-              ['height', 'Рост', draft.height ? `${draft.height} см` : 'Добавить'],
-              ['worldView', 'Мировоззрение', enumLabel(WORLD_VIEWS, draft.worldView)],
-              ['zodiacSign', 'Знак зодиака', enumLabel(ZODIAC_SIGNS, draft.zodiacSign)],
-              ['education', 'Образование', enumLabel(EDUCATION_LEVELS, draft.education)],
-              ['hasChildren', 'Дети', enumLabel(CHILDREN_STATUS, draft.hasChildren)],
-              ['alcoholAttitude', 'Алкоголь', enumLabel(ATTITUDES, draft.alcoholAttitude)],
-              ['smokingAttitude', 'Курение', enumLabel(ATTITUDES, draft.smokingAttitude)],
+              ['work', 'Работа', draft.work || 'Добавить'],
               ['languages', 'Языки', draft.languages.length ? draft.languages.join(', ') : 'Добавить']
+            ].map(([key, label, value]) => `
+              <button type="button" class="edit-basic-row" data-field="${key}">
+                <span>${label}</span>
+                <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
+              </button>`).join('')}
+          </div>
+
+          <h3 class="settings-label">Ссылки <small style="font-weight:500;opacity:.55">только в Yaqin</small></h3>
+          <div class="edit-basic-list">
+            ${[
+              ['instagram', 'Instagram', draft.instagram || 'Добавить'],
+              ['tiktok', 'TikTok', draft.tiktok || 'Добавить'],
+              ['website', 'Сайт', draft.website || 'Добавить']
             ].map(([key, label, value]) => `
               <button type="button" class="edit-basic-row" data-field="${key}">
                 <span>${label}</span>
@@ -524,15 +531,15 @@ export async function editScreen(_id, token) {
           </div>
         </section>
 
-        ${sheet === 'interests' ? `
+        ${sheet === 'interests' || sheet === 'looking' || sheet === 'media' ? `
           <div class="edit-sheet">
             <header>
-              <h2>Интересы</h2>
+              <h2>${sheet === 'interests' ? 'Интересы' : sheet === 'looking' ? 'Чего хочу' : 'Сейчас в медиа'}</h2>
               <button type="button" id="closeSheet">Готово</button>
             </header>
             <div class="edit-chip-picker">
-              ${INTEREST_OPTIONS.map(item => {
-                const on = draft.interests.includes(item);
+              ${(sheet === 'interests' ? INTEREST_OPTIONS : sheet === 'looking' ? LOOKING_OPTIONS : MEDIA_OPTIONS).map(item => {
+                const on = draft[sheet].includes(item);
                 return `<button type="button" class="${on ? 'on' : ''}" data-chip="${esc(item)}">${esc(item)}</button>`;
               }).join('')}
             </div>
@@ -551,55 +558,11 @@ export async function editScreen(_id, token) {
               }).join('')}
             </div>
           </div>` : ''}
-
-        ${sheet === 'purpose' ? `
-          <div class="edit-sheet">
-            <header>
-              <h2>Я ищу</h2>
-              <button type="button" id="closeSheet">Сохранить</button>
-            </header>
-            <div class="edit-radio-list">
-              ${PURPOSE_TYPES.map(item => `
-                <button type="button" class="${draft.purposeType === item.id ? 'on' : ''}" data-purpose="${item.id}">
-                  <span>${item.emoji} ${esc(item.label)}</span>
-                  ${draft.purposeType === item.id ? '<i class="ti ti-check"></i>' : ''}
-                </button>`).join('')}
-            </div>
-          </div>` : ''}
-
-        ${['worldView', 'zodiacSign', 'education', 'hasChildren', 'alcoholAttitude', 'smokingAttitude'].includes(sheet) ? `
-          <div class="edit-sheet">
-            <header>
-              <h2>${{
-                worldView: 'Мировоззрение',
-                zodiacSign: 'Знак зодиака',
-                education: 'Образование',
-                hasChildren: 'Дети',
-                alcoholAttitude: 'Алкоголь',
-                smokingAttitude: 'Курение'
-              }[sheet]}</h2>
-              <button type="button" id="closeSheet">Сохранить</button>
-            </header>
-            <div class="edit-radio-list">
-              ${(
-                sheet === 'worldView' ? WORLD_VIEWS
-                : sheet === 'zodiacSign' ? ZODIAC_SIGNS
-                : sheet === 'education' ? EDUCATION_LEVELS
-                : sheet === 'hasChildren' ? CHILDREN_STATUS
-                : ATTITUDES
-              ).map(item => `
-                <button type="button" class="${Number(draft[sheet]) === item.id ? 'on' : ''}" data-enum="${item.id}">
-                  <span>${esc(item.label)}</span>
-                  ${Number(draft[sheet]) === item.id ? '<i class="ti ti-check"></i>' : ''}
-                </button>`).join('')}
-            </div>
-          </div>` : ''}
       </div>`;
 
     const syncDraft = () => {
       draft.name = view.querySelector('#profileName')?.value || '';
       draft.age = Number(view.querySelector('#profileAge')?.value) || draft.age;
-      draft.city = view.querySelector('#profileCity')?.value || '';
       draft.bio = view.querySelector('#profileAbout')?.value || '';
     };
 
@@ -617,9 +580,10 @@ export async function editScreen(_id, token) {
     view.querySelectorAll('[data-chip]').forEach(button => {
       button.onclick = () => {
         const value = button.dataset.chip;
-        const index = draft.interests.indexOf(value);
-        if (index >= 0) draft.interests.splice(index, 1);
-        else draft.interests.push(value);
+        const list = draft[sheet];
+        const index = list.indexOf(value);
+        if (index >= 0) list.splice(index, 1);
+        else list.push(value);
         render();
       };
     });
@@ -632,38 +596,26 @@ export async function editScreen(_id, token) {
         render();
       };
     });
-    view.querySelectorAll('[data-purpose]').forEach(button => {
-      button.onclick = () => {
-        draft.purposeType = Number(button.dataset.purpose);
-        render();
-      };
-    });
-    view.querySelectorAll('[data-enum]').forEach(button => {
-      button.onclick = () => {
-        draft[sheet] = Number(button.dataset.enum);
-        render();
-      };
-    });
     view.querySelectorAll('[data-field]').forEach(button => {
       button.onclick = () => {
         syncDraft();
         const key = button.dataset.field;
-        if (key === 'height') {
-          const next = window.prompt('Рост (см)', draft.height || '');
-          if (next !== null) {
-            const num = Number(String(next).replace(/\D/g, ''));
-            draft.height = num || '';
-            render();
-          }
-          return;
-        }
         if (key === 'languages') {
           sheet = 'languages';
           render();
           return;
         }
-        sheet = key;
-        render();
+        const labels = {
+          work: 'Работа',
+          instagram: 'Instagram',
+          tiktok: 'TikTok',
+          website: 'Сайт'
+        };
+        const next = window.prompt(labels[key] || key, draft[key] || '');
+        if (next !== null) {
+          draft[key] = next.trim();
+          render();
+        }
       };
     });
     view.querySelector('#saveEdit').onclick = async () => {
@@ -676,18 +628,16 @@ export async function editScreen(_id, token) {
         await saveProfile({
           name: draft.name.trim(),
           age: draft.age,
-          city: draft.city.trim(),
+          city: draft.city,
           about: draft.bio.trim(),
-          purposeType: draft.purposeType,
           interests: draft.interests,
-          height: draft.height || null,
-          worldView: draft.worldView || null,
-          zodiacSign: draft.zodiacSign || null,
-          education: draft.education || null,
-          hasChildren: draft.hasChildren || null,
-          alcoholAttitude: draft.alcoholAttitude || null,
-          smokingAttitude: draft.smokingAttitude || null,
-          languages: draft.languages
+          looking: draft.looking,
+          media: draft.media,
+          work: draft.work,
+          languages: draft.languages,
+          instagram: draft.instagram,
+          tiktok: draft.tiktok,
+          website: draft.website
         });
         navigate('me');
       } catch {

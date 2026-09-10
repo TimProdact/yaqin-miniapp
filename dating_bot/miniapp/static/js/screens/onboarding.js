@@ -58,8 +58,7 @@ function finishOnboarding(data) {
       photo: photos[0] || defaultProfile.photo,
       photos: photos.length ? photos : defaultProfile.photos,
       bio: defaultProfile.bio,
-      interests: defaultProfile.interests,
-      purposeType: defaultProfile.purposeType || 3
+      interests: defaultProfile.interests
     }
   });
 }

@@ -1,7 +1,7 @@
 import { api, isLive } from './api.js';
 import { people as demoPeople, defaultProfile } from './data.js';
 import { getState, saveState } from './state.js';
-import { interestsOf } from './profile-fields.js';
+import { interestsOf, lookingOf } from './profile-fields.js';
 
 const PLACEHOLDER_PHOTO =
   'data:image/svg+xml;utf8,' +
@@ -19,16 +19,14 @@ function toPerson(item) {
     age: item.age,
     city: item.city,
     bio: item.about,
-    purposeType: item.purpose_type ?? item.purposeType,
     interests: item.interests || [],
-    height: item.height,
-    worldView: item.world_view ?? item.worldView,
-    zodiacSign: item.zodiac_sign ?? item.zodiacSign,
-    education: item.education,
-    hasChildren: item.has_children ?? item.hasChildren,
-    alcoholAttitude: item.alcohol_attitude ?? item.alcoholAttitude,
-    smokingAttitude: item.smoking_attitude ?? item.smokingAttitude,
+    looking: item.looking || [],
+    media: item.media || [],
+    work: item.work || '',
     languages: item.languages || [],
+    instagram: item.instagram || '',
+    tiktok: item.tiktok || '',
+    website: item.website || '',
     photo,
     photos: [photo]
   };
@@ -45,7 +43,7 @@ export async function loadPeople({ includeSkipped = false } = {}) {
     if (km > (filters.distance || 50)) return false;
     const interests = filters.interests || [];
     if (interests.length) {
-      const bag = interestsOf(person).map(item => String(item).toLowerCase());
+      const bag = [...interestsOf(person), ...lookingOf(person)].map(item => String(item).toLowerCase());
       const hit = interests.some(interest => bag.some(item => item.includes(String(interest).toLowerCase())));
       if (!hit) return false;
     }

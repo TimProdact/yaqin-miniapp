@@ -10,7 +10,8 @@ import { chatIdForPerson } from './chats.js';
 import {
   INTEREST_OPTIONS,
   interestsOf,
-  purposeLabel
+  lookingOf,
+  basicRowsFromProfile
 } from '../profile-fields.js';
 
 let lastShown = [];
@@ -150,10 +151,11 @@ export function personScreen(id) {
 
   const photos = person.photos?.length ? person.photos : [person.photo];
   const interests = interestsOf(person);
-  const purpose = purposeLabel(person.purposeType);
+  const looking = lookingOf(person);
   const about =
     chipGroup('Интересы', interests) +
-    (purpose ? chipGroup('Я ищу', [purpose]) : '');
+    chipGroup('Хочет', looking);
+  const basic = basicRowsFromProfile(person);
 
   view.innerHTML = `
     <article class="person-view">
@@ -171,6 +173,16 @@ export function personScreen(id) {
       </section>
 
       ${about ? `<h3 class="person-section">Обо мне</h3><section class="person-card">${about}</section>` : ''}
+
+      ${basic.length ? `
+        <h3 class="person-section">Основное</h3>
+        <section class="person-card info-list">
+          ${basic.map(item => `
+            <div class="info-row">
+              <h4>${esc(item.label)}</h4>
+              <span class="chip">${esc(item.value)}</span>
+            </div>`).join('')}
+        </section>` : ''}
 
       <div class="person-actions">
         <button class="person-skip" type="button" data-action="skip" data-id="${person.id}">Пропустить</button>

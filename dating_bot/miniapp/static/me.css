@@ -240,6 +240,10 @@ body.profile-open .nav{display:grid}body.profile-open .app-header{display:none}b
   width: auto;
   max-width: 160px;
 }
+.edit-city-static {
+  color: inherit;
+  opacity: 0.85;
+}
 .edit-age { width: 42px; }
 .edit-motto {
   width: 100%;
