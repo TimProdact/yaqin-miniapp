@@ -154,11 +154,84 @@ body[data-route='create-event'] .view {
   font-weight: 400;
 }
 .create-event-page .create-chips {
-  margin-bottom: 12px;
+  margin: 0 16px 12px;
+  justify-content: stretch;
+}
+.create-event-page .create-chips button {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.create-price-field {
+  display: grid;
+  gap: 8px;
+  margin: 4px 20px 8px;
+}
+.create-price-field > span {
+  font-size: var(--yaqin-fs-caption);
+  color: var(--yaqin-text-tertiary);
+  font-weight: 600;
+}
+.create-price-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--yaqin-sep);
+  border-radius: 14px;
+  padding: 0 14px;
+  background: var(--yaqin-bg);
+}
+.create-price-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 14px 0;
+  outline: 0;
+}
+.create-price-input em {
+  font-style: normal;
+  color: var(--yaqin-text-tertiary);
+  font-weight: 600;
+}
+.create-when-sheet .create-when-list {
+  display: grid;
+  gap: 6px;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+.create-when-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  padding: 16px 14px;
+}
+.create-when-row.on {
+  background: var(--yaqin-ink);
+  color: var(--yaqin-ink-inverse);
+}
+.create-when-row i {
+  font-size: 18px;
 }
 
 .create-legal {
-  margin: 28px 28px 0;
+  margin: 20px 28px 0;
   text-align: center;
   font-size: 13px;
   color: var(--yaqin-text-tertiary);

@@ -5,8 +5,6 @@ import { navigate } from '../router.js';
 import { allEvents, findEvent } from './community.js';
 import { showCelebrate } from '../celebrate.js';
 
-const TANEESH_STORE = 'https://apps.apple.com/search?term=Taneesh';
-
 const DEMO_GOING = {
   0: [
     { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Новенькая в Мирабаде, давайте сходим на кофе ☕' },
@@ -32,33 +30,31 @@ function getTickets() {
 }
 
 function ticketForEvent(eventId) {
-  return getTickets().find(ticket => Number(ticket.eventId) === Number(eventId));
+  const key = String(eventId);
+  return getTickets().find(ticket => String(ticket.eventId) === key);
 }
 
-function openTaneesh(reason) {
-  try {
-    const tg = window.Telegram?.WebApp;
-    if (tg?.openLink) {
-      tg.openLink(TANEESH_STORE);
-      return;
-    }
-  } catch (_) {
-    /* ignore */
-  }
-  window.open(TANEESH_STORE, '_blank', 'noopener');
-  console.info('[yaqin] open Taneesh', reason);
+function isDoorMode(event) {
+  const mode = event?.ticketMode || event?.paymentMode;
+  return mode === 'door' || mode === 'at_door';
+}
+
+function isFreeMode(event) {
+  if (event?.isFree === true) return true;
+  const mode = event?.ticketMode;
+  return mode === 'free' || (!mode && !Number(event?.price));
 }
 
 function priceLabel(event) {
-  if (event.ticketMode === 'free') return 'Бесплатно';
-  if (event.ticketMode === 'door') return `от ${money(event.fee)} · на входе`;
+  if (isFreeMode(event) && !isDoorMode(event)) return 'Бесплатно';
+  if (isDoorMode(event)) return `на входе · ${money(event.price)}`;
   return money(event.price);
 }
 
 function buyLabel(event) {
   if (ticketForEvent(event.id)) return 'Мой билет';
-  if (event.ticketMode === 'free') return 'Записаться';
-  if (event.ticketMode === 'door') return 'Забронировать';
+  if (isFreeMode(event) && !isDoorMode(event)) return 'Записаться';
+  if (isDoorMode(event)) return 'Забронировать';
   return 'Купить билет';
 }
 
@@ -148,7 +144,7 @@ export function taneeshEventsScreen() {
       </header>
 
       <p class="events-feed-lead">
-        Афиша Taneesh. Отметьте «хочу пойти» или купите билет.
+        Создавайте свои встречи или ходите на афишу. Билет с QR — в Mini App.
       </p>
 
       <div class="events-feed">
@@ -156,7 +152,9 @@ export function taneeshEventsScreen() {
           const want = isInterested(event.id);
           const owned = ticketForEvent(event.id);
           const goingPreview = goingForEvent(event.id).slice(0, 3);
-          const source = event.source === 'yaqin' ? 'Yaqin' : 'Taneesh';
+          const source = event.source === 'yaqin'
+            ? (event.hostId === 'me' ? 'Ваше' : 'Yaqin')
+            : 'Афиша';
           return `
             <article class="taneesh-event-card">
               <button type="button" class="taneesh-event-hit" data-action="event" data-id="${esc(event.id)}">
@@ -181,7 +179,7 @@ export function taneeshEventsScreen() {
                     ${want ? 'Иду' : 'Хочу'}
                   </button>
                   <button type="button" class="taneesh-buy ${owned ? 'owned' : ''}" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
-                    ${owned ? 'Билет' : event.ticketMode === 'free' ? 'Запись' : event.ticketMode === 'door' ? 'Бронь' : 'Билет'}
+                    ${owned ? 'Билет' : isFreeMode(event) && !isDoorMode(event) ? 'Запись' : isDoorMode(event) ? 'Бронь' : 'Билет'}
                   </button>
                 </div>
               </div>
@@ -232,13 +230,14 @@ export function taneeshEventDetailScreen(id) {
           <img src="${esc(event.photo)}" alt="">
         </div>
         <div class="taneesh-detail-body">
-          <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${event.source === 'yaqin' ? 'Yaqin' : 'Taneesh'}</em>
+          <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${event.source === 'yaqin' ? (event.hostId === 'me' || event.host === (getState().profile?.name) ? 'Ваше событие' : 'Yaqin') : 'Афиша'}</em>
           <h2>${esc(event.title)}</h2>
           <p class="taneesh-detail-price">${esc(priceLabel(event))}</p>
           <ul class="taneesh-detail-meta">
             <li><i class="ti ti-calendar"></i>${esc(event.when)}</li>
             <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
             <li><i class="ti ti-building"></i>${esc(event.address || '')}</li>
+            ${event.host ? `<li><i class="ti ti-user"></i>Организатор · ${esc(event.host)}</li>` : ''}
           </ul>
 
           <h3>Кто идёт</h3>
@@ -251,11 +250,15 @@ export function taneeshEventDetailScreen(id) {
               ${want ? 'Иду ✓' : 'Хочу пойти'}
             </button>
             <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
-              ${owned ? 'Открыть билет' : buyLabel(event)}
+              ${owned ? 'Открыть QR' : buyLabel(event)}
             </button>
           </div>
           <p class="taneesh-detail-note">
-            Сначала отметьте интерес — билет с QR покупается отдельно.
+            ${isDoorMode(event)
+              ? 'Бронь бесплатна. На входе — оплата организатору и показ QR.'
+              : isFreeMode(event)
+                ? 'Запишитесь и покажите QR на входе.'
+                : 'Оплатите билет в Mini App — QR появится сразу.'}
           </p>
         </div>
       </article>`;
@@ -297,21 +300,22 @@ export function ticketCheckoutScreen(eventId) {
     return;
   }
 
-  const ticketPrice = event.ticketMode === 'door' || event.ticketMode === 'free' ? 0 : Number(event.price || 0);
+  const door = isDoorMode(event);
+  const free = isFreeMode(event) && !door;
+  const ticketPrice = door || free ? 0 : Number(event.price || 0);
   const fee = Number(event.fee || 0);
   const total = ticketPrice + fee;
-  const modeNote =
-    event.ticketMode === 'door'
-      ? `На входе организатору: ${money(event.price)}`
-      : event.ticketMode === 'free'
-        ? 'Бесплатная запись · 1 билет на человека'
-        : '100% цены билета уходит организатору';
+  const modeNote = door
+    ? `На входе организатору: ${money(event.price)}`
+    : free
+      ? 'Бесплатная запись · QR для входа'
+      : 'Оплата онлайн · QR сразу после оплаты';
 
   view.innerHTML = `
     <div class="ticket-checkout-page">
       <header class="sheet-head">
         <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <h1>Оплата</h1>
+        <h1>${free ? 'Запись' : door ? 'Бронь' : 'Оплата'}</h1>
         <span style="width:36px"></span>
       </header>
 
@@ -327,23 +331,23 @@ export function ticketCheckoutScreen(eventId) {
       </div>
 
       <section class="ticket-breakdown">
-        <div><span>Билет</span><b>${ticketPrice ? money(ticketPrice) : '0 сум'}</b></div>
-        <div><span>Сервисный сбор</span><b>${money(fee)}</b></div>
-        <div class="total"><span>К оплате сейчас</span><b>${money(total)}</b></div>
+        <div><span>${door ? 'На входе' : 'Билет'}</span><b>${door ? money(event.price) : ticketPrice ? money(ticketPrice) : '0 сум'}</b></div>
+        <div><span>Сейчас</span><b>${money(total)}</b></div>
+        <div class="total"><span>К оплате в Mini App</span><b>${money(total)}</b></div>
       </section>
 
       <p class="ticket-checkout-note">${esc(modeNote)}</p>
-      <p class="ticket-checkout-note muted">Демо-оплата: платёжный шлюз подключим к Taneesh API. Сейчас билет выдаётся сразу.</p>
+      <p class="ticket-checkout-note muted">После подтверждения сразу появится QR-код билета.</p>
 
       <button type="button" class="taneesh-buy-block" id="payTicket">
-        ${total ? `Оплатить ${money(total)}` : 'Получить билет'}
+        ${total ? `Оплатить ${money(total)}` : door ? 'Забронировать и получить QR' : 'Получить QR'}
       </button>
     </div>`;
 
   view.querySelector('#payTicket').onclick = () => {
     const button = view.querySelector('#payTicket');
     button.disabled = true;
-    button.textContent = 'Оплачиваем…';
+    button.textContent = 'Готовим билет…';
     setTimeout(() => {
       const ticket = {
         id: `t-${event.id}-${Date.now()}`,
@@ -352,18 +356,19 @@ export function ticketCheckoutScreen(eventId) {
         when: event.when,
         place: event.place,
         photo: event.photo,
-        mode: event.ticketMode || 'paid',
+        mode: door ? 'door' : free ? 'free' : (event.ticketMode || 'paid'),
+        role: 'guest',
         price: ticketPrice,
         fee,
         total,
-        doorPay: event.ticketMode === 'door' ? event.price : 0,
-        code: `YQ${event.id}${String(Date.now()).slice(-6)}`,
+        doorPay: door ? event.price : 0,
+        code: `YQ-${String(event.id).replace(/^e-/, '').slice(-8).toUpperCase()}-${String(Date.now()).slice(-5)}`,
         createdAt: new Date().toISOString()
       };
       const state = getState();
       saveState({ ...state, tickets: [...(state.tickets || []), ticket] });
       navigate('ticket', ticket.id);
-    }, 700);
+    }, 500);
   };
 }
 
@@ -393,6 +398,7 @@ export function ticketScreen(ticketId) {
           <img src="${esc(ticket.photo)}" alt="">
         </div>
         <div class="ticket-pass-body">
+          ${ticket.role === 'host' ? '<em class="ticket-role">Организатор</em>' : ''}
           <strong>${esc(ticket.title)}</strong>
           <span>${esc(ticket.when)}</span>
           <span>${esc(ticket.place)}</span>
@@ -400,8 +406,8 @@ export function ticketScreen(ticketId) {
             <img src="${esc(qrUrl)}" alt="QR">
           </div>
           <code class="ticket-code">${esc(ticket.code)}</code>
-          ${ticket.doorPay ? `<p class="ticket-door">На входе организатору: <b>${money(ticket.doorPay)}</b></p>` : ''}
-          <p class="ticket-hint">Покажите QR контролёру на входе</p>
+          ${ticket.doorPay ? `<p class="ticket-door">Гости платят на входе: <b>${money(ticket.doorPay)}</b></p>` : ''}
+          <p class="ticket-hint">${ticket.role === 'host' ? 'Ваш QR организатора · гости показывают свои билеты' : 'Покажите QR на входе'}</p>
         </div>
       </div>
 

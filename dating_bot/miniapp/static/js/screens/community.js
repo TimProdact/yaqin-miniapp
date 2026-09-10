@@ -373,17 +373,35 @@ export function groupChatScreen(id) {
   render();
 }
 
-/** Создание события — название, место, когда, обложка. */
+/** Создание события — как в Taneesh: обложка, название, место, когда, вход. */
 export function createEventScreen() {
   clearHeader();
+  const WHEN_OPTIONS = [
+    { when: 'Сегодня · 19:00', day: String(new Date().getDate()), month: 'сен' },
+    { when: 'Завтра · 11:00', day: String(new Date().getDate() + 1), month: 'сен' },
+    { when: 'Сб, 20 сен · 10:00', day: '20', month: 'сен' },
+    { when: 'Вс, 21 сен · 11:00', day: '21', month: 'сен' },
+    { when: 'Пт, 26 сен · 19:30', day: '26', month: 'сен' },
+    { when: 'Сб, 27 сен · 16:00', day: '27', month: 'сен' }
+  ];
+
   let title = '';
   let place = '';
-  let when = 'Вс, 21 сен · 11:00';
+  let whenIdx = 3;
   let cover = null;
   let coverIndex = 0;
+  let ticketMode = 'free'; // free | door
+  let doorPrice = '50000';
+  let sheet = null; // null | when
+
+  const whenOf = () => WHEN_OPTIONS[whenIdx] || WHEN_OPTIONS[0];
 
   const render = () => {
-    const ready = title.trim().length > 1 && place.trim().length > 1;
+    const ready = title.trim().length > 1 && place.trim().length > 1
+      && (ticketMode === 'free' || Number(String(doorPrice).replace(/\D/g, '')) > 0);
+    const when = whenOf();
+    const doorSum = Number(String(doorPrice).replace(/\D/g, '')) || 0;
+
     view.innerHTML = `
       <div class="create-event-page">
         <header class="modal-head">
@@ -397,20 +415,66 @@ export function createEventScreen() {
           <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
         </div>
 
-        <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}">
-        <input class="create-name smaller" id="eventPlace" placeholder="Место" value="${esc(place)}">
+        <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}" maxlength="80" autocomplete="off">
+        <input class="create-name smaller" id="eventPlace" placeholder="Место" value="${esc(place)}" maxlength="80" autocomplete="off">
 
         <button class="settings-row" type="button" id="eventWhen">
-          <span class="settings-icon blue"><i class="ti ti-calendar-event"></i></span>
-          <span>Когда<br><small>${esc(when)}</small></span>
+          <span class="settings-icon blue square"><i class="ti ti-calendar-event"></i></span>
+          <span>Когда<br><small>${esc(when.when)}</small></span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <p class="create-legal">Билет можно настроить позже. Сейчас событие появится в ленте как бесплатное.</p>
-      </div>`;
+
+        <h3 class="settings-label">Вход</h3>
+        <div class="create-chips" id="ticketModeChips">
+          <button type="button" class="${ticketMode === 'free' ? 'on' : ''}" data-mode="free">
+            <i class="ti ti-ticket"></i> Бесплатно
+          </button>
+          <button type="button" class="${ticketMode === 'door' ? 'on' : ''}" data-mode="door">
+            <i class="ti ti-cash"></i> Оплата на входе
+          </button>
+        </div>
+
+        ${ticketMode === 'door' ? `
+          <label class="create-price-field">
+            <span>Сумма на входе</span>
+            <div class="create-price-input">
+              <input id="doorPrice" type="text" inputmode="numeric" value="${esc(doorPrice)}" placeholder="50000" maxlength="10" autocomplete="off">
+              <em>сум</em>
+            </div>
+          </label>
+        ` : ''}
+
+        <p class="create-legal">
+          ${ticketMode === 'free'
+            ? 'Гость записывается бесплатно и получает QR для входа.'
+            : `Гость бронирует место бесплатно, на входе платит ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'указанную сумму'} и показывает QR.`}
+        </p>
+      </div>
+
+      ${sheet === 'when' ? `
+        <div class="edit-sheet-scrim" id="whenScrim"></div>
+        <div class="edit-sheet edit-sheet--picker create-when-sheet" role="dialog" aria-modal="true">
+          <header class="edit-sheet-head">
+            <button type="button" class="edit-sheet-close" id="closeWhen" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+            <div class="edit-sheet-titles"><h2>Когда</h2><p>Выберите дату и время</p></div>
+            <span class="edit-sheet-spacer"></span>
+          </header>
+          <div class="create-when-list">
+            ${WHEN_OPTIONS.map((option, index) => `
+              <button type="button" class="create-when-row ${index === whenIdx ? 'on' : ''}" data-when="${index}">
+                <span>${esc(option.when)}</span>
+                ${index === whenIdx ? '<i class="ti ti-check"></i>' : ''}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}`;
 
     const syncReady = () => {
       const btn = view.querySelector('#createEventBtn');
-      const ok = title.trim().length > 1 && place.trim().length > 1;
+      if (!btn) return;
+      const priceOk = ticketMode === 'free' || Number(String(doorPrice).replace(/\D/g, '')) > 0;
+      const ok = title.trim().length > 1 && place.trim().length > 1 && priceOk;
       btn.disabled = !ok;
       btn.classList.toggle('on', ok);
     };
@@ -422,34 +486,111 @@ export function createEventScreen() {
       render();
     };
     view.querySelector('#eventWhen').onclick = () => {
-      when = when.includes('21') ? 'Сб, 20 сен · 10:00' : 'Вс, 21 сен · 11:00';
+      sheet = 'when';
       render();
     };
+    view.querySelector('#whenScrim')?.addEventListener('click', () => { sheet = null; render(); });
+    view.querySelector('#closeWhen')?.addEventListener('click', () => { sheet = null; render(); });
+    view.querySelectorAll('[data-when]').forEach(button => {
+      button.onclick = () => {
+        whenIdx = Number(button.dataset.when);
+        sheet = null;
+        render();
+      };
+    });
+    view.querySelectorAll('[data-mode]').forEach(button => {
+      button.onclick = () => {
+        ticketMode = button.dataset.mode === 'door' ? 'door' : 'free';
+        render();
+      };
+    });
+    const priceInput = view.querySelector('#doorPrice');
+    if (priceInput) {
+      priceInput.oninput = event => {
+        doorPrice = event.target.value.replace(/[^\d]/g, '');
+        event.target.value = doorPrice;
+        syncReady();
+      };
+    }
+
     view.querySelector('#createEventBtn').onclick = () => {
       if (!(title.trim().length > 1 && place.trim().length > 1)) return;
       const profile = getState().profile || defaultProfile;
+      const slot = whenOf();
+      const price = ticketMode === 'door' ? Number(String(doorPrice).replace(/\D/g, '')) || 0 : 0;
+      if (ticketMode === 'door' && price < 1) return;
+
+      const eventId = `e-${Date.now()}`;
       const event = {
-        id: `e-${Date.now()}`,
+        id: eventId,
         title: title.trim(),
-        when,
-        day: when.match(/\d+/)?.[0] || '21',
-        month: 'сен',
+        when: slot.when,
+        day: slot.day,
+        month: slot.month,
         place: place.trim(),
         address: 'Ташкент',
         group: 'Yaqin',
         host: profile.name || 'Вы',
+        hostId: 'me',
         going: 1,
         photo: cover || nextCover(1),
-        ticketMode: 'free',
-        price: 0,
+        isFree: ticketMode === 'free',
+        ticketMode, // free | door (Taneesh: free | at_door)
+        paymentMode: ticketMode === 'door' ? 'at_door' : undefined,
+        price,
         fee: 0,
         currency: 'UZS',
         source: 'yaqin',
         createdAt: new Date().toISOString()
       };
+
+      const hostTicket = {
+        id: `t-${eventId}-host`,
+        eventId,
+        title: event.title,
+        when: event.when,
+        place: event.place,
+        photo: event.photo,
+        mode: ticketMode,
+        role: 'host',
+        price: 0,
+        fee: 0,
+        total: 0,
+        doorPay: ticketMode === 'door' ? price : 0,
+        code: `YQHOST-${eventId.slice(-8).toUpperCase()}`,
+        createdAt: new Date().toISOString()
+      };
+
       const state = getState();
-      saveState({ ...state, userEvents: [event, ...(state.userEvents || [])] });
-      navigate('event', event.id);
+      saveState({
+        ...state,
+        userEvents: [event, ...(state.userEvents || [])],
+        tickets: [hostTicket, ...(state.tickets || [])],
+        eventGoing: {
+          ...(state.eventGoing || {}),
+          [eventId]: {
+            id: 'me',
+            name: profile.name || defaultProfile.name,
+            age: profile.age || defaultProfile.age,
+            photo: profile.photo || defaultProfile.photo,
+            message: 'Организатор'
+          }
+        },
+        eventInterest: { ...(state.eventInterest || {}), [eventId]: true }
+      });
+
+      showCelebrate({
+        title: 'Событие создано',
+        subtitle: ticketMode === 'free'
+          ? 'Гости запишутся и получат QR. Ваш QR уже в «Билеты».'
+          : 'Гости бронируют место, платят на входе и показывают QR.',
+        primaryLabel: 'Открыть QR',
+        secondaryLabel: 'К событию',
+        shareText: `Иду на «${event.title}» — присоединяйся в Yaqin`,
+        onPrimary: () => navigate('ticket', hostTicket.id),
+        onSecondary: () => navigate('event', eventId)
+      });
+      navigate('event', eventId);
     };
   };
 

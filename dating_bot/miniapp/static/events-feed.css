@@ -512,6 +512,18 @@
   font-size: var(--yaqin-fs-caption);
   color: var(--yaqin-text-secondary);
 }
+.ticket-role {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
+  font-size: var(--yaqin-fs-micro);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.02em;
+}
 .ticket-qr-wrap {
   width: 200px;
   height: 200px;
