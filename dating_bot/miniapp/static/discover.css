@@ -538,7 +538,7 @@ body[data-route='filters'] .view {
   padding: 0 2px;
 }
 
-.filters-save {
+.filters-page .filters-save {
   position: fixed;
   left: var(--yaqin-gutter);
   right: var(--yaqin-gutter);

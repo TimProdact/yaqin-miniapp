@@ -743,24 +743,31 @@ function renderGuestEventDetail(event) {
         ${peopleBlocksHtml(event)}
 
         ${owned ? `
-          <div class="person-actions event-detail-actions sticky-page-cta">
+          <div class="sticky-page-cta">
             <button type="button" class="taneesh-buy-block" data-action="ticket" data-id="${esc(owned.id)}">
               Открыть QR
             </button>
             <p class="taneesh-detail-note">Билет уже оформлен — покажите QR на входе.</p>
           </div>
-        ` : (!owned && hard ? `
+        ` : `
           <div class="sticky-page-cta">
-            <button type="button" class="taneesh-buy-block" data-action="checkout" data-id="${esc(event.id)}">
-              ${esc(hardPassLabel(event))}
+            ${hard ? `
+              <button type="button" class="taneesh-buy-block" data-action="checkout" data-id="${esc(event.id)}">
+                ${esc(hardPassLabel(event))}
+              </button>` : ''}
+            <button type="button" class="taneesh-buy-block ${hard ? 'ghost' : ''}" id="stickyWant">
+              ${want ? 'Отменить интерес' : 'Хочу пойти'}
             </button>
+            <p class="taneesh-detail-note">${hard
+              ? '«Хочу пойти» — не билет. Участие — кнопкой выше.'
+              : 'Свободный вход: достаточно отметить интерес'}</p>
           </div>
-        ` : '')}
+        `}
       </article>`;
 
     bindPeopleBlocks(view, event);
 
-    view.querySelector('#toggleWant')?.addEventListener('click', () => {
+    const toggleWant = () => {
       if (owned) return;
       if (want) {
         clearInterest(event.id);
@@ -779,7 +786,10 @@ function renderGuestEventDetail(event) {
           onPrimary: () => {}
         });
       }
-    });
+    };
+
+    view.querySelector('#toggleWant')?.addEventListener('click', toggleWant);
+    view.querySelector('#stickyWant')?.addEventListener('click', toggleWant);
   };
 
   render();
