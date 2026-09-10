@@ -83,6 +83,15 @@ body.full-screen .view {
   font-weight: 700;
   padding: 16px 20px;
 }
+.connected-share {
+  margin: 0 auto 12px;
+  border: 0;
+  background: none;
+  color: var(--yaqin-link);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px;
+}
 
 .chat-page {
   height: 100%;

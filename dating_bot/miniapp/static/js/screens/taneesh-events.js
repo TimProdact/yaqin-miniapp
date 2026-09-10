@@ -3,6 +3,7 @@ import { view, esc, clearHeader } from '../dom.js';
 import { getState, saveState } from '../state.js';
 import { navigate } from '../router.js';
 import { allEvents, findEvent } from './community.js';
+import { showCelebrate } from '../celebrate.js';
 
 const TANEESH_STORE = 'https://apps.apple.com/search?term=Taneesh';
 
@@ -100,13 +101,15 @@ function toggleInterest(eventId) {
   const state = getState();
   const interested = { ...(state.eventInterest || {}) };
   const key = String(eventId);
-  if (interested[key] || interested[eventId]) {
+  const wasOn = Boolean(interested[key] || interested[eventId]);
+  if (wasOn) {
     delete interested[key];
     delete interested[eventId];
   } else {
     interested[eventId] = true;
   }
   saveState({ ...state, eventInterest: interested });
+  return !wasOn;
 }
 
 function isInterested(eventId) {
@@ -191,8 +194,20 @@ export function taneeshEventsScreen() {
     button.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
-      toggleInterest(button.dataset.toggleWant);
+      const eventId = button.dataset.toggleWant;
+      const turnedOn = toggleInterest(eventId);
       taneeshEventsScreen();
+      if (turnedOn) {
+        const item = findEvent(eventId);
+        showCelebrate({
+          title: 'Вы идёте!',
+          subtitle: item?.title || 'Событие добавлено в ваши планы',
+          primaryLabel: 'Смотреть событие',
+          secondaryLabel: 'Пригласить подруг',
+          shareText: `Иду на «${item?.title || 'событие'}» — присоединяйся в Yaqin`,
+          onPrimary: () => navigate('event', eventId)
+        });
+      }
     };
   });
 }
@@ -253,10 +268,19 @@ export function taneeshEventDetailScreen(id) {
         delete interested[event.id];
         delete interested[String(event.id)];
         saveState({ ...state, eventInterest: interested });
+        render();
       } else {
         saveGoing(event.id, { ...meGuest(), message: '' });
+        render();
+        showCelebrate({
+          title: 'Вы идёте!',
+          subtitle: event.title,
+          primaryLabel: 'Купить билет',
+          secondaryLabel: 'Пригласить подруг',
+          shareText: `Иду на «${event.title}» — присоединяйся в Yaqin`,
+          onPrimary: () => navigate(owned ? 'ticket' : 'checkout', owned ? owned.id : event.id)
+        });
       }
-      render();
     });
   };
 

@@ -1,8 +1,9 @@
 import { people, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
-import { listAllGroups } from './community.js';
+import { listAllGroups, allEvents } from './community.js';
 import { interestsOf } from '../profile-fields.js';
 import { navigate } from '../router.js';
+import { getState } from '../state.js';
 import {
   listVisibleChats,
   getChatByIndex,
@@ -34,48 +35,160 @@ function syncChatsBadge() {
 
 export function chatsScreen() {
   clearHeader();
-  const chats = listVisibleChats();
-  const dms = chats.filter(chat => !chat.team);
-  const hasDms = dms.length > 0;
+  let segment = 'all'; // all | dm | groups | events
+  let query = '';
   syncChatsBadge();
 
-  view.innerHTML = `
-    <div class="chats-page">
-      <header class="chats-head">
-        <h1>Чаты</h1>
-        <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
-      </header>
+  const buildRows = () => {
+    const term = query.trim().toLowerCase();
+    const chats = listVisibleChats();
+    const dmItems = chats.map((chat, index) => ({
+      kind: chat.team ? 'team' : 'dm',
+      key: `c-${index}`,
+      action: 'chat',
+      id: index,
+      name: chat.name,
+      preview: chat.preview || '',
+      time: chat.time || '',
+      photo: chat.photo,
+      team: Boolean(chat.team),
+      unread: Boolean(chat.unread)
+    }));
+    const groupItems = listAllGroups().map(group => {
+      const last = group.messages?.[group.messages.length - 1];
+      return {
+        kind: 'group',
+        key: `g-${group.id}`,
+        action: 'group',
+        id: group.id,
+        name: group.title,
+        preview: last?.text || group.about || 'Группа',
+        time: last?.time || '',
+        photo: group.photo,
+        unread: false
+      };
+    });
+    const interested = getState().eventInterest || {};
+    const going = getState().eventGoing || {};
+    const eventItems = allEvents()
+      .filter(event => interested[event.id] || interested[String(event.id)] || going[event.id])
+      .map(event => ({
+        kind: 'event',
+        key: `e-${event.id}`,
+        action: 'event',
+        id: event.id,
+        name: event.title,
+        preview: event.when || 'Событие',
+        time: '',
+        photo: event.photo,
+        unread: false
+      }));
 
-      ${hasDms ? `
-        <h2 class="chats-section">Новые знакомства</h2>
-        <div class="new-friends">
-          ${dms.slice(0, 3).map(chat => `
-            <button type="button" class="new-friend" data-action="chat" data-id="${chatIndexForPerson(chat.personId)}">
-              <img src="${esc(chat.photo || people[0].photo)}" alt="">
-              ${chat.unread ? '<b>НОВОЕ</b>' : ''}
-            </button>`).join('')}
-        </div>` : ''}
+    let rows = [];
+    if (segment === 'all') rows = [...dmItems, ...groupItems];
+    else if (segment === 'dm') rows = dmItems.filter(item => item.kind === 'dm' || item.kind === 'team');
+    else if (segment === 'groups') rows = groupItems;
+    else if (segment === 'events') rows = eventItems;
 
-      <div class="chat-list">${chats.map((chat, index) => `
-        <button class="chat-row" data-action="chat" data-id="${index}">
-          ${avatar(chat.photo, chat.team)}
-          <div class="chat-copy">
-            <strong>${esc(chat.name)}</strong>
-            <span>${esc(chat.preview)} · ${esc(chat.time || '')}</span>
-          </div>
-          ${chat.unread ? '<i class="unread-dot"></i>' : ''}
-        </button>`).join('')}</div>
+    if (term) {
+      rows = rows.filter(row =>
+        row.name.toLowerCase().includes(term) || String(row.preview).toLowerCase().includes(term)
+      );
+    }
+    return { rows, dmCount: dmItems.filter(i => i.kind === 'dm').length, hasAny: dmItems.length + groupItems.length > 0 };
+  };
 
-      ${!hasDms ? `
-        <div class="chats-empty compact">
-          <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
-          <h2>Пока нет переписок</h2>
-          <p>Передайте привет в «Люди». Чат появится, когда она ответит приветом.</p>
-          <button class="empty-primary" type="button" data-action="people">Смотреть анкеты</button>
-        </div>` : ''}
+  const render = () => {
+    const { rows, dmCount, hasAny } = buildRows();
+    const pills = [
+      ['all', 'Все'],
+      ['dm', 'Знакомства'],
+      ['groups', 'Группы'],
+      ['events', 'События']
+    ];
 
-      ${hasDms ? `<button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>` : ''}
-    </div>`;
+    view.innerHTML = `
+      <div class="chats-page">
+        <header class="chats-head">
+          <h1>Чаты</h1>
+          <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
+        </header>
+
+        <div class="search-box chats-inline-search">
+          <i class="ti ti-search"></i>
+          <input id="inboxSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
+          ${query.trim() ? '<button type="button" id="clearInboxSearch" aria-label="Очистить">×</button>' : ''}
+        </div>
+
+        <div class="chats-pills" role="tablist">
+          ${pills.map(([id, label]) => `
+            <button type="button" class="${segment === id ? 'on' : ''}" data-segment="${id}">${label}</button>
+          `).join('')}
+        </div>
+
+        ${segment === 'all' && dmCount > 0 && !query.trim() ? `
+          <h2 class="chats-section">Новые знакомства</h2>
+          <div class="new-friends">
+            ${listVisibleChats().filter(c => !c.team).slice(0, 3).map(chat => `
+              <button type="button" class="new-friend" data-action="chat" data-id="${chatIndexForPerson(chat.personId)}">
+                <img src="${esc(chat.photo || people[0].photo)}" alt="">
+                ${chat.unread ? '<b>НОВОЕ</b>' : ''}
+              </button>`).join('')}
+          </div>` : ''}
+
+        ${rows.length ? `
+          <div class="chat-list">${rows.map(row => `
+            <button class="chat-row" data-action="${row.action}" data-id="${esc(row.id)}">
+              ${row.kind === 'group' || row.kind === 'event'
+                ? `<div class="chat-avatar"><img src="${esc(row.photo)}" alt=""></div>`
+                : avatar(row.photo, row.team)}
+              <div class="chat-copy">
+                <strong>${esc(row.name)}</strong>
+                <span>${esc(row.preview)}${row.time ? ` · ${esc(row.time)}` : ''}</span>
+              </div>
+              ${row.unread ? '<i class="unread-dot"></i>' : ''}
+              ${row.kind === 'group' ? '<em class="chat-kind">группа</em>' : ''}
+              ${row.kind === 'event' ? '<em class="chat-kind">событие</em>' : ''}
+            </button>`).join('')}</div>` : `
+          <div class="chats-empty compact">
+            <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
+            <h2>${query.trim() ? 'Ничего не найдено' : segment === 'events' ? 'Пока нет событий' : 'Пока нет переписок'}</h2>
+            <p>${query.trim()
+              ? 'Попробуйте другое имя или слово'
+              : segment === 'events'
+                ? 'Отметьте «Хочу пойти» на афише — события появятся здесь.'
+                : 'Передайте привет в «Люди». Чат появится при взаимном привете.'}</p>
+            ${!query.trim() ? `<button class="empty-primary" type="button" data-action="${segment === 'events' ? 'events' : 'people'}">${segment === 'events' ? 'К событиям' : 'Смотреть анкеты'}</button>` : ''}
+          </div>`}
+
+        ${hasAny || dmCount ? `<button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>` : ''}
+      </div>`;
+
+    const input = view.querySelector('#inboxSearch');
+    input?.addEventListener('input', () => {
+      query = input.value;
+      render();
+      const next = view.querySelector('#inboxSearch');
+      if (next) {
+        next.focus();
+        const pos = query.length;
+        next.setSelectionRange(pos, pos);
+      }
+    });
+    view.querySelector('#clearInboxSearch')?.addEventListener('click', () => {
+      query = '';
+      render();
+      view.querySelector('#inboxSearch')?.focus();
+    });
+    view.querySelectorAll('[data-segment]').forEach(button => {
+      button.onclick = () => {
+        segment = button.dataset.segment;
+        render();
+      };
+    });
+  };
+
+  render();
 }
 
 export function searchChatsScreen(queryOrId = '') {
@@ -116,7 +229,7 @@ export function searchChatsScreen(queryOrId = '') {
                   <div class="chat-copy"><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)}</span></div>
                 </button>`).join('')}
               ${groupRows.map(group => `
-                <button class="chat-row" data-action="group-chat" data-id="${esc(group.id)}">
+                <button class="chat-row" data-action="group" data-id="${esc(group.id)}">
                   ${avatar(group.photo)}
                   <div class="chat-copy"><strong>${esc(group.title)}</strong><span>Группа</span></div>
                 </button>`).join('')}

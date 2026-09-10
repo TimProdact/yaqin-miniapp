@@ -397,14 +397,28 @@ export function connectedScreen(id) {
 
   view.innerHTML = `
     <div class="connected-page">
-      <button class="connected-back" data-action="people" aria-label="Закрыть"><i class="ti ti-refresh"></i></button>
+      <button class="connected-back" data-action="people" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+      <div class="connected-burst" aria-hidden="true"></div>
       <h1>Вы познакомились<br>с ${esc(withName)}</h1>
       <div class="connected-photo" data-action="chat" data-id="${chatIndex}">
         <img src="${esc(person.photo)}">
         <div class="connected-wave"><i class="ti ti-hand-stop"></i></div>
       </div>
       <button class="connected-cta" type="button" data-action="chat" data-id="${chatIndex}">Написать ${esc(firstName)}</button>
+      <button class="connected-share" type="button" id="shareMatch">Пригласить подруг в Yaqin</button>
     </div>`;
+
+  view.querySelector('#shareMatch')?.addEventListener('click', () => {
+    const text = 'Присоединяйся в Yaqin — сообщество девушек в Ташкенте ✨';
+    try {
+      const tg = window.Telegram?.WebApp;
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/yaqin_bot')}&text=${encodeURIComponent(text)}`);
+        return;
+      }
+    } catch (_) { /* ignore */ }
+    navigator.share?.({ text }).catch(() => {});
+  });
 }
 
 export function showSkippedPeople() {

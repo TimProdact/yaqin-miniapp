@@ -1,7 +1,8 @@
-import { events as taneeshEvents, PHOTOS, defaultProfile, demoGroups } from '../data.js';
+import { events as taneeshEvents, PHOTOS, defaultProfile, demoGroups, people } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { navigate } from '../router.js';
 import { getState, saveState } from '../state.js';
+import { showCelebrate } from '../celebrate.js';
 
 const COVER_POOL = [PHOTOS.palms, PHOTOS.coffee, PHOTOS.city, PHOTOS.books, PHOTOS.event, PHOTOS.mila].filter(Boolean);
 
@@ -116,7 +117,7 @@ export function groupsScreen() {
               </div>`}
 
         ${!term && groups.length && !mineCount ? `
-          <p class="groups-tab-hint">Публичные группы рядом. Нажмите, чтобы открыть чат.</p>
+          <p class="groups-tab-hint">Публичные группы рядом. Нажмите, чтобы открыть.</p>
         ` : ''}
 
         <button class="compose" data-action="create-group" aria-label="Создать"><i class="ti ti-plus"></i></button>
@@ -141,7 +142,7 @@ export function groupsScreen() {
     view.querySelectorAll('[data-open-group]').forEach(button => {
       button.onclick = () => {
         const group = openGroup(button.dataset.openGroup);
-        if (group) navigate('group-chat', group.id);
+        if (group) navigate('group', group.id);
       };
     });
   };
@@ -212,11 +213,88 @@ export function createGroupScreen() {
       };
       const state = getState();
       saveState({ ...state, userGroups: [group, ...(state.userGroups || [])] });
-      navigate('group-chat', group.id);
+      showCelebrate({
+        title: 'Группа создана!',
+        subtitle: group.title,
+        primaryLabel: 'Открыть группу',
+        secondaryLabel: 'Пригласить подруг',
+        shareText: `Присоединяйся к группе «${group.title}» в Yaqin`,
+        onPrimary: () => navigate('group', group.id),
+        onClose: () => navigate('group', group.id)
+      });
     };
   };
 
   render();
+}
+
+function groupMembers(group) {
+  const count = Math.min(8, Math.max(3, Number(group.members) || 4));
+  return people.slice(0, count).map(person => ({
+    id: person.id,
+    name: person.name,
+    photo: person.photo,
+    city: person.city
+  }));
+}
+
+/** Хаб группы: обложка, участницы, чат / пригласить. */
+export function groupHubScreen(id) {
+  clearHeader();
+  const group = openGroup(id);
+  if (!group) {
+    navigate('groups');
+    return;
+  }
+  const members = groupMembers(group);
+  const memberCount = group.members || members.length;
+
+  view.innerHTML = `
+    <div class="group-hub-page">
+      <header class="group-hub-top">
+        <button type="button" data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <button type="button" id="shareGroup" aria-label="Поделиться"><i class="ti ti-share"></i></button>
+      </header>
+
+      <div class="group-hub-cover event-photo">
+        <img src="${esc(group.photo)}" alt="">
+      </div>
+
+      <section class="group-hub-body">
+        <em class="group-hub-city">${esc(group.city || 'Ташкент')}</em>
+        <h1>${esc(group.title)}</h1>
+        <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
+        <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
+
+        <h3>Участницы</h3>
+        <div class="group-hub-members">
+          ${members.map(person => `
+            <button type="button" class="group-hub-member" data-action="person" data-id="${person.id}">
+              <img src="${esc(person.photo)}" alt="">
+              <span>${esc(person.name)}</span>
+            </button>`).join('')}
+        </div>
+      </section>
+
+      <div class="group-hub-cta">
+        <button type="button" class="group-hub-chat" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
+        <button type="button" class="group-hub-invite" id="inviteGroup">Пригласить</button>
+      </div>
+    </div>`;
+
+  const share = () => {
+    const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
+    try {
+      const tg = window.Telegram?.WebApp;
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/yaqin_bot')}&text=${encodeURIComponent(text)}`);
+        return;
+      }
+    } catch (_) { /* ignore */ }
+    navigator.share?.({ text }).catch(() => {});
+  };
+  view.querySelector('#shareGroup').onclick = share;
+  view.querySelector('#inviteGroup').onclick = share;
 }
 
 /** Простой чат группы (без комнат/постов). */
@@ -243,13 +321,13 @@ export function groupChatScreen(id) {
     view.innerHTML = `
       <div class="chat-page group-chat-lite">
         <header class="chat-top">
-          <button class="chat-back" data-action="groups" aria-label="Назад">
+          <button class="chat-back" data-action="group" data-id="${esc(group.id)}" aria-label="Назад">
             <i class="ti ti-chevron-left"></i>
           </button>
-          <div class="chat-peer">
+          <button type="button" class="chat-peer chat-peer-btn" data-action="group" data-id="${esc(group.id)}">
             <h1>${esc(group.title)}</h1>
             <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
-          </div>
+          </button>
           <span></span>
         </header>
 

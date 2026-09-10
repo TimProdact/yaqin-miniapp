@@ -26,7 +26,8 @@ const FULL_SCREEN_ROUTES = new Set([
   'my-tickets',
   'create-group',
   'create-event',
-  'group-chat'
+  'group-chat',
+  'group'
 ]);
 const SHEET_ROUTES = new Set(['person', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets']);

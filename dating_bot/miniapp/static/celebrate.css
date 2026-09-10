@@ -1,0 +1,105 @@
+/* Celebrate overlay — Locals-style */
+
+.celebrate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: celebrate-fade 0.25s ease;
+}
+.celebrate-card {
+  position: relative;
+  width: min(100%, 340px);
+  background: var(--yaqin-surface-raised);
+  color: var(--yaqin-text);
+  border-radius: var(--yaqin-radius-xl);
+  padding: 36px 24px 22px;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+.celebrate-check {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+}
+.celebrate-card h2 {
+  margin: 0 0 8px;
+  font-size: var(--yaqin-fs-title-sm);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.celebrate-card p {
+  margin: 0 0 22px;
+  font-size: var(--yaqin-fs-secondary);
+  color: var(--yaqin-text-secondary);
+  line-height: 1.4;
+}
+.celebrate-primary {
+  width: 100%;
+  border: 0;
+  border-radius: var(--yaqin-radius-pill);
+  padding: 14px 18px;
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
+  font-size: var(--yaqin-fs-body);
+  font-weight: 700;
+}
+.celebrate-secondary {
+  width: 100%;
+  margin-top: 10px;
+  border: 1.5px solid var(--yaqin-sep);
+  border-radius: var(--yaqin-radius-pill);
+  padding: 12px 18px;
+  background: transparent;
+  color: var(--yaqin-text);
+  font-size: var(--yaqin-fs-secondary);
+  font-weight: 600;
+}
+.celebrate-skip {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  border: 0;
+  background: none;
+  color: var(--yaqin-text-tertiary);
+  font-size: var(--yaqin-fs-caption);
+  padding: 10px;
+}
+.celebrate-burst {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+.celebrate-dot {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+  opacity: 0;
+  animation: celebrate-burst 0.9s ease-out forwards;
+  animation-delay: calc(var(--i) * 0.02s);
+  transform: rotate(calc(var(--i) * 20deg)) translateY(0);
+}
+@keyframes celebrate-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes celebrate-burst {
+  0% { opacity: 0; transform: rotate(calc(var(--i) * 20deg)) translateY(0) scale(0.4); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(calc(var(--i) * 20deg)) translateY(-110px) scale(1); }
+}
