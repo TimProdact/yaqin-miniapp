@@ -37,6 +37,31 @@ function ticketForEvent(eventId) {
   return getTickets().find(ticket => String(ticket.eventId) === key);
 }
 
+function ticketsForEvent(eventId) {
+  const key = String(eventId);
+  return getTickets().filter(ticket => String(ticket.eventId) === key);
+}
+
+function isEventHost(event) {
+  return event?.hostId === 'me';
+}
+
+function hostTicket(eventId) {
+  return ticketsForEvent(eventId).find(ticket => ticket.role === 'host') || ticketForEvent(eventId);
+}
+
+function shareEvent(event) {
+  const text = `Приходи на «${event.title}» · ${event.when || ''} · ${event.place || ''} — Yaqin`;
+  try {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/yaqin_bot')}&text=${encodeURIComponent(text)}`);
+      return;
+    }
+  } catch (_) { /* ignore */ }
+  navigator.share?.({ text }).catch(() => {});
+}
+
 function isDoorMode(event) {
   const mode = event?.ticketMode || event?.paymentMode;
   return mode === 'door' || mode === 'at_door';
@@ -167,7 +192,7 @@ export function taneeshEventsScreen() {
     </div>`;
 }
 
-/** Карточка события: layout как у анкеты человека. */
+/** Карточка события: гость vs кабинет организатора (своё). */
 export function taneeshEventDetailScreen(id) {
   clearHeader();
   const event = findEvent(id);
@@ -175,10 +200,233 @@ export function taneeshEventDetailScreen(id) {
     showPlaceholder('✿', 'Событие не найдено', 'Вернитесь к афише и выберите другое.');
     return;
   }
+  if (isEventHost(event)) {
+    renderHostEventDashboard(event);
+    return;
+  }
+  renderGuestEventDetail(event);
+}
+
+/** Кабинет своего события — блоки как профиль + вкладки. */
+function renderHostEventDashboard(event) {
+  let tab = 'overview'; // overview | guests | stats
+
+  const render = () => {
+    closePeopleGoingSheet();
+    const going = goingForEvent(event.id);
+    const tickets = ticketsForEvent(event.id);
+    const guestTickets = tickets.filter(ticket => ticket.role !== 'host');
+    const hostQr = hostTicket(event.id);
+    const capacity = Number(event.capacity) || 0;
+    const interested = going.length;
+    const sold = guestTickets.length;
+    const fill = capacity ? Math.min(100, Math.round((sold / capacity) * 100)) : 0;
+    const revenue = guestTickets.reduce((sum, ticket) => {
+      if (ticket.mode === 'paid') return sum + Number(ticket.price || 0);
+      return sum;
+    }, 0);
+    const doorExpected = isDoorMode(event)
+      ? sold * Number(event.price || 0)
+      : 0;
+    const metaLine = [event.when, event.place].filter(Boolean).join(' · ');
+    const tabs = [
+      ['overview', 'Обзор'],
+      ['guests', 'Гости'],
+      ['stats', 'Статистика']
+    ];
+
+    view.innerHTML = `
+      <article class="person-view event-detail-view host-event-page">
+        <div class="person-hero event-detail-hero">
+          <img class="person-hero-photo" src="${esc(event.photo)}" alt="">
+          ${hasTelegramBack() ? '' : '<button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
+        </div>
+
+        <section class="person-head">
+          <div class="person-head-row">
+            <div class="person-head-copy">
+              <em class="taneesh-source yaqin">Ваше событие</em>
+              <h1>${esc(event.title)}</h1>
+              <p class="person-meta">${esc(metaLine)}</p>
+              <p class="event-detail-price">${esc(priceLabel(event))}</p>
+            </div>
+            <button class="hero-wave" type="button" id="hostShare" aria-label="Поделиться">
+              <i class="ti ti-share"></i>
+            </button>
+          </div>
+          ${event.description ? `<p class="person-bio">${esc(event.description)}</p>` : ''}
+        </section>
+
+        <div class="host-event-tabs" role="tablist">
+          ${tabs.map(([id, label]) => `
+            <button type="button" class="${tab === id ? 'on' : ''}" data-host-tab="${id}" role="tab" aria-selected="${tab === id}">
+              ${label}
+            </button>`).join('')}
+        </div>
+
+        <div class="host-event-body">
+          ${tab === 'overview' ? `
+            <section class="me-panel event-detail-panel">
+              <div class="me-section-head"><div><h3>Детали</h3></div></div>
+              <ul class="taneesh-detail-meta">
+                <li><i class="ti ti-calendar"></i>${esc(event.when)}</li>
+                <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
+                ${event.address ? `<li><i class="ti ti-building"></i>${esc(event.address)}</li>` : ''}
+                ${capacity ? `<li><i class="ti ti-users"></i>до ${capacity} мест · занято ${sold}</li>` : ''}
+                <li><i class="ti ti-ticket"></i>${esc(priceLabel(event))}</li>
+              </ul>
+            </section>
+
+            <div class="people-going-wrap">
+              ${peopleGoingBlockHtml(going, {
+                title: 'Хотят пойти',
+                empty: 'Пока никто не отметил интерес'
+              })}
+            </div>
+
+            <section class="me-panel event-detail-panel">
+              <div class="me-section-head"><div><h3>Действия</h3></div></div>
+              <div class="me-mini-list">
+                ${hostQr ? `
+                  <button type="button" class="me-mini-row" data-action="ticket" data-id="${esc(hostQr.id)}">
+                    <span class="host-action-icon"><i class="ti ti-qrcode"></i></span>
+                    <div>
+                      <strong>QR организатора</strong>
+                      <span>Ваш вход / проверка на месте</span>
+                    </div>
+                    <i class="ti ti-chevron-right"></i>
+                  </button>` : ''}
+                <button type="button" class="me-mini-row" id="hostShareRow">
+                  <span class="host-action-icon blue"><i class="ti ti-share"></i></span>
+                  <div>
+                    <strong>Пригласить</strong>
+                    <span>Ссылка на событие в Yaqin</span>
+                  </div>
+                  <i class="ti ti-chevron-right"></i>
+                </button>
+                <button type="button" class="me-mini-row" data-host-tab="guests">
+                  <span class="host-action-icon green"><i class="ti ti-users"></i></span>
+                  <div>
+                    <strong>Гости</strong>
+                    <span>${sold} с билетом · ${interested} интерес</span>
+                  </div>
+                  <i class="ti ti-chevron-right"></i>
+                </button>
+              </div>
+            </section>
+          ` : ''}
+
+          ${tab === 'guests' ? `
+            <section class="me-panel event-detail-panel">
+              <div class="me-section-head">
+                <div><h3>С билетом</h3></div>
+                <span class="host-count">${guestTickets.length}</span>
+              </div>
+              ${guestTickets.length ? `
+                <div class="me-mini-list">
+                  ${guestTickets.map(ticket => `
+                    <button type="button" class="me-mini-row" data-action="ticket" data-id="${esc(ticket.id)}">
+                      <img src="${esc(ticket.photo || event.photo)}" alt="">
+                      <div>
+                        <strong>${esc(ticket.code || 'Билет')}</strong>
+                        <span>${ticket.mode === 'paid' ? 'Онлайн' : ticket.mode === 'door' ? 'На входе' : 'Бесплатно'} · ${esc(ticket.when || event.when || '')}</span>
+                      </div>
+                      <i class="ti ti-chevron-right"></i>
+                    </button>`).join('')}
+                </div>` : `
+                <p class="host-empty">Пока нет оформленных билетов</p>`}
+            </section>
+
+            <section class="me-panel event-detail-panel">
+              <div class="me-section-head">
+                <div><h3>Интерес</h3></div>
+                <span class="host-count">${going.length}</span>
+              </div>
+              ${going.length ? `
+                <div class="me-mini-list">
+                  ${going.map(person => `
+                    <${person.id === 'me' ? 'div' : 'button type="button"'} class="me-mini-row" ${person.id === 'me' ? '' : `data-action="person" data-id="${esc(String(person.id))}"`}>
+                      <img src="${esc(person.photo)}" alt="">
+                      <div>
+                        <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}${person.id === 'me' ? ' · вы' : ''}</strong>
+                        <span>${person.message ? esc(person.message) : 'Отметила интерес'}</span>
+                      </div>
+                      ${person.id === 'me' ? '' : '<i class="ti ti-chevron-right"></i>'}
+                    </${person.id === 'me' ? 'div' : 'button'}>`).join('')}
+                </div>` : `
+                <p class="host-empty">Никто ещё не нажал «Хочу пойти»</p>`}
+            </section>
+          ` : ''}
+
+          ${tab === 'stats' ? `
+            <section class="me-panel event-detail-panel">
+              <div class="me-section-head"><div><h3>Сводка</h3></div></div>
+              <div class="host-stats-grid">
+                <div class="host-stat">
+                  <strong>${interested}</strong>
+                  <span>Хотят пойти</span>
+                </div>
+                <div class="host-stat">
+                  <strong>${sold}</strong>
+                  <span>Билетов</span>
+                </div>
+                <div class="host-stat">
+                  <strong>${capacity ? `${fill}%` : '—'}</strong>
+                  <span>Заполнение</span>
+                </div>
+                <div class="host-stat">
+                  <strong>${capacity || '—'}</strong>
+                  <span>Вместимость</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="me-panel event-detail-panel">
+              <div class="me-section-head"><div><h3>Деньги</h3></div></div>
+              <div class="me-mini-list">
+                <div class="me-mini-row static">
+                  <span class="host-action-icon yellow"><i class="ti ti-cash"></i></span>
+                  <div>
+                    <strong>${isDoorMode(event) ? money(doorExpected) : money(revenue)}</strong>
+                    <span>${isDoorMode(event) ? 'Ожидаемо на входе' : isFreeMode(event) ? 'Бесплатное · выручки нет' : 'Оплачено в Mini App (демо)'}</span>
+                  </div>
+                </div>
+                ${!isFreeMode(event) && !isDoorMode(event) ? `
+                  <div class="me-mini-row static">
+                    <span class="host-action-icon"><i class="ti ti-receipt"></i></span>
+                    <div>
+                      <strong>${money(event.fee || Math.round(Number(event.price || 0) * 0.1))} / билет</strong>
+                      <span>Сервисный сбор гостя</span>
+                    </div>
+                  </div>` : ''}
+              </div>
+              <p class="host-empty soft">Статистика локальная · живой API подключим отдельно</p>
+            </section>
+          ` : ''}
+        </div>
+      </article>`;
+
+    if (tab === 'overview') {
+      bindPeopleGoingBlock(view, going, { title: 'Хотят пойти' });
+    }
+
+    view.querySelectorAll('[data-host-tab]').forEach(button => {
+      button.addEventListener('click', () => {
+        tab = button.dataset.hostTab;
+        render();
+      });
+    });
+    view.querySelector('#hostShare')?.addEventListener('click', () => shareEvent(event));
+    view.querySelector('#hostShareRow')?.addEventListener('click', () => shareEvent(event));
+  };
+
+  render();
+}
+
+/** Гостевой экран события. */
+function renderGuestEventDetail(event) {
   const owned = ticketForEvent(event.id);
-  const sourceLabel = event.source === 'yaqin'
-    ? (event.hostId === 'me' || event.host === (getState().profile?.name) ? 'Ваше событие' : 'Yaqin')
-    : 'Афиша';
+  const sourceLabel = event.source === 'yaqin' ? 'Yaqin' : 'Афиша';
 
   const render = () => {
     closePeopleGoingSheet();

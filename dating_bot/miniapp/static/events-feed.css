@@ -297,6 +297,98 @@
   text-align: center;
 }
 
+/* Host event dashboard */
+.host-event-page {
+  padding-bottom: 40px;
+}
+.host-event-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 var(--person-gutter, 20px) 12px;
+  padding: 0 0 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.host-event-tabs::-webkit-scrollbar { display: none; }
+.host-event-tabs button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--yaqin-radius-pill);
+  padding: 10px 16px;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.host-event-tabs button.on {
+  background: var(--yaqin-ink);
+  color: var(--yaqin-ink-inverse);
+}
+.host-event-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+.host-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--yaqin-text-tertiary);
+}
+.host-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--yaqin-text-tertiary);
+  line-height: 1.4;
+}
+.host-empty.soft {
+  margin-top: 12px;
+}
+.host-action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex: 0 0 48px;
+}
+.host-action-icon.blue { color: var(--yaqin-link); }
+.host-action-icon.green { color: var(--yaqin-green, #34c759); }
+.host-action-icon.yellow { color: var(--yaqin-yellow-ink); background: var(--yaqin-yellow); }
+.host-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.host-stat {
+  padding: 14px;
+  border-radius: var(--yaqin-radius-md);
+  background: var(--yaqin-bg);
+  display: grid;
+  gap: 4px;
+}
+.host-stat strong {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.host-stat span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--yaqin-text-tertiary);
+}
+.host-event-page .me-mini-row.static {
+  pointer-events: none;
+}
+.host-event-page .me-mini-row .host-action-icon + div {
+  min-width: 0;
+}
+
 .taneesh-detail-desc {
   margin: 0 0 12px;
   font-size: 15px;
