@@ -132,17 +132,6 @@ body[data-route='create-event'] .view {
   color: var(--yaqin-ink-inverse);
 }
 
-.create-group-page .settings-label,
-.create-event-page .settings-label {
-  margin: 8px var(--yaqin-gutter);
-}
-.create-event-page .settings-label {
-  margin: 16px var(--yaqin-gutter) 8px;
-}
-.create-group-page .create-chips {
-  margin: 0 var(--yaqin-gutter) 8px;
-  justify-content: stretch;
-}
 .create-group-page .create-chips button {
   flex: 1;
   justify-content: center;
@@ -159,10 +148,6 @@ body[data-route='create-event'] .view {
   font-size: 13px;
   color: var(--yaqin-text-tertiary);
   font-weight: 400;
-}
-.create-event-page .create-chips {
-  margin: 0 var(--yaqin-gutter) 12px;
-  justify-content: stretch;
 }
 .create-event-page .create-chips button {
   flex: 1;
@@ -210,11 +195,36 @@ body[data-route='create-event'] .view {
 .create-field-rows {
   display: grid;
   gap: 0;
-  margin: 12px 0 8px;
+  margin: 12px var(--yaqin-gutter) 8px;
+  padding: 4px 8px;
+  border-radius: 28px;
+  background: var(--yaqin-surface-raised);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  box-sizing: border-box;
 }
 .create-field-rows .settings-row {
   width: 100%;
   text-align: left;
+}
+.create-entry-panel {
+  margin: 12px var(--yaqin-gutter);
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--yaqin-surface-raised);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  box-sizing: border-box;
+}
+.create-entry-panel .settings-label {
+  margin: 0 0 10px;
+}
+.create-entry-panel .create-chips {
+  margin: 0 0 12px;
+  justify-content: stretch;
+}
+.create-entry-panel .create-price-field,
+.create-entry-panel .create-legal {
+  margin-left: 0;
+  margin-right: 0;
 }
 .create-sheet-textarea {
   width: 100%;

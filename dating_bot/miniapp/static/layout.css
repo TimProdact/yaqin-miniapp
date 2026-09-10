@@ -109,22 +109,17 @@ body.full-screen .view {
 .sheet-head {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   padding: 0 var(--yaqin-gutter);
 }
 .sheet-head h1 {
   flex: 1;
+  min-width: 0;
   margin: 0;
-  text-align: center;
+  text-align: left;
   font-size: var(--yaqin-fs-modal);
-  font-weight: 600;
-}
-
-.me-tabs {
-  position: sticky;
-  top: var(--yaqin-header-h);
-  z-index: 14;
-  background: var(--yaqin-surface);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .gchat-top {

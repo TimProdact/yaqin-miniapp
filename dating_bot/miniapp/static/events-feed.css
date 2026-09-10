@@ -190,9 +190,9 @@
 .taneesh-event-detail .sheet-head h1 {
   flex: 1;
   margin: 0;
-  text-align: center;
+  text-align: left;
   font-size: var(--yaqin-fs-modal);
-  font-weight: 600;
+  font-weight: 700;
 }
 .taneesh-detail-cover {
   width: 100%;
@@ -246,6 +246,29 @@
 .event-detail-panel {
   margin: 0 var(--person-gutter, 20px) 12px;
   width: auto;
+}
+.event-detail-view .people-going-wrap,
+.host-event-page .people-going-wrap {
+  margin-left: var(--person-gutter, 20px);
+  margin-right: var(--person-gutter, 20px);
+}
+.sticky-page-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  padding: 12px var(--person-gutter, 20px) calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, transparent, var(--yaqin-bg) 28%);
+}
+.event-detail-view {
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+}
+.sticky-page-cta .taneesh-detail-note {
+  margin: 0;
+  text-align: center;
 }
 .event-detail-panel .me-section-head {
   margin-bottom: 12px;

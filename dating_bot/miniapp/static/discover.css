@@ -403,18 +403,21 @@ body[data-route='filters'] .view {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 4px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+  padding: 4px var(--yaqin-gutter) calc(100px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
 .filters-head {
   height: var(--yaqin-header-h);
   min-height: var(--yaqin-header-h);
-  display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin: 0 calc(var(--yaqin-gutter) * -1) 8px;
+  padding: 0 var(--yaqin-gutter);
+  box-sizing: border-box;
 }
 .filters-head button {
+  flex: 0 0 40px;
   width: 40px;
   height: 40px;
   border: 0;
@@ -425,23 +428,31 @@ body[data-route='filters'] .view {
   place-items: center;
 }
 .filters-head h1 {
+  flex: 1;
+  min-width: 0;
   margin: 0;
-  text-align: center;
+  text-align: left;
   font-size: var(--yaqin-fs-modal);
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .filter-block {
-  margin-top: 28px;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--yaqin-surface-raised);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  box-sizing: border-box;
 }
 .filter-block:first-of-type {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 .filter-block h2 {
-  margin: 0;
-  font-size: 20px;
+  margin: 0 0 12px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 .filter-value {
   margin: 6px 0 14px;
@@ -549,13 +560,19 @@ body[data-route='filters'] .view {
 }
 
 .filters-save {
-  margin-top: 36px;
-  align-self: center;
-  min-width: 160px;
+  position: fixed;
+  left: var(--yaqin-gutter);
+  right: var(--yaqin-gutter);
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  margin: 0;
+  align-self: auto;
+  min-width: 0;
+  width: auto;
   border: 0;
   border-radius: 999px;
-  background: var(--yaqin-text);
-  color: var(--yaqin-ink-inverse);
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
   font-size: var(--yaqin-fs-body);
   font-weight: 700;
   padding: 16px 20px;

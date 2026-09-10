@@ -142,18 +142,26 @@ body.sheet-view .view {
 }
 
 .person-section {
-  margin: 26px 0 12px;
-  padding: 0 var(--person-gutter, 20px);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--yaqin-text);
+  display: none;
 }
 
 .person-card {
-  margin: 0 var(--person-gutter, 20px);
-  padding: 22px 18px;
-  border-radius: 20px;
-  background: var(--yaqin-bg);
+  margin: 0 var(--person-gutter, 20px) 12px;
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--yaqin-surface-raised);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  box-sizing: border-box;
+}
+.person-card-title,
+.person-card > .person-section {
+  display: block;
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--yaqin-text);
 }
 
 .chip-group + .chip-group {
@@ -178,8 +186,8 @@ body.sheet-view .view {
   height: 38px;
   padding: 0 16px;
   border-radius: 19px;
-  background: var(--yaqin-text);
-  color: var(--yaqin-ink-inverse);
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
   font-size: 16px;
   font-weight: 400;
   white-space: nowrap;
@@ -188,7 +196,7 @@ body.sheet-view .view {
 .group-rail {
   display: flex;
   gap: 10px;
-  padding: 0 var(--person-gutter, 20px);
+  padding: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -200,7 +208,7 @@ body.sheet-view .view {
   width: 148px;
   padding: 10px;
   border: 0;
-  border-radius: 20px;
+  border-radius: 16px;
   background: var(--yaqin-bg);
   text-align: center;
   color: inherit;

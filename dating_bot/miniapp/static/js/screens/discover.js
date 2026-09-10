@@ -185,11 +185,15 @@ export function personScreen(id) {
         <p class="person-bio">${esc(person.bio)}</p>
       </section>
 
-      ${about ? `<h3 class="person-section">Обо мне</h3><section class="person-card">${about}</section>` : ''}
+      ${about ? `
+        <section class="person-card">
+          <h3 class="person-card-title">Обо мне</h3>
+          ${about}
+        </section>` : ''}
 
       ${basic.length ? `
-        <h3 class="person-section">Основное</h3>
         <section class="person-card info-list">
+          <h3 class="person-card-title">Основное</h3>
           ${basic.map(item => `
             <div class="info-row">
               <h4>${esc(item.label)}</h4>

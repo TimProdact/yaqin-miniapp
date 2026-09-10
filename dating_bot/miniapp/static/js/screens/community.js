@@ -302,20 +302,22 @@ export function createGroupScreen() {
 
         <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}" maxlength="60" autocomplete="off">
 
-        <h3 class="settings-label">Тип группы</h3>
-        <div class="create-chips" id="groupPrivacyChips">
-          <button type="button" class="${isPublic ? 'on' : ''}" data-privacy="open">
-            <i class="ti ti-world"></i> Открытая
-          </button>
-          <button type="button" class="${!isPublic ? 'on' : ''}" data-privacy="closed">
-            <i class="ti ti-lock"></i> Закрытая
-          </button>
+        <div class="create-entry-panel">
+          <h3 class="settings-label">Тип группы</h3>
+          <div class="create-chips" id="groupPrivacyChips">
+            <button type="button" class="${isPublic ? 'on' : ''}" data-privacy="open">
+              <i class="ti ti-world"></i> Открытая
+            </button>
+            <button type="button" class="${!isPublic ? 'on' : ''}" data-privacy="closed">
+              <i class="ti ti-lock"></i> Закрытая
+            </button>
+          </div>
+          <p class="create-legal">
+            ${isPublic
+              ? 'Любая может вступить сразу и писать в чат.'
+              : 'Вход только по заявке. Вы принимаете участниц вручную.'}
+          </p>
         </div>
-        <p class="create-legal">
-          ${isPublic
-            ? 'Любая может вступить сразу и писать в чат.'
-            : 'Вход только по заявке. Вы принимаете участниц вручную.'}
-        </p>
 
         <div class="create-sticky-cta">
           <button type="button" class="create-submit ${canCreate ? 'on' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>Создать</button>
@@ -543,6 +545,8 @@ export function groupChatScreen(id) {
   }
 
   let draft = '';
+  let attachPhoto = null;
+  let menuOpen = false;
   const messages = [...(group.messages || [])];
 
   const persist = () => {
@@ -554,6 +558,7 @@ export function groupChatScreen(id) {
   };
 
   const render = () => {
+    const hasDraft = Boolean(draft.trim() || attachPhoto);
     view.innerHTML = `
       <div class="chat-page group-chat-lite">
         <header class="chat-top">
@@ -567,46 +572,111 @@ export function groupChatScreen(id) {
               <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
             </span>
           </button>
-          <span class="head-spacer" aria-hidden="true"></span>
+          <button type="button" id="groupChatMenu" aria-label="Ещё"><i class="ti ti-dots"></i></button>
         </header>
+
+        ${menuOpen ? `
+          <div class="chat-menu-pop">
+            <button type="button" data-action="group" data-id="${esc(group.id)}">О группе</button>
+            <button type="button" id="groupChatShare">Пригласить</button>
+          </div>` : ''}
 
         <div class="chat-thread">
           ${messages.map(message => `
             <div class="chat-bubble ${message.from === 'me' ? 'mine' : ''}">
               <div class="bubble-body">
                 <div class="bubble-head">
-                  <b>${esc(message.name || 'Участница')}</b>
+                  <b>${esc(message.from === 'me' ? 'Вы' : (message.name || 'Участница'))}</b>
                   <time>${esc(message.time || '')}</time>
                 </div>
-                <p>${esc(message.text || '')}</p>
+                ${message.text ? `<p>${esc(message.text)}</p>` : ''}
+                ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
               </div>
             </div>`).join('')}
         </div>
 
-        <form class="chat-compose" id="groupSend">
-          <input id="groupDraft" placeholder="Сообщение..." value="${esc(draft)}" autocomplete="off">
-          <button type="submit" aria-label="Отправить"><i class="ti ti-send"></i></button>
-        </form>
+        ${attachPhoto ? `
+          <div class="draft-attach">
+            <img src="${esc(attachPhoto)}" alt="">
+            <button type="button" id="clearGroupAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
+          </div>` : ''}
+        <div class="message-bar">
+          <button class="msg-add" id="groupAttachPhoto" type="button" aria-label="Фото"><i class="ti ti-photo"></i></button>
+          <input type="file" id="groupAttachFile" accept="image/jpeg,image/png,image/webp" hidden>
+          <label class="msg-field">
+            <input id="groupDraft" placeholder="Написать сообщение" value="${esc(draft)}" maxlength="500" autocomplete="off">
+          </label>
+          <button class="msg-send ${hasDraft ? 'on' : ''}" id="groupSendBtn" type="button" aria-label="Отправить" ${hasDraft ? '' : 'disabled'}>
+            <i class="ti ti-arrow-up"></i>
+          </button>
+        </div>
       </div>`;
 
     const input = view.querySelector('#groupDraft');
-    input.focus();
-    input.oninput = () => { draft = input.value; };
-    view.querySelector('#groupSend').onsubmit = event => {
-      event.preventDefault();
-      const text = draft.trim();
-      if (!text) return;
+    input?.addEventListener('input', () => {
+      draft = input.value;
+      const send = view.querySelector('#groupSendBtn');
+      const has = Boolean(draft.trim() || attachPhoto);
+      if (send) {
+        send.disabled = !has;
+        send.classList.toggle('on', has);
+      }
+    });
+    view.querySelector('#groupChatMenu')?.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      render();
+    });
+    view.querySelector('#groupChatShare')?.addEventListener('click', () => {
+      const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
+      try {
+        const tg = window.Telegram?.WebApp;
+        if (tg?.openTelegramLink) {
+          tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/yaqin_bot')}&text=${encodeURIComponent(text)}`);
+          return;
+        }
+      } catch (_) { /* ignore */ }
+      navigator.share?.({ text }).catch(() => {});
+    });
+    view.querySelector('#groupAttachPhoto')?.addEventListener('click', () => {
+      view.querySelector('#groupAttachFile')?.click();
+    });
+    view.querySelector('#groupAttachFile')?.addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file) return;
+      const okType = /^(image\/jpeg|image\/png|image\/webp)$/i.test(file.type)
+        || /\.(jpe?g|png|webp)$/i.test(file.name || '');
+      if (!okType) {
+        window.Telegram?.WebApp?.showAlert?.('Можно только фото: JPG, PNG или WebP')
+          || window.alert('Можно только фото: JPG, PNG или WebP');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        attachPhoto = String(reader.result || '');
+        render();
+      };
+      reader.readAsDataURL(file);
+    });
+    view.querySelector('#clearGroupAttach')?.addEventListener('click', () => {
+      attachPhoto = null;
+      render();
+    });
+    view.querySelector('#groupSendBtn')?.addEventListener('click', () => {
+      if (!draft.trim() && !attachPhoto) return;
       const profile = getState().profile || defaultProfile;
       messages.push({
         from: 'me',
         name: profile.name || 'Вы',
-        text,
+        text: draft.trim(),
+        image: attachPhoto || undefined,
         time: 'сейчас'
       });
       draft = '';
+      attachPhoto = null;
       persist();
       render();
-    };
+    });
   };
 
   render();
@@ -837,7 +907,7 @@ export function createEventScreen() {
         <div class="create-cover create-event-cover ${cover ? 'has-photo' : ''}">
           ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ОБЛОЖКА</span>`}
           <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
-          <input type="file" id="coverFile" accept="image/*" hidden>
+          <input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp" hidden>
         </div>
 
         <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}" maxlength="80" autocomplete="off">
@@ -875,6 +945,7 @@ export function createEventScreen() {
           </button>
         </div>
 
+        <div class="create-entry-panel">
         <h3 class="settings-label">Вход</h3>
         <div class="create-chips" id="ticketModeChips">
           <button type="button" class="${ticketMode === 'free' ? 'on' : ''}" data-mode="free">
@@ -927,6 +998,7 @@ export function createEventScreen() {
               ? `Гость оплачивает ${paidSum ? paidSum.toLocaleString('ru-RU') + ' сум' : 'билет'} в Mini App и получает QR. Интерес — отдельно.`
               : `Гость бронирует место бесплатно, на входе платит ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'указанную сумму'} и показывает QR.`}
         </p>
+        </div>
 
         <div class="create-sticky-cta">
           <button type="button" class="create-submit ${ready ? 'on' : ''}" id="createEventBtn" ${ready ? '' : 'disabled'}>Создать</button>
@@ -952,9 +1024,17 @@ export function createEventScreen() {
     };
     view.querySelector('#coverFile')?.addEventListener('change', event => {
       const file = event.target.files?.[0];
+      event.target.value = '';
       if (!file) {
         cover = nextCover(coverIndex++);
         render();
+        return;
+      }
+      const okType = /^(image\/jpeg|image\/png|image\/webp)$/i.test(file.type)
+        || /\.(jpe?g|png|webp)$/i.test(file.name || '');
+      if (!okType) {
+        window.Telegram?.WebApp?.showAlert?.('Можно только фото: JPG, PNG или WebP')
+          || window.alert('Можно только фото: JPG, PNG или WebP');
         return;
       }
       const reader = new FileReader();

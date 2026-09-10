@@ -1,16 +1,16 @@
 /* Универсальный блок «Кто идёт» — превью + sheet */
 
 .people-going-wrap {
-  margin: 8px var(--person-gutter, 20px) 12px;
+  margin: 0 0 12px;
 }
 
 .people-going-block {
   display: block;
   width: 100%;
   margin: 0;
-  padding: 14px 14px 12px;
+  padding: 14px 16px 12px;
   border: 0;
-  border-radius: 20px;
+  border-radius: 28px;
   background: var(--yaqin-surface-raised);
   box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
   color: var(--yaqin-text);

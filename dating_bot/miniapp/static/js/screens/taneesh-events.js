@@ -587,24 +587,24 @@ function renderGuestEventDetail(event) {
               </div>
             </div>
           ` : ''}
-          ${!owned && hard ? `
-            <button type="button" class="event-ticket-link" data-action="checkout" data-id="${esc(event.id)}">
-              ${esc(hardPassLabel(event))}
-              <i class="ti ti-chevron-right"></i>
-            </button>
-          ` : ''}
         </section>
 
         ${peopleBlocksHtml(event)}
 
         ${owned ? `
-          <div class="person-actions event-detail-actions">
+          <div class="person-actions event-detail-actions sticky-page-cta">
             <button type="button" class="taneesh-buy-block" data-action="ticket" data-id="${esc(owned.id)}">
               Открыть QR
             </button>
             <p class="taneesh-detail-note">Билет уже оформлен — покажите QR на входе.</p>
           </div>
-        ` : ''}
+        ` : (!owned && hard ? `
+          <div class="sticky-page-cta">
+            <button type="button" class="taneesh-buy-block" data-action="checkout" data-id="${esc(event.id)}">
+              ${esc(hardPassLabel(event))}
+            </button>
+          </div>
+        ` : '')}
       </article>`;
 
     bindPeopleBlocks(view, event);

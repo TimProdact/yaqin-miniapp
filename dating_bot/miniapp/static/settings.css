@@ -13,10 +13,10 @@
 }
 
 .settings-label {
-  margin: 22px 4px 8px;
-  font-size: var(--yaqin-fs-micro);
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  margin: 20px 4px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--yaqin-text-tertiary);
 }
@@ -26,9 +26,10 @@
   flex-direction: column;
   width: 100%;
   background: var(--yaqin-surface-raised);
-  border-radius: var(--yaqin-radius-lg);
+  border-radius: 28px;
   overflow: hidden;
-  border: 1px solid var(--yaqin-sep-soft);
+  border: 0;
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
 }
 
 .settings-row {
