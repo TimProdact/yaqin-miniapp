@@ -60,16 +60,17 @@ export function showDiscoverLoading() {
         </div>
         <div class="skeleton-spinner"></div>
         <div class="skeleton-bottom">
-          <span class="sk sk-line"></span>
-          <span class="sk sk-line short"></span>
-          <div class="skeleton-chips">
-            <span class="sk sk-chip"></span>
-            <span class="sk sk-chip wide"></span>
-            <span class="sk sk-chip"></span>
-            <span class="sk sk-chip mid"></span>
-            <span class="sk sk-chip"></span>
-            <span class="sk sk-chip wide"></span>
+          <div class="skeleton-bottom-copy">
+            <span class="sk sk-line"></span>
+            <span class="sk sk-line short"></span>
+            <div class="skeleton-chips">
+              <span class="sk sk-chip"></span>
+              <span class="sk sk-chip wide"></span>
+              <span class="sk sk-chip"></span>
+              <span class="sk sk-chip mid"></span>
+            </div>
           </div>
+          <span class="skeleton-wave" aria-hidden="true"></span>
         </div>
       </div>
     </div>`;

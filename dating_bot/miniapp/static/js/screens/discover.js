@@ -52,14 +52,38 @@ function cardMarkup(person) {
         <p>${person.age} • ${esc(person.city)}</p>
         <span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>
       </div>
-      <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
-        <i class="ti ti-hand-stop"></i>
-      </button>
       <div class="card-bottom">
-        <p class="card-bio">${esc(person.bio)}</p>
-        <div class="chips">${interestsOf(person).slice(0, 6).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
+        <div class="card-bottom-copy">
+          <p class="card-bio">${esc(person.bio)}</p>
+          <div class="chips">${interestsOf(person).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
+        </div>
+        <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
+          <i class="ti ti-hand-stop"></i>
+        </button>
       </div>
     </div>`;
+}
+
+function fitCardChips(root = view) {
+  root.querySelectorAll('.profile-card .chips').forEach(row => {
+    const chips = [...row.querySelectorAll('.chip')];
+    chips.forEach(chip => {
+      chip.hidden = false;
+      chip.style.display = '';
+    });
+    const max = row.clientWidth;
+    if (!max) return;
+    let used = 0;
+    const gap = 9;
+    chips.forEach(chip => {
+      const need = chip.offsetWidth + (used > 0 ? gap : 0);
+      if (used + need > max) {
+        chip.style.display = 'none';
+        return;
+      }
+      used += need;
+    });
+  });
 }
 
 export async function peopleScreen(_id, token) {
@@ -108,6 +132,7 @@ export async function peopleScreen(_id, token) {
     </div>`;
 
   enableSwipe(decide, { onTap: id => navigate('person', Number(id)) });
+  requestAnimationFrame(() => fitCardChips());
 }
 
 function chipGroup(label, items) {
