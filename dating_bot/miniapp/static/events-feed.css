@@ -272,11 +272,6 @@
   font-weight: 700;
   color: var(--yaqin-yellow);
 }
-.event-want-hint {
-  margin: 12px 0 0;
-  font-size: 13px;
-  color: var(--yaqin-text-tertiary);
-}
 .event-want-btn.on {
   background: var(--yaqin-ink);
   color: var(--yaqin-ink-inverse);
@@ -307,12 +302,6 @@
 }
 .event-detail-view {
   padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-}
-.sticky-page-cta .taneesh-detail-note {
-  margin: 0;
-  text-align: center;
-  color: var(--yaqin-text-tertiary);
-  font-size: 13px;
 }
 .sticky-page-cta .taneesh-buy-block {
   width: 100%;
@@ -379,10 +368,6 @@
 .event-detail-actions {
   gap: 10px;
 }
-.event-detail-actions .taneesh-detail-note {
-  margin: 4px 0 0;
-  text-align: center;
-}
 
 /* Host event dashboard */
 .host-event-page {
@@ -429,9 +414,6 @@
   font-size: 14px;
   color: var(--yaqin-text-tertiary);
   line-height: 1.4;
-}
-.host-empty.soft {
-  margin-top: 12px;
 }
 .host-action-icon {
   width: 48px;
@@ -608,12 +590,6 @@
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-}
-.taneesh-detail-note {
-  margin: 0 0 16px;
-  font-size: var(--yaqin-fs-secondary);
-  line-height: 1.4;
-  color: var(--yaqin-text-secondary);
 }
 .taneesh-buy-block {
   width: 100%;

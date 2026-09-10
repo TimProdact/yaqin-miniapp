@@ -239,9 +239,6 @@ export function groupsScreen() {
                 <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
               </div>`}
 
-        ${!term && filter === 'all' && groups.length && !mineCount ? `
-          <p class="groups-tab-hint">Открытые — вход сразу. Закрытые — по заявке.</p>
-        ` : ''}
       </div>`;
 
     const input = view.querySelector('#groupSearch');
@@ -312,11 +309,6 @@ export function createGroupScreen() {
               <i class="ti ti-lock"></i> Закрытая
             </button>
           </div>
-          <p class="create-legal">
-            ${isPublic
-              ? 'Любая может вступить сразу и писать в чат.'
-              : 'Вход только по заявке. Вы принимаете участниц вручную.'}
-          </p>
         </div>
 
         <div class="create-sticky-cta">
@@ -507,7 +499,7 @@ export function groupHubScreen(id) {
     if (!result) return;
     showCelebrate({
       title: 'Заявка отправлена',
-      subtitle: 'Организатор рассмотрит её. Пока статус — ожидает.',
+      subtitle: 'Организатор рассмотрит заявку.',
       primaryLabel: 'К группам',
       onPrimary: () => navigate('groups')
     });
@@ -992,11 +984,11 @@ export function createEventScreen() {
         <p class="create-legal">
           ${ticketMode === 'free'
             ? (freeEntryMode === 'register'
-              ? 'Гость записывается бесплатно и получает QR. «Хочу пойти» — отдельно, без QR.'
-              : 'Свободный вход: без записи и QR. Гость может только отметить «Хочу пойти».')
+              ? 'Гость записывается и получает QR.'
+              : 'Свободный вход без записи и QR.')
             : ticketMode === 'paid'
-              ? `Гость оплачивает ${paidSum ? paidSum.toLocaleString('ru-RU') + ' сум' : 'билет'} в Mini App и получает QR. Интерес — отдельно.`
-              : `Гость бронирует место бесплатно, на входе платит ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'указанную сумму'} и показывает QR.`}
+              ? `Гость оплачивает ${paidSum ? paidSum.toLocaleString('ru-RU') + ' сум' : 'билет'} в Mini App.`
+              : `Бронь в Mini App, на входе — ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'оплата'}.`}
         </p>
         </div>
 
@@ -1252,11 +1244,11 @@ export function createEventScreen() {
         title: 'Событие создано',
         subtitle: ticketMode === 'free'
           ? (freeEntryMode === 'register'
-            ? 'Гости запишутся и получат QR. Интерес — отдельно.'
-            : 'Свободный вход: гости отмечают интерес без QR.')
+            ? 'Гости записываются и получают QR.'
+            : 'Свободный вход без QR.')
           : ticketMode === 'paid'
-            ? 'Гости оплатят онлайн и получат QR. Интерес — отдельно.'
-            : 'Гости бронируют место, платят на входе и показывают QR.',
+            ? 'Гости оплатят онлайн и получат QR.'
+            : 'Гости бронируют место и платят на входе.',
         primaryLabel: 'Открыть QR',
         secondaryLabel: 'К событию',
         shareText: `Иду на «${event.title}» — присоединяйся в Yaqin`,

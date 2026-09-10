@@ -1151,7 +1151,7 @@ export function notificationsScreen() {
       <h3 class="settings-label">События</h3>
       <section class="settings-block">
         <label class="settings-row toggle stacked">
-          <span>Интересные события<br><small>«Хочу пойти» и ответы в «Кто идёт»</small></span>
+          <span>Интересные события<br><small>Напоминания по «Хочу пойти»</small></span>
           <input type="checkbox" id="notifEvents" ${prefs.events !== false ? 'checked' : ''}>
         </label>
         <label class="settings-row toggle stacked">

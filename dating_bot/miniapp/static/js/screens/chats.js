@@ -132,8 +132,8 @@ export function chatsScreen() {
             <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
             <h2>${segment === 'events' ? 'Пока нет событий' : 'Пока нет переписок'}</h2>
             <p>${segment === 'events'
-              ? 'Отметьте «Хочу пойти» на афише — события появятся здесь.'
-              : 'Передайте привет в «Люди». Чат появится при взаимном привете.'}</p>
+              ? 'События появятся после интереса на афише.'
+              : 'Чат откроется при взаимном привете.'}</p>
             <button class="empty-primary" type="button" data-action="${segment === 'events' ? 'events' : 'people'}">${segment === 'events' ? 'К событиям' : 'Смотреть анкеты'}</button>
           </div>`}
 

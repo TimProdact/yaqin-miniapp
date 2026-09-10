@@ -1538,13 +1538,6 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.groups-tab-hint {
-  margin: 16px 4px 0;
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--yaqin-text-tertiary);
-  text-align: center;
-}
 .groups-tab-empty {
   text-align: center;
   padding: 80px 20px 40px;

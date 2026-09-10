@@ -29,7 +29,7 @@ const DEMO_ATTENDING = {
 /** Демо: нажали «Хочу пойти», но ещё без билета/записи. */
 const DEMO_WANT = {
   0: [
-    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: 'Пока только интерес' }
+    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: '' }
   ],
   1: [
     { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: 'Кто за попкорн после?' },
@@ -171,7 +171,7 @@ function wantingForEvent(eventId) {
     || (getState().eventGoing || {})[String(eventId)];
   const flagged = isInterested(eventId);
   if (!mine && !flagged) return demo;
-  return mergeMeFirst(demo, mine || meGuest('Пока только интерес'));
+  return mergeMeFirst(demo, mine || meGuest());
 }
 
 /** @deprecated используйте attendingForEvent / wantingForEvent */
@@ -225,9 +225,7 @@ function peopleBlocksHtml(event) {
       ${peopleGoingBlockHtml(wanting, {
         key: 'wanting',
         title: 'Хотят пойти',
-        empty: hard
-          ? 'Пока никто не отметил интерес без билета'
-          : 'Будьте первой — нажмите «Хочу пойти»'
+        empty: 'Пока никого'
       })}
     </div>`;
 }
@@ -612,7 +610,7 @@ function renderHostEventDashboard(event) {
                       ${person.id === 'me' ? '' : '<i class="ti ti-chevron-right"></i>'}
                     </${person.id === 'me' ? 'div' : 'button'}>`).join('')}
                 </div>` : `
-                <p class="host-empty">Никто ещё не нажал «Хочу пойти»</p>`}
+                <p class="host-empty">Пока никого</p>`}
             </section>
           ` : ''}
 
@@ -658,7 +656,6 @@ function renderHostEventDashboard(event) {
                     </div>
                   </div>` : ''}
               </div>
-              <p class="host-empty soft">Статистика локальная · живой API подключим отдельно</p>
             </section>
           ` : ''}
         </div>
@@ -712,11 +709,6 @@ function renderGuestEventDetail(event) {
             </button>
           </div>
           ${event.description ? `<p class="person-bio">${esc(event.description)}</p>` : ''}
-          <p class="event-want-hint">${owned
-            ? 'Участие оформлено — QR внизу'
-            : want
-              ? 'Статус: хотите пойти · это не билет'
-              : 'Это не билет — только интерес'}</p>
         </section>
 
         <section class="me-panel event-detail-panel">
@@ -747,7 +739,6 @@ function renderGuestEventDetail(event) {
             <button type="button" class="taneesh-buy-block" data-action="ticket" data-id="${esc(owned.id)}">
               Открыть QR
             </button>
-            <p class="taneesh-detail-note">Билет уже оформлен — покажите QR на входе.</p>
           </div>
         ` : `
           <div class="sticky-page-cta">
@@ -758,9 +749,6 @@ function renderGuestEventDetail(event) {
             <button type="button" class="taneesh-buy-block ${hard ? 'ghost' : ''}" id="stickyWant">
               ${want ? 'Отменить интерес' : 'Хочу пойти'}
             </button>
-            <p class="taneesh-detail-note">${hard
-              ? '«Хочу пойти» — не билет. Участие — кнопкой выше.'
-              : 'Свободный вход: достаточно отметить интерес'}</p>
           </div>
         `}
       </article>`;
@@ -773,13 +761,10 @@ function renderGuestEventDetail(event) {
         clearInterest(event.id);
         render();
       } else {
-        saveGoing(event.id, meGuest('Пока только интерес'));
+        saveGoing(event.id, meGuest());
         render();
         showCelebrate({
           title: 'Отметили интерес',
-          subtitle: hard
-            ? `«${event.title}» — это не билет. Чтобы попасть в «Кто идёт», ${isDoorMode(event) ? 'оформите бронь' : isFreeMode(event) ? 'запишитесь' : 'купите билет'}.`
-            : `«${event.title}» — свободный вход, достаточно интереса`,
           primaryLabel: 'Понятно',
           secondaryLabel: 'Пригласить подруг',
           shareText: `Хочу пойти на «${event.title}» — присоединяйся в Yaqin`,
@@ -850,13 +835,10 @@ export function ticketCheckoutScreen(eventId) {
       </section>
 
       <p class="ticket-checkout-note">${esc(modeNote)}</p>
-      ${!isLive
-        ? '<p class="ticket-checkout-note muted">Демо: деньги не списываются, QR сохраняется локально.</p>'
-        : '<p class="ticket-checkout-note muted">После подтверждения сразу появится QR-код билета.</p>'}
 
       <button type="button" class="taneesh-buy-block" id="payTicket">
         ${total
-          ? `${isLive ? 'Оплатить' : 'Демо: получить QR'} ${money(total)}`
+          ? `${isLive ? 'Оплатить' : 'Получить QR'} ${money(total)}`
           : door
             ? 'Забронировать и получить QR'
             : 'Записаться и получить QR'}
