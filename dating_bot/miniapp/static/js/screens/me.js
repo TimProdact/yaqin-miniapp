@@ -83,6 +83,9 @@ export async function meScreen(_id, token) {
     return;
   }
 
+  const photos = (profile.photos?.length ? profile.photos : [profile.photo]).filter(Boolean);
+  const heroPhoto = photos[0] || profile.photo;
+
   view.innerHTML = `
     <div class="me-page">
       <div class="me-top">
@@ -98,21 +101,23 @@ export async function meScreen(_id, token) {
       <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-open-taneesh="activate">
         <div>
           <b>Черновик в Taneesh</b>
-          <span>Билеты можно купить здесь. Активируйте профиль в приложении, чтобы анкета была видима.</span>
+          <span>Активируйте профиль в приложении, чтобы анкета была видима.</span>
         </div>
         <i class="ti ti-chevron-right"></i>
       </button>
-      <div class="me-hero">
-        <img src="${esc(profile.photo)}">
-        <button class="edit-profile" data-action="edit">Редактировать</button>
-        <button class="edit-photos-btn" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
-        <div class="me-dots"><span class="on"></span><span></span></div>
+      <div class="me-profile-card">
+        <div class="me-hero">
+          <img src="${esc(heroPhoto)}" alt="">
+          <button class="edit-profile" data-action="edit">Редактировать</button>
+          <button class="edit-photos-btn" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
+          ${photos.length > 1 ? `<div class="me-dots">${photos.map((_, i) => `<span class="${i === 0 ? 'on' : ''}"></span>`).join('')}</div>` : ''}
+        </div>
+        <section class="me-info">
+          <h2>${esc(profile.name)}</h2>
+          <p>${profile.age} · ${esc(profile.city)}</p>
+          ${profile.bio ? `<p class="me-bio">${esc(profile.bio)}</p>` : ''}
+        </section>
       </div>
-      <section class="me-info">
-        <h2>${esc(profile.name)}</h2>
-        <p>${profile.age} • ${esc(profile.city)}</p>
-        <p class="me-bio">${esc(profile.bio)}</p>
-      </section>
       <section class="me-section">${verificationRow(verification)}</section>
       ${interestsOf(profile).length || lookingOf(profile).length || mediaOf(profile).length ? `
       <section class="me-section">
