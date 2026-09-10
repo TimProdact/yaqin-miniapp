@@ -10,7 +10,8 @@ body.profile-open .view {
   height: auto !important;
   padding: 0 !important;
   overflow-y: auto;
-  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom) + 16px) !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 24px) !important;
 }
 
 .me-page {
@@ -210,7 +211,7 @@ body.profile-open .view {
 }
 
 .me-overview-page {
-  padding: 0 var(--yaqin-gutter) 32px;
+  padding: 0 var(--yaqin-gutter) 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;

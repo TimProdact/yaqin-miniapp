@@ -76,7 +76,8 @@ html, body {
 body:not(.full-screen) .view { padding-bottom: calc(var(--yaqin-nav-h) + 20px); }
 body.profile-open .view {
   height: auto !important;
-  padding-bottom: 0 !important;
+  /* место под таббар — иначе последний блок не доскролливается */
+  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 24px) !important;
 }
 body.full-screen .app-header { display: none; }
 body.full-screen .view {
