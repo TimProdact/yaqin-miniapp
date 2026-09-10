@@ -188,7 +188,7 @@ export const events = [
     photo: PHOTOS.city,
     ticketMode: 'door',
     price: 30000,
-    fee: 5000,
+    fee: 0,
     currency: 'UZS'
   }
 ];

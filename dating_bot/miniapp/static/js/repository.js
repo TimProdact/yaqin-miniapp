@@ -48,6 +48,10 @@ export async function loadPeople({ includeSkipped = false } = {}) {
     }
     const km = person.distanceKm ?? 10;
     if (km > (filters.distance || 50)) return false;
+    const age = Number(person.age);
+    const ageMin = Number(filters.ageMin) || 18;
+    const ageMax = Number(filters.ageMax) || 100;
+    if (Number.isFinite(age) && (age < ageMin || age > ageMax)) return false;
     const interests = filters.interests || [];
     if (interests.length) {
       const bag = [...interestsOf(person), ...lookingOf(person)].map(item => String(item).toLowerCase());

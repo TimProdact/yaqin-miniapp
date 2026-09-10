@@ -27,25 +27,18 @@ export function findUserGroup(id) {
     || null;
 }
 
-/** Открыть группу: публичные вступают сразу; закрытые — только просмотр, пока не приняты. */
-export function openGroup(id) {
-  const existing = getUserGroups().find(group => String(group.id) === String(id));
-  if (existing) return existing;
+/** Просмотр группы без вступления. */
+export function peekGroup(id) {
+  const mine = getUserGroups().find(group => String(group.id) === String(id));
+  if (mine) return mine;
   const catalog = demoGroups.find(group => String(group.id) === String(id));
   if (!catalog) return null;
-  if (catalog.isPublic === false) {
-    return { ...catalog, membership: 'none' };
-  }
-  const joined = {
-    ...catalog,
-    catalog: false,
-    membership: 'member',
-    joinedAt: new Date().toISOString(),
-    messages: [...(catalog.messages || [])]
-  };
-  const state = getState();
-  saveState({ ...state, userGroups: [joined, ...(state.userGroups || [])] });
-  return joined;
+  return { ...catalog, membership: 'none' };
+}
+
+/** @deprecated используйте peekGroup — раньше silent auto-join. */
+export function openGroup(id) {
+  return peekGroup(id);
 }
 
 export function isGroupPublic(group) {
@@ -58,30 +51,63 @@ export function isGroupMember(group) {
   return getUserGroups().some(item => String(item.id) === String(group.id));
 }
 
-/** Демо: заявка в закрытую группу → принимаем сразу. */
-export function requestJoinGroup(id) {
+export function isGroupPending(group) {
+  return group?.membership === 'pending'
+    || getUserGroups().some(item => String(item.id) === String(group?.id) && item.membership === 'pending');
+}
+
+/** Вступление в открытую группу — только по явной CTA. */
+export function joinOpenGroup(id) {
   const existing = getUserGroups().find(group => String(group.id) === String(id));
-  if (existing) return existing;
+  if (existing) {
+    if (existing.membership === 'pending' || existing.membership === 'none') {
+      const joined = {
+        ...existing,
+        membership: 'member',
+        joinedAt: new Date().toISOString()
+      };
+      const state = getState();
+      saveState({
+        ...state,
+        userGroups: (state.userGroups || []).map(item =>
+          String(item.id) === String(id) ? joined : item
+        )
+      });
+      return joined;
+    }
+    return existing;
+  }
   const catalog = demoGroups.find(group => String(group.id) === String(id));
-  if (!catalog) return null;
+  if (!catalog || catalog.isPublic === false) return null;
   const joined = {
     ...catalog,
     catalog: false,
     membership: 'member',
     joinedAt: new Date().toISOString(),
-    messages: [
-      ...(catalog.messages || []),
-      {
-        from: 'them',
-        name: 'Модератор',
-        text: 'Заявка принята. Добро пожаловать в группу!',
-        time: 'сейчас'
-      }
-    ]
+    messages: [...(catalog.messages || [])]
   };
   const state = getState();
   saveState({ ...state, userGroups: [joined, ...(state.userGroups || [])] });
   return joined;
+}
+
+/** Заявка в закрытую группу — статус pending до принятия. */
+export function requestJoinGroup(id) {
+  const existing = getUserGroups().find(group => String(group.id) === String(id));
+  if (existing) return existing;
+  const catalog = demoGroups.find(group => String(group.id) === String(id));
+  if (!catalog) return null;
+  if (catalog.isPublic !== false) return joinOpenGroup(id);
+  const pending = {
+    ...catalog,
+    catalog: false,
+    membership: 'pending',
+    requestedAt: new Date().toISOString(),
+    messages: [...(catalog.messages || [])]
+  };
+  const state = getState();
+  saveState({ ...state, userGroups: [pending, ...(state.userGroups || [])] });
+  return pending;
 }
 
 export function getUserEvents() {
@@ -96,8 +122,8 @@ export function allEvents() {
 }
 
 export function findEvent(id) {
-  const list = allEvents();
-  return list.find(event => String(event.id) === String(id)) || list[0];
+  if (id === undefined || id === null || id === '') return null;
+  return allEvents().find(event => String(event.id) === String(id)) || null;
 }
 
 function nextCover(index = 0) {
@@ -212,7 +238,7 @@ export function groupsScreen() {
     });
     view.querySelectorAll('[data-open-group]').forEach(button => {
       button.onclick = () => {
-        const group = openGroup(button.dataset.openGroup);
+        const group = peekGroup(button.dataset.openGroup);
         if (group) navigate('group', group.id);
       };
     });
@@ -337,7 +363,7 @@ function groupMembers(group) {
 /** Хаб группы: обложка, участницы, чат / заявка / пригласить. */
 export function groupHubScreen(id) {
   clearHeader();
-  const group = openGroup(id);
+  const group = peekGroup(id);
   if (!group) {
     navigate('groups');
     return;
@@ -345,6 +371,7 @@ export function groupHubScreen(id) {
   const members = groupMembers(group);
   const memberCount = group.members || members.length;
   const member = isGroupMember(group);
+  const pending = isGroupPending(group);
   const open = isGroupPublic(group);
 
   view.innerHTML = `
@@ -379,9 +406,11 @@ export function groupHubScreen(id) {
           ? `
             <button type="button" class="group-hub-chat" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
             <button type="button" class="group-hub-invite" id="inviteGroup">Пригласить</button>`
-          : open
-            ? `<button type="button" class="group-hub-chat" id="joinOpenGroup">Вступить</button>`
-            : `<button type="button" class="group-hub-chat" id="requestJoin">Подать заявку</button>`}
+          : pending
+            ? `<button type="button" class="group-hub-chat" disabled>Заявка отправлена</button>`
+            : open
+              ? `<button type="button" class="group-hub-chat" id="joinOpenGroup">Вступить</button>`
+              : `<button type="button" class="group-hub-chat" id="requestJoin">Подать заявку</button>`}
       </div>
     </div>`;
 
@@ -399,18 +428,18 @@ export function groupHubScreen(id) {
   view.querySelector('#shareGroup').onclick = share;
   view.querySelector('#inviteGroup')?.addEventListener('click', share);
   view.querySelector('#requestJoin')?.addEventListener('click', () => {
-    const joined = requestJoinGroup(group.id);
-    if (!joined) return;
+    const result = requestJoinGroup(group.id);
+    if (!result) return;
     showCelebrate({
-      title: 'Вы в группе!',
-      subtitle: 'Заявка принята (демо). Можно писать в чат.',
-      primaryLabel: 'Открыть чат',
-      onPrimary: () => navigate('group-chat', joined.id)
+      title: 'Заявка отправлена',
+      subtitle: 'Организатор рассмотрит её. Пока статус — ожидает.',
+      primaryLabel: 'К группам',
+      onPrimary: () => navigate('groups')
     });
-    navigate('group', joined.id);
+    navigate('group', result.id);
   });
   view.querySelector('#joinOpenGroup')?.addEventListener('click', () => {
-    const joined = requestJoinGroup(group.id);
+    const joined = joinOpenGroup(group.id);
     if (joined) navigate('group-chat', joined.id);
   });
 }
@@ -418,7 +447,7 @@ export function groupHubScreen(id) {
 /** Простой чат группы (без комнат/постов). */
 export function groupChatScreen(id) {
   clearHeader();
-  const group = openGroup(id);
+  const group = peekGroup(id);
   if (!group) {
     navigate('groups');
     return;

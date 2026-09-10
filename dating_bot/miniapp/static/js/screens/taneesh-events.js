@@ -1,10 +1,11 @@
 import { people, defaultProfile } from '../data.js';
-import { view, esc, clearHeader } from '../dom.js';
+import { view, esc, clearHeader, showPlaceholder } from '../dom.js';
 import { getState, saveState } from '../state.js';
 import { navigate } from '../router.js';
 import { allEvents, findEvent } from './community.js';
 import { showCelebrate } from '../celebrate.js';
 import { meTopHtml, meTabsHtml } from './me.js';
+import { isLive } from '../api.js';
 
 const DEMO_GOING = {
   0: [
@@ -215,6 +216,10 @@ export function taneeshEventsScreen() {
 export function taneeshEventDetailScreen(id) {
   clearHeader();
   const event = findEvent(id);
+  if (!event) {
+    showPlaceholder('✿', 'Событие не найдено', 'Вернитесь к афише и выберите другое.');
+    return;
+  }
   const owned = ticketForEvent(event.id);
 
   const render = () => {
@@ -298,10 +303,14 @@ export function taneeshEventDetailScreen(id) {
   render();
 }
 
-/** Чекаут билета (демо-оплата). */
+/** Чекаут билета (демо-оплата без бэкенда). */
 export function ticketCheckoutScreen(eventId) {
   clearHeader();
   const event = findEvent(eventId);
+  if (!event) {
+    showPlaceholder('✿', 'Событие не найдено', 'Нельзя оформить билет — события нет.');
+    return;
+  }
   const existing = ticketForEvent(event.id);
   if (existing) {
     navigate('ticket', existing.id);
@@ -311,7 +320,8 @@ export function ticketCheckoutScreen(eventId) {
   const door = isDoorMode(event);
   const free = isFreeMode(event) && !door;
   const ticketPrice = door || free ? 0 : Number(event.price || 0);
-  const fee = Number(event.fee || 0);
+  // fee только для online-paid; free/door — 0 в Mini App
+  const fee = door || free ? 0 : Number(event.fee || 0);
   const total = ticketPrice + fee;
   const modeNote = door
     ? `На входе организатору: ${money(event.price)}`
@@ -340,15 +350,21 @@ export function ticketCheckoutScreen(eventId) {
 
       <section class="ticket-breakdown">
         <div><span>${door ? 'На входе' : 'Билет'}</span><b>${door ? money(event.price) : ticketPrice ? money(ticketPrice) : '0 сум'}</b></div>
-        <div><span>Сейчас</span><b>${money(total)}</b></div>
-        <div class="total"><span>К оплате в Mini App</span><b>${money(total)}</b></div>
+        ${!door && !free && fee ? `<div><span>Сервисный сбор</span><b>${money(fee)}</b></div>` : ''}
+        <div class="total"><span>${door || free ? 'Сейчас в Mini App' : 'К оплате в Mini App'}</span><b>${money(total)}</b></div>
       </section>
 
       <p class="ticket-checkout-note">${esc(modeNote)}</p>
-      <p class="ticket-checkout-note muted">После подтверждения сразу появится QR-код билета.</p>
+      ${!isLive
+        ? '<p class="ticket-checkout-note muted">Демо: деньги не списываются, QR сохраняется локально.</p>'
+        : '<p class="ticket-checkout-note muted">После подтверждения сразу появится QR-код билета.</p>'}
 
       <button type="button" class="taneesh-buy-block" id="payTicket">
-        ${total ? `Оплатить ${money(total)}` : door ? 'Забронировать и получить QR' : 'Получить QR'}
+        ${total
+          ? `${isLive ? 'Оплатить' : 'Демо: получить QR'} ${money(total)}`
+          : door
+            ? 'Забронировать и получить QR'
+            : 'Получить QR'}
       </button>
     </div>`;
 
@@ -370,6 +386,7 @@ export function ticketCheckoutScreen(eventId) {
         fee,
         total,
         doorPay: door ? event.price : 0,
+        demo: !isLive,
         code: `YQ-${String(event.id).replace(/^e-/, '').slice(-8).toUpperCase()}-${String(Date.now()).slice(-5)}`,
         createdAt: new Date().toISOString()
       };

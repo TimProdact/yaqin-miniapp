@@ -1,5 +1,5 @@
 import { defaultProfile, promptPhoto, people, PHOTOS } from '../data.js';
-import { getState, saveState } from '../state.js';
+import { getState, saveState, clearPersistedState } from '../state.js';
 import { view, esc, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
@@ -227,7 +227,7 @@ export function myGroupsScreen() {
             <button type="button" class="my-hub-row" data-action="group" data-id="${esc(group.id)}">
               <img src="${esc(group.photo)}" alt="">
               <div>
-                <strong>${esc(group.title)}${isGroupPublic(group) ? '' : ' <em class="group-privacy">закрытая</em>'}</strong>
+                <strong>${esc(group.title)}${isGroupPublic(group) ? '' : ' <em class="group-privacy">закрытая</em>'}${group.membership === 'pending' ? ' <em class="group-privacy">заявка</em>' : ''}</strong>
                 <span>${group.members || 1} участниц · ${esc(group.city || 'Ташкент')}</span>
               </div>
               <i class="ti ti-chevron-right"></i>
@@ -1380,7 +1380,7 @@ export function showDeleteAccountDialog() {
   button.onclick = () => {
     if (button.disabled) return;
     closeSettingsOverlay();
-    localStorage.removeItem('yaqin-demo');
+    clearPersistedState();
     navigate('onboarding');
   };
 }

@@ -33,6 +33,12 @@ export function saveState(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+/** Сброс демо-хранилища (текущий + legacy ключ). */
+export function clearPersistedState() {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem('yaqin-demo');
+}
+
 export function addToList(key, id) {
   const state = getState();
   state[key] = [...new Set([...state[key], Number(id)])];
