@@ -2,6 +2,11 @@ export const PHOTOS = {
   malika: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=1000&q=85',
   mila: 'https://images.pexels.com/photos/4531546/pexels-photo-4531546.jpeg?auto=compress&cs=tinysrgb&w=800&q=80',
   anya: 'https://images.pexels.com/photos/9148018/pexels-photo-9148018.jpeg?auto=compress&cs=tinysrgb&w=800&q=80',
+  sara: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=1000&q=85',
+  dilnoza: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1000&q=85',
+  zarina: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=85',
+  nilufar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=85',
+  kamila: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=1000&q=85',
   city: 'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=900&q=85',
   coffee: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85',
   books: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=85',
@@ -63,6 +68,91 @@ export const people = [
     groups: [{ title: 'Керамика по выходным', photo: PHOTOS.books }],
     basic: [
       { label: 'Работа', value: 'Керамистка' },
+      { label: 'Языки', value: 'русский, английский' }
+    ]
+  },
+  {
+    id: 4,
+    name: 'Сара',
+    age: 25,
+    city: 'Ташкент, Чиланзар',
+    bio: 'Фотопрогулки и винтажные барахолки по выходным.',
+    tags: ['фото', 'винтаж', 'кофе', 'дизайн'],
+    looking: ['совместные съёмки', 'кофе'],
+    photo: PHOTOS.sara,
+    photos: [PHOTOS.sara, PHOTOS.city],
+    distanceKm: 9,
+    groups: [{ title: 'Девушки Ташкента', photo: PHOTOS.mila }],
+    basic: [
+      { label: 'Работа', value: 'Фотограф' },
+      { label: 'Языки', value: 'русский, английский' }
+    ]
+  },
+  {
+    id: 5,
+    name: 'Дилноза',
+    age: 28,
+    city: 'Ташкент, Сергели',
+    bio: 'Готовлю плов для подруг и ищу компанию на концерты.',
+    tags: ['еда', 'музыка', 'концерты', 'кухня'],
+    looking: ['ужины', 'живые концерты'],
+    photo: PHOTOS.dilnoza,
+    photos: [PHOTOS.dilnoza, PHOTOS.event],
+    distanceKm: 18,
+    groups: [],
+    basic: [
+      { label: 'Работа', value: 'Маркетолог' },
+      { label: 'Языки', value: 'узбекский, русский' }
+    ]
+  },
+  {
+    id: 6,
+    name: 'Зарина',
+    age: 23,
+    city: 'Ташкент, Яккасарай',
+    bio: 'Учу итальянский и обожаю долгие разговоры за эспрессо.',
+    tags: ['языки', 'кофе', 'кино', 'путешествия'],
+    looking: ['языковой обмен', 'кино'],
+    photo: PHOTOS.zarina,
+    photos: [PHOTOS.zarina, PHOTOS.coffee],
+    distanceKm: 6,
+    groups: [{ title: 'Книжный клуб', photo: PHOTOS.books }],
+    basic: [
+      { label: 'Учёба', value: 'УзГУМЯ' },
+      { label: 'Языки', value: 'русский, итальянский' }
+    ]
+  },
+  {
+    id: 7,
+    name: 'Нилуфар',
+    age: 29,
+    city: 'Ташкент, Мирабад',
+    bio: 'Бегаю по набережной и собираю мини-группы на parkrun.',
+    tags: ['бег', 'спорт', 'утро', 'здоровье'],
+    looking: ['утренние пробежки'],
+    photo: PHOTOS.nilufar,
+    photos: [PHOTOS.nilufar, PHOTOS.city],
+    distanceKm: 3,
+    groups: [{ title: 'Утренние пробежки', photo: PHOTOS.city }],
+    basic: [
+      { label: 'Работа', value: 'Продакт' },
+      { label: 'Языки', value: 'узбекский, русский, английский' }
+    ]
+  },
+  {
+    id: 8,
+    name: 'Камила',
+    age: 26,
+    city: 'Ташкент, Юнусабад',
+    bio: 'Ищу подруг для выставок и тихих воскресных бранчей.',
+    tags: ['арт', 'бранч', 'дизайн', 'прогулки'],
+    looking: ['музеи', 'бранчи'],
+    photo: PHOTOS.kamila,
+    photos: [PHOTOS.kamila, PHOTOS.books],
+    distanceKm: 11,
+    groups: [{ title: 'Девушки Ташкента', photo: PHOTOS.mila }],
+    basic: [
+      { label: 'Работа', value: 'Арт-директор' },
       { label: 'Языки', value: 'русский, английский' }
     ]
   }

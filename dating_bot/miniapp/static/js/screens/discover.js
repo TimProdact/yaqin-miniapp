@@ -19,15 +19,39 @@ function findPerson(id) {
   return getPersonById(id) || lastShown[0];
 }
 
-function renderEmptyState() {
+function renderEmptyState(kind = 'exhausted') {
+  const isFilters = kind === 'filters';
   view.innerHTML = `
     <div class="discover-empty">
       <div class="empty-card">
         <div class="empty-badge"><i class="ti ti-users"></i></div>
-        <h2>Вы посмотрели всех новых</h2>
-        <p>Посмотрите анкеты, которые пропустили в прошлый раз!</p>
-        <button class="empty-primary" data-action="show-skipped">Показать</button>
-        <button class="empty-outline" data-action="filters">Изменить фильтры</button>
+        <h2>${isFilters ? 'Никого не нашлось' : 'Вы посмотрели всех новых'}</h2>
+        <p>${isFilters
+          ? 'По этим фильтрам анкет нет. Расширьте возраст или расстояние.'
+          : 'Посмотрите анкеты, которые пропустили, или измените фильтры.'}</p>
+        ${isFilters ? '' : '<button class="empty-primary" data-action="show-skipped">Показать пропущенных</button>'}
+        <button class="${isFilters ? 'empty-primary' : 'empty-outline'}" data-action="filters">Изменить фильтры</button>
+      </div>
+    </div>`;
+}
+
+function cardMarkup(person) {
+  return `
+    <div class="profile-card" data-id="${person.id}">
+      <img src="${esc(person.photo)}" alt="">
+      <div class="scrim-top"></div>
+      <div class="scrim-bottom"></div>
+      <div class="card-top">
+        <h2>${esc(person.name)}</h2>
+        <p>${person.age} • ${esc(person.city)}</p>
+        <span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>
+      </div>
+      <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
+        <i class="ti ti-hand-stop"></i>
+      </button>
+      <div class="card-bottom">
+        <p class="card-bio">${esc(person.bio)}</p>
+        <div class="chips">${(person.tags || []).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
       </div>
     </div>`;
 }
@@ -47,34 +71,30 @@ export async function peopleScreen(_id, token) {
 
   lastShown = candidates;
   if (!candidates.length) {
-    renderEmptyState();
+    const { filters } = getState();
+    const tight = filters.ageMin > 18 || filters.ageMax < 40 || (filters.distance || 50) < 50;
+    renderEmptyState(tight ? 'filters' : 'exhausted');
     return;
   }
 
   view.innerHTML = `
     <div class="swipe-stage" role="feed" aria-label="Анкеты">
       ${candidates.map((person, index) => `
-        <article class="profile-card-slot" data-index="${index}">
-          <div class="profile-card" data-id="${person.id}">
-            <img src="${esc(person.photo)}" alt="">
-            <div class="scrim-top"></div>
-            <div class="scrim-bottom"></div>
-            <div class="card-top">
-              <h2>${esc(person.name)}</h2>
-              <p>${person.age} • ${esc(person.city)}</p>
-              <span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>
-            </div>
-            <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
-              <i class="ti ti-hand-stop"></i>
-            </button>
-            <div class="card-bottom">
-              <p class="card-bio">${esc(person.bio)}</p>
-              <div class="chips">${(person.tags || []).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
-            </div>
-          </div>
-          ${index < candidates.length - 1 ? '<div class="next-edge" aria-hidden="true"></div>' : ''}
+        <article class="profile-card-slot ${index < candidates.length - 1 ? 'has-peek' : ''}" data-index="${index}">
+          ${cardMarkup(person)}
         </article>
       `).join('')}
+      <article class="profile-card-slot discover-end-slot" data-end="1">
+        <div class="discover-empty inline">
+          <div class="empty-card">
+            <div class="empty-badge"><i class="ti ti-mood-empty"></i></div>
+            <h2>Анкеты закончились</h2>
+            <p>Вы долистали до конца. Посмотрите пропущенных или измените фильтры.</p>
+            <button class="empty-primary" data-action="show-skipped">Показать пропущенных</button>
+            <button class="empty-outline" data-action="filters">Изменить фильтры</button>
+          </div>
+        </div>
+      </article>
     </div>`;
 
   enableSwipe(decide, { onTap: id => navigate('person', Number(id)) });
