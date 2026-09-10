@@ -5,6 +5,7 @@ import { getState, saveState } from '../state.js';
 import { showCelebrate } from '../celebrate.js';
 import { INTEREST_OPTIONS, filterOptions } from '../profile-fields.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
+import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
 
 const COVER_POOL = [PHOTOS.palms, PHOTOS.coffee, PHOTOS.city, PHOTOS.books, PHOTOS.event, PHOTOS.mila].filter(Boolean);
 
@@ -386,31 +387,76 @@ export function createGroupScreen() {
   render();
 }
 
-function groupMembers(group) {
-  const count = Math.min(8, Math.max(3, Number(group.members) || 4));
-  return people.slice(0, count).map(person => ({
+/** Демо: кто отметил интерес к встречам группы (не весь список участниц). */
+function groupWantingDemo(group) {
+  const seed = String(group?.id || '').length;
+  const start = seed % Math.max(1, people.length - 3);
+  return people.slice(start, start + 3).map(person => ({
     id: person.id,
     name: person.name,
+    age: person.age,
     photo: person.photo,
-    city: person.city
+    message: 'Хочет на встречу',
+    demo: true
   }));
 }
 
-/** Хаб группы: обложка, участницы, чат / заявка / пригласить. */
+function meGuestForGroup() {
+  const profile = getState().profile || defaultProfile;
+  return {
+    id: 'me',
+    name: profile.name || defaultProfile.name,
+    age: profile.age || defaultProfile.age,
+    photo: profile.photo || defaultProfile.photo,
+    message: 'Хочет на встречу'
+  };
+}
+
+function wantingForGroup(group) {
+  const demo = groupWantingDemo(group);
+  const mine = (getState().groupWanting || {})[group.id]
+    || (getState().groupWanting || {})[String(group.id)];
+  if (!mine) return demo;
+  return [mine, ...demo.filter(person => person.id !== 'me' && String(person.id) !== String(mine.id))];
+}
+
+function isGroupWanting(groupId) {
+  const map = getState().groupWanting || {};
+  return Boolean(map[groupId] || map[String(groupId)]);
+}
+
+function toggleGroupWanting(groupId) {
+  const state = getState();
+  const map = { ...(state.groupWanting || {}) };
+  const key = String(groupId);
+  if (map[groupId] || map[key]) {
+    delete map[groupId];
+    delete map[key];
+    saveState({ ...state, groupWanting: map });
+    return false;
+  }
+  map[groupId] = meGuestForGroup();
+  saveState({ ...state, groupWanting: map });
+  return true;
+}
+
+/** Хаб группы: обложка, «Хотят пойти», чат / заявка / пригласить. */
 export function groupHubScreen(id) {
   clearHeader();
+  closePeopleGoingSheet();
   const group = peekGroup(id);
   if (!group) {
     navigate('groups');
     return;
   }
-  const members = groupMembers(group);
-  const memberCount = group.members || members.length;
+  const memberCount = group.members || 1;
   const member = isGroupMember(group);
   const pending = isGroupPending(group);
   const open = isGroupPublic(group);
   const isOwner = member && (group.ownerId === 'me' || String(group.id).startsWith('g-'));
   const joinRequests = isOwner ? (group.joinRequests || []) : [];
+  const wanting = wantingForGroup(group);
+  const want = isGroupWanting(group.id);
 
   view.innerHTML = `
     <div class="group-hub-page">
@@ -425,32 +471,46 @@ export function groupHubScreen(id) {
 
       <section class="group-hub-body">
         <em class="group-hub-city">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'}</em>
-        <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
-        <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
-        <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
+        <div class="group-hub-title-row">
+          <div class="group-hub-title-copy">
+            <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
+            <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
+            <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
+          </div>
+          ${member ? `
+            <button class="hero-wave event-want-btn ${want ? 'on' : ''}" type="button" id="toggleGroupWant"
+              aria-label="${want ? 'Интерес снят' : 'Хочу пойти'}" aria-pressed="${want ? 'true' : 'false'}">
+              <i class="ti ${want ? 'ti-check' : 'ti-hand-stop'}"></i>
+            </button>` : ''}
+        </div>
+        ${member ? `
+          <p class="event-want-hint">${want ? 'Статус: хотите на встречи' : '«Хочу пойти» — интерес к встречам группы, не заявка'}</p>` : ''}
 
         ${joinRequests.length ? `
-          <h3>Заявки · ${joinRequests.length}</h3>
-          <div class="group-join-requests">
-            ${joinRequests.map(person => `
-              <div class="group-join-row">
-                <img src="${esc(person.photo)}" alt="">
-                <div>
-                  <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
-                  <span>Хочет вступить</span>
-                </div>
-                <button type="button" class="group-join-accept" data-accept="${esc(String(person.id))}">Принять</button>
-                <button type="button" class="group-join-reject" data-reject="${esc(String(person.id))}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
-              </div>`).join('')}
-          </div>` : ''}
+          <section class="me-panel group-hub-panel">
+            <div class="me-section-head">
+              <div><h3>Заявки</h3></div>
+              <span class="host-count">${joinRequests.length}</span>
+            </div>
+            <div class="group-join-requests">
+              ${joinRequests.map(person => `
+                <div class="group-join-row">
+                  <img src="${esc(person.photo)}" alt="">
+                  <div>
+                    <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
+                    <span>Хочет вступить</span>
+                  </div>
+                  <button type="button" class="group-join-accept" data-accept="${esc(String(person.id))}">Принять</button>
+                  <button type="button" class="group-join-reject" data-reject="${esc(String(person.id))}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
+                </div>`).join('')}
+            </div>
+          </section>` : ''}
 
-        <h3>Участницы</h3>
-        <div class="group-hub-members">
-          ${members.map(person => `
-            <button type="button" class="group-hub-member" data-action="person" data-id="${person.id}">
-              <img src="${esc(person.photo)}" alt="">
-              <span>${esc(person.name)}</span>
-            </button>`).join('')}
+        <div class="people-going-wrap">
+          ${peopleGoingBlockHtml(wanting, {
+            title: 'Хотят пойти',
+            empty: 'Пока никто не отметил интерес к встречам'
+          })}
         </div>
       </section>
 
@@ -467,6 +527,8 @@ export function groupHubScreen(id) {
       </div>
     </div>`;
 
+  bindPeopleGoingBlock(view, wanting, { title: 'Хотят пойти' });
+
   const share = () => {
     const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
     try {
@@ -480,6 +542,17 @@ export function groupHubScreen(id) {
   };
   view.querySelector('#shareGroup').onclick = share;
   view.querySelector('#inviteGroup')?.addEventListener('click', share);
+  view.querySelector('#toggleGroupWant')?.addEventListener('click', () => {
+    const on = toggleGroupWanting(group.id);
+    groupHubScreen(group.id);
+    if (on) {
+      showCelebrate({
+        title: 'Отметили интерес',
+        subtitle: 'Вы в блоке «Хотят пойти» — это не заявка в группу',
+        primaryLabel: 'Понятно'
+      });
+    }
+  });
   view.querySelector('#requestJoin')?.addEventListener('click', () => {
     const result = requestJoinGroup(group.id);
     if (!result) return;
