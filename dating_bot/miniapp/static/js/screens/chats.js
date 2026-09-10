@@ -126,16 +126,6 @@ export function chatsScreen() {
           `).join('')}
         </div>
 
-        ${segment === 'all' && dmCount > 0 && !query.trim() ? `
-          <h2 class="chats-section">Новые знакомства</h2>
-          <div class="new-friends">
-            ${listVisibleChats().filter(c => !c.team).slice(0, 3).map(chat => `
-              <button type="button" class="new-friend" data-action="chat" data-id="${chatIndexForPerson(chat.personId)}">
-                <img src="${esc(chat.photo || people[0].photo)}" alt="">
-                ${chat.unread ? '<b>НОВОЕ</b>' : ''}
-              </button>`).join('')}
-          </div>` : ''}
-
         ${rows.length ? `
           <div class="chat-list">${rows.map(row => `
             <button class="chat-row" data-action="${row.action}" data-id="${esc(row.id)}">
