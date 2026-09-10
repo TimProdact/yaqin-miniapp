@@ -1,6 +1,6 @@
 import { people, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
-import { getUserGroups, listAllGroups } from './community.js';
+import { listAllGroups } from './community.js';
 import { interestsOf } from '../profile-fields.js';
 import { navigate } from '../router.js';
 import {
