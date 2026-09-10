@@ -5,10 +5,10 @@ import { isLive } from '../api.js';
 import { getState, saveState } from '../state.js';
 
 const STEPS = [
-  'Заполните анкету: имя, возраст, город и пару слов о себе.',
-  'Получите одноразовый код в боте.',
-  'Запишите видеокружок на 5–10 секунд: назовите себя, произнесите код и покажите жесты ✌️ и 👍.',
-  'Дождитесь решения модератора — уведомление придёт в бот.'
+  'Откройте бот Yaqin и нажмите «Проверка».',
+  'Получите одноразовый код.',
+  'Запишите видеокружок 5–10 сек: назовите себя, произнесите код, покажите ✌️ и 👍.',
+  'Дождитесь ответа модератора в боте.'
 ];
 
 const VIEWS = {
@@ -25,8 +25,8 @@ const VIEWS = {
     tone: 'wait',
     short: 'На проверке',
     mode: 'submitted',
-    title: 'Спасибо!',
-    text: 'Данные для проверки успешно отправлены.',
+    title: 'Заявка у модератора',
+    text: 'Видео уже в боте. Мы напишем, когда проверка закончится.',
     action: 'Продолжить',
     actionRoute: 'me'
   },
@@ -35,7 +35,7 @@ const VIEWS = {
     short: 'Нужно видео',
     mode: 'intro',
     title: 'Код уже в боте',
-    text: 'Откройте бот и запишите видеосообщение-кружок с кодом и жестами.',
+    text: 'Откройте бот и запишите видеокружок с кодом и жестами.',
     action: 'Открыть бот',
     actionRoute: 'verify-start'
   },
@@ -44,17 +44,17 @@ const VIEWS = {
     short: 'Отклонена',
     mode: 'intro',
     title: 'Нужна новая проверка',
-    text: 'Проверьте анкету и отправьте заявку ещё раз через бот.',
-    action: 'Отправить снова',
+    text: 'Отправьте видеокружок ещё раз через бот.',
+    action: 'Открыть бот',
     actionRoute: 'verify-start'
   },
   none: {
     tone: 'wait',
     short: 'Не пройдена',
     mode: 'intro',
-    title: 'Давайте проверим анкету',
-    text: 'Чтобы Yaqin оставался безопасным, каждая анкета проходит ручную проверку через видеокружок с кодом.',
-    action: 'Понятно',
+    title: 'Проверка через бот',
+    text: 'Чтобы Yaqin оставался безопасным, анкету подтверждают видеокружком с кодом — прямо в Telegram-боте.',
+    action: 'Открыть бот',
     actionRoute: 'verify-start'
   }
 };
@@ -67,20 +67,8 @@ export function resolveView({ status, stage }) {
   return VIEWS.none;
 }
 
-function verifyStep() {
-  return getState().verifyStep || 'status';
-}
-
-function setVerifyStep(step) {
-  saveState({ ...getState(), verifyStep: step });
-}
-
 export async function verifyScreen(_id, token) {
   clearHeader();
-  const step = verifyStep();
-  if (step === 'identity') return renderIdentity();
-  if (step === 'capture') return renderCapture();
-
   showLoading('Проверяем статус...');
 
   let verification;
@@ -117,79 +105,35 @@ export async function verifyScreen(_id, token) {
       <h1>${esc(state.title)}</h1>
       <p class="verify-lead">${esc(state.text)}</p>
       <ol class="verify-steps">${STEPS.map(item => `<li>${esc(item)}</li>`).join('')}</ol>
-      <p class="verify-note">Видео нужно для подтверждения подлинности анкеты, а не для автоматического определения пола по внешности.</p>
+      <p class="verify-note">Селфи в приложении нет — только видеокружок в боте.</p>
       <button class="verify-cta" id="verifyBegin">${esc(state.action)}</button>
+      ${!isLive ? '<button class="verify-cta ghost" id="verifyDemo" type="button">Демо: отметить «на проверке»</button>' : ''}
     </div>`;
 
   view.querySelector('#verifyBegin').onclick = () => {
     if (state.actionRoute === 'verify-start') startVerification();
     else navigate(state.actionRoute);
   };
-}
-
-function renderIdentity() {
-  view.innerHTML = `
-    <div class="verify-identity">
-      <button class="verify-close" type="button" id="identityBack" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-      <div class="verify-shield"><i class="ti ti-shield-check"></i></div>
-      <h1>Подтвердите личность</h1>
-      <p>Мы попросим короткое селфи или видеокружок. Это быстро и нужно, чтобы Yaqin оставался безопасным.</p>
-      <button class="verify-cta" id="identityGo">Поехали!</button>
-      <p class="verify-note">Сессия может записываться для модерации. Подробности — в политике конфиденциальности.</p>
-    </div>`;
-  view.querySelector('#identityBack').onclick = () => {
-    setVerifyStep('status');
-    navigate('verify');
-  };
-  view.querySelector('#identityGo').onclick = () => {
-    setVerifyStep('capture');
-    navigate('verify');
-  };
-}
-
-function renderCapture() {
-  view.innerHTML = `
-    <div class="verify-capture">
-      <button class="verify-close light" type="button" id="captureBack" aria-label="Назад"><i class="ti ti-x"></i></button>
-      <div class="capture-frame">
-        <div class="capture-oval">
-          <div class="capture-scan"></div>
-        </div>
-      </div>
-      <h1>Сделаем кадр автоматически</h1>
-      <p>Держите лицо в овале. Если сложно — можно вручную.</p>
-      <button class="verify-cta ghost" id="captureManual">Проблемы? Сделать вручную</button>
-      <button class="verify-cta" id="captureDone">Готово</button>
-    </div>`;
-
-  view.querySelector('#captureBack').onclick = () => {
-    setVerifyStep('identity');
-    navigate('verify');
-  };
-  const finish = () => {
+  view.querySelector('#verifyDemo')?.addEventListener('click', () => {
     saveDemoVerification({ status: 'pending', stage: 'in_review' });
-    setVerifyStep('status');
     navigate('verify');
-  };
-  view.querySelector('#captureManual').onclick = finish;
-  view.querySelector('#captureDone').onclick = finish;
-  setTimeout(() => {
-    if (verifyStep() === 'capture') finish();
-  }, 2800);
+  });
 }
 
 export function startVerification() {
   const telegram = window.Telegram?.WebApp;
   const username = window.YAQIN_BOT_USERNAME || '';
 
-  if (!isLive) {
-    setVerifyStep('identity');
-    navigate('verify');
-    return;
-  }
   if (username && telegram?.openTelegramLink) {
     telegram.openTelegramLink(`https://t.me/${username}?start=verify`);
     return;
   }
-  telegram?.showAlert?.('Отправьте команду /verify в боте, чтобы получить код.');
+  if (telegram?.showAlert) {
+    telegram.showAlert('Отправьте /verify в боте, чтобы получить код.');
+    return;
+  }
+  // Локальное демо без Telegram: имитируем «код выдан, ждём видео»
+  saveDemoVerification({ status: 'pending', stage: 'awaiting_video' });
+  saveState({ ...getState(), verifyStep: 'status' });
+  navigate('verify');
 }

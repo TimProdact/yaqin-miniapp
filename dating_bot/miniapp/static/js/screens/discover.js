@@ -1,10 +1,10 @@
 import { view, esc, setDiscoverHeader, clearHeader, showDiscoverLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
-import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
+import { loadPeople, clearSkipped, saveFilters, sendLike } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
 import { people as demoPeople } from '../data.js';
-import { getState } from '../state.js';
+import { getState, addToList } from '../state.js';
 import { closeSafetyOverlay } from './safety.js';
 import { chatIdForPerson } from './chats.js';
 import {
@@ -167,8 +167,15 @@ export function personScreen(id) {
       </div>
 
       <section class="person-head">
-        <h1>${esc(person.name)}</h1>
-        <p class="person-meta">${person.age} • ${esc(person.city)}</p>
+        <div class="person-head-row">
+          <div class="person-head-copy">
+            <h1>${esc(person.name)}</h1>
+            <p class="person-meta">${person.age} • ${esc(person.city)}</p>
+          </div>
+          <button class="hero-wave" type="button" id="personWave" aria-label="Передать привет">
+            <i class="ti ti-hand-stop"></i>
+          </button>
+        </div>
         <p class="person-bio">${esc(person.bio)}</p>
       </section>
 
@@ -186,11 +193,19 @@ export function personScreen(id) {
 
       <div class="person-actions">
         <button class="person-skip" type="button" data-action="skip" data-id="${person.id}">Пропустить</button>
-        <button class="person-wave" type="button" data-action="like" data-id="${person.id}">Передать привет</button>
       </div>
     </article>`;
 
   bindPersonHero(photos);
+  view.querySelector('#personWave')?.addEventListener('click', async () => {
+    try {
+      await sendLike(person.id);
+      addToList('liked', person.id);
+    } catch {
+      /* демо: всё равно открываем чат */
+    }
+    navigate('chat', chatIdForPerson(person.id));
+  });
 }
 
 function bindPersonHero(photos) {

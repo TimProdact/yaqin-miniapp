@@ -214,17 +214,14 @@ export function groupChatScreen(id) {
   render();
 }
 
-/** Создание события → попадает в общую ленту с Taneesh. */
+/** Создание события — название, место, когда, обложка. */
 export function createEventScreen() {
   clearHeader();
   let title = '';
   let place = '';
-  let address = 'Ташкент';
   let when = 'Вс, 21 сен · 11:00';
   let cover = null;
   let coverIndex = 0;
-  let ticketMode = 'free';
-  let price = 45000;
 
   const render = () => {
     const ready = title.trim().length > 1 && place.trim().length > 1;
@@ -249,23 +246,7 @@ export function createEventScreen() {
           <span>Когда<br><small>${esc(when)}</small></span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row" type="button" id="eventAddress">
-          <span class="settings-icon green"><i class="ti ti-map-pin"></i></span>
-          <span>Адрес<br><small>${esc(address)}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-
-        <h3 class="settings-label">Билет</h3>
-        <div class="create-chips" style="padding:0 16px;flex-wrap:wrap">
-          ${[
-            ['free', 'Бесплатно'],
-            ['door', 'На входе'],
-            ['paid', 'Платный']
-          ].map(([mode, label]) => `
-            <button type="button" class="${ticketMode === mode ? 'on' : ''}" data-mode="${mode}">${label}</button>`).join('')}
-        </div>
-        ${ticketMode !== 'free' ? `
-          <input class="create-name smaller" id="eventPrice" type="number" min="0" step="1000" value="${price}" placeholder="Цена, сум">` : ''}
+        <p class="create-legal">Билет можно настроить позже. Сейчас событие появится в ленте как бесплатное.</p>
       </div>`;
 
     const syncReady = () => {
@@ -277,9 +258,6 @@ export function createEventScreen() {
 
     view.querySelector('#eventTitle').oninput = event => { title = event.target.value; syncReady(); };
     view.querySelector('#eventPlace').oninput = event => { place = event.target.value; syncReady(); };
-    view.querySelector('#eventPrice')?.addEventListener('input', event => {
-      price = Number(event.target.value) || 0;
-    });
     view.querySelector('#setCover').onclick = () => {
       cover = nextCover(coverIndex++);
       render();
@@ -288,16 +266,6 @@ export function createEventScreen() {
       when = when.includes('21') ? 'Сб, 20 сен · 10:00' : 'Вс, 21 сен · 11:00';
       render();
     };
-    view.querySelector('#eventAddress').onclick = () => {
-      address = address === 'Ташкент' ? 'Мирабад, ул. Шевченко' : 'Ташкент';
-      render();
-    };
-    view.querySelectorAll('[data-mode]').forEach(button => {
-      button.onclick = () => {
-        ticketMode = button.dataset.mode;
-        render();
-      };
-    });
     view.querySelector('#createEventBtn').onclick = () => {
       if (!(title.trim().length > 1 && place.trim().length > 1)) return;
       const profile = getState().profile || defaultProfile;
@@ -308,14 +276,14 @@ export function createEventScreen() {
         day: when.match(/\d+/)?.[0] || '21',
         month: 'сен',
         place: place.trim(),
-        address,
+        address: 'Ташкент',
         group: 'Yaqin',
         host: profile.name || 'Вы',
         going: 1,
         photo: cover || nextCover(1),
-        ticketMode,
-        price: ticketMode === 'free' ? 0 : price,
-        fee: ticketMode === 'paid' ? Math.round(price * 0.1) : ticketMode === 'door' ? 5000 : 0,
+        ticketMode: 'free',
+        price: 0,
+        fee: 0,
         currency: 'UZS',
         source: 'yaqin',
         createdAt: new Date().toISOString()
