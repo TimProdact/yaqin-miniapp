@@ -248,6 +248,12 @@ export const chats = [
         reaction: '❤️'
       },
       {
+        from: 'me',
+        name: 'Вы',
+        text: 'Тоже люблю этот район!',
+        time: '1 д'
+      },
+      {
         from: 'them',
         name: 'Малика',
         text: 'пригласила вас в группу',

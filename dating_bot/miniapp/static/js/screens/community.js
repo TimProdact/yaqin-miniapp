@@ -615,8 +615,11 @@ export function groupChatScreen(id) {
             ? ''
             : `<button type="button" class="chat-back" data-action="group" data-id="${esc(group.id)}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
           <button type="button" class="chat-peer chat-peer-btn" data-action="group" data-id="${esc(group.id)}">
-            <h1>${esc(group.title)}</h1>
-            <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
+            <img class="chat-peer-photo" src="${esc(group.photo)}" alt="">
+            <span class="chat-peer-copy">
+              <h1>${esc(group.title)}</h1>
+              <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
+            </span>
           </button>
           <span class="head-spacer" aria-hidden="true"></span>
         </header>

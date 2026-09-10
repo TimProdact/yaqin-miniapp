@@ -314,6 +314,23 @@
   background: none;
   color: inherit;
   font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.chat-peer-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 40px;
+  background: var(--yaqin-bg-subtle);
+}
+.chat-peer-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: left;
 }
 .chat-peer h1,
 .chat-peer-btn h1 {
@@ -339,11 +356,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.chat-peer-status.on {
+  color: var(--yaqin-green, #34c759);
+}
+.chat-peer-status i,
 .chat-peer p i {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--yaqin-text-tertiary);
+  background: currentColor;
+  flex: 0 0 auto;
 }
 .chat-thread {
   flex: 1;
@@ -387,16 +409,19 @@
   font-size: 14px;
 }
 .chat-bubble {
-  width: 100%;
+  width: auto;
+  max-width: min(88%, 320px);
   display: flex;
   gap: 10px;
   align-items: flex-start;
   text-align: left;
+  align-self: flex-start;
 }
 .chat-bubble .chat-avatar {
   width: 36px;
   height: 36px;
   font-size: 16px;
+  flex: 0 0 36px;
 }
 .bubble-head {
   display: flex;
@@ -784,7 +809,15 @@ body[data-route='group-notifications'] .view { padding: 0 !important; background
 body[data-route='group-notifications'] .settings-row.toggle input:checked { background: var(--yaqin-blue); }
 
 .bubble-head b.accent { color: var(--yaqin-link); }
-.bubble-body { flex: 1; min-width: 0; text-align: left; }
+.bubble-body {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
 .bubble-quote {
   display: flex;
   align-items: center;
@@ -1161,10 +1194,25 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
 .chat-page { position: relative; }
 
 .chat-bubble.mine {
+  align-self: flex-end;
   flex-direction: row-reverse;
 }
-.chat-bubble.mine .bubble-body { align-items: flex-end; }
+.chat-bubble.mine .bubble-body {
+  align-items: flex-end;
+  text-align: right;
+}
+.chat-bubble.mine .bubble-head {
+  flex-direction: row-reverse;
+}
 .chat-bubble.mine .bubble-head b { color: var(--yaqin-link); }
+.chat-bubble.mine > .bubble-body > p {
+  background: var(--yaqin-bg-subtle);
+  border-radius: 16px 16px 4px 16px;
+  padding: 10px 12px;
+}
+.chat-bubble.mine .bubble-image {
+  margin-left: auto;
+}
 
 .chats-pills {
   display: flex;
@@ -1203,14 +1251,6 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   letter-spacing: 0.04em;
   margin-left: auto;
   flex: 0 0 auto;
-}
-.chat-peer-btn {
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
 }
 
 /* Group hub */

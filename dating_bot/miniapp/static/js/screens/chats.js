@@ -286,12 +286,14 @@ export function chatScreen(id) {
   const ui = getChatUi(chatId);
   const hasDraft = Boolean(ui.draft.trim() || ui.attachPhoto);
 
-  const renderMessage = message => `
-    <div class="chat-bubble ${message.from === 'me' ? 'mine' : ''}">
-      ${message.from === 'me' ? '' : avatar(chat.photo, chat.team)}
+  const renderMessage = message => {
+    const mine = message.from === 'me';
+    return `
+    <div class="chat-bubble ${mine ? 'mine' : ''}">
+      ${mine ? '' : avatar(chat.photo, chat.team)}
       <div class="bubble-body">
         <div class="bubble-head">
-          <b>${esc(message.name)}</b>
+          <b>${esc(mine ? 'Вы' : message.name)}</b>
           <time>${esc(message.time)}</time>
         </div>
         ${message.replyTo ? `<div class="bubble-reply"><small>В ответ</small><span>${esc(message.replyTo)}</span></div>` : ''}
@@ -321,6 +323,13 @@ export function chatScreen(id) {
           </div>` : ''}
       </div>
     </div>`;
+  };
+
+  const peerOnline = Boolean(person?.online ?? true);
+  const peerStatus = peerOnline
+    ? '<p class="chat-peer-status on"><i aria-hidden="true"></i>в сети</p>'
+    : '<p class="chat-peer-status">была недавно</p>';
+  const peerPhoto = chat.photo || person?.photo || people[0].photo;
 
   view.innerHTML = `
     <div class="chat-page">
@@ -330,12 +339,18 @@ export function chatScreen(id) {
           : '<button type="button" class="chat-back" data-action="chats" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
         ${chat.personId
           ? `<button type="button" class="chat-peer chat-peer-btn" data-action="person" data-id="${esc(chat.personId)}">
-              <h1>${esc(chat.name)}</h1>
-              <p>Чат</p>
+              <img class="chat-peer-photo" src="${esc(peerPhoto)}" alt="">
+              <span class="chat-peer-copy">
+                <h1>${esc(chat.name)}</h1>
+                ${peerStatus}
+              </span>
             </button>`
           : `<div class="chat-peer">
-              <h1>${esc(chat.name)}</h1>
-              ${chat.team ? '' : '<p>Чат</p>'}
+              <img class="chat-peer-photo" src="${esc(peerPhoto)}" alt="">
+              <span class="chat-peer-copy">
+                <h1>${esc(chat.name)}</h1>
+                ${chat.team ? '<p>Команда Yaqin</p>' : '<p>Чат</p>'}
+              </span>
             </div>`}
         ${chat.personId
           ? '<button type="button" id="chatMenuBtn" aria-label="Ещё"><i class="ti ti-dots"></i></button>'
@@ -367,7 +382,7 @@ export function chatScreen(id) {
         </div>` : ''}
       <div class="message-bar">
         <button class="msg-add" id="attachPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
-        <input type="file" id="attachFile" accept="image/*" hidden>
+        <input type="file" id="attachFile" accept="image/jpeg,image/png,image/webp" hidden>
         <label class="msg-field">
           <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
         </label>
@@ -400,7 +415,15 @@ export function chatScreen(id) {
   });
   view.querySelector('#attachFile')?.addEventListener('change', event => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
+    const okType = /^(image\/jpeg|image\/png|image\/webp)$/i.test(file.type)
+      || /\.(jpe?g|png|webp)$/i.test(file.name || '');
+    if (!okType) {
+      window.Telegram?.WebApp?.showAlert?.('Можно только фото: JPG, PNG или WebP')
+        || window.alert('Можно только фото: JPG, PNG или WebP');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       ui.attachPhoto = String(reader.result || '');

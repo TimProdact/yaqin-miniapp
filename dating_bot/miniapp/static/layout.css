@@ -137,7 +137,7 @@ body.full-screen .view {
 .modal-head > button:not(.head-action),
 .sheet-head button,
 .picker-head button,
-.chat-top button,
+.chat-top > button:not(.chat-peer-btn),
 .screen-head button,
 .me-top button,
 .account-row > button {
