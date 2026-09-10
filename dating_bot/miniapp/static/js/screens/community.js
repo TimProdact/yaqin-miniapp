@@ -42,7 +42,42 @@ function nextCover(index = 0) {
   return COVER_POOL[index % COVER_POOL.length] || PHOTOS.city;
 }
 
-/** Создание группы — BFF `07-groups/create-group--071`. Закрытие → чаты. */
+/** Вкладка «Группы» — BFF my-groups--069, без хаба комнат. */
+export function groupsScreen() {
+  clearHeader();
+  const groups = getUserGroups();
+
+  view.innerHTML = `
+    <div class="groups-tab-page">
+      <header class="chats-head">
+        <h1>Группы</h1>
+        <span></span>
+      </header>
+
+      ${groups.length
+        ? `<div class="groups-tab-list">${groups.map(group => {
+            const last = group.messages?.[group.messages.length - 1];
+            return `
+              <button class="group-tab-row" type="button" data-action="group-chat" data-id="${esc(group.id)}">
+                <img src="${esc(group.photo)}" alt="">
+                <div>
+                  <strong>${esc(group.title)}</strong>
+                  <span>${esc(last?.text || group.about || 'Группа')} · ${esc(last?.time || 'новая')}</span>
+                </div>
+              </button>`;
+          }).join('')}</div>`
+        : `<div class="groups-tab-empty">
+            <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
+            <h2>Создайте группу</h2>
+            <p>Соберите людей по интересам и планируйте встречи вместе.</p>
+            <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
+          </div>`}
+
+      <button class="compose" data-action="create-group" aria-label="Создать"><i class="ti ti-plus"></i></button>
+    </div>`;
+}
+
+/** Создание группы — BFF `07-groups/create-group--071`. Закрытие → группы. */
 export function createGroupScreen() {
   clearHeader();
   let name = '';
@@ -141,7 +176,7 @@ export function createGroupScreen() {
     view.innerHTML = `
       <div class="create-group-page">
         <header class="modal-head">
-          <button data-action="chats" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <button data-action="groups" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <h1>Создать группу</h1>
           <button class="head-action ${canCreate ? 'on coral' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>Создать</button>
         </header>
@@ -236,7 +271,7 @@ export function groupChatScreen(id) {
   clearHeader();
   const group = findUserGroup(id);
   if (!group) {
-    navigate('chats');
+    navigate('groups');
     return;
   }
 
@@ -255,7 +290,7 @@ export function groupChatScreen(id) {
     view.innerHTML = `
       <div class="chat-page group-chat-lite">
         <header class="chat-top">
-          <button class="chat-back" data-action="chats" aria-label="Назад">
+          <button class="chat-back" data-action="groups" aria-label="Назад">
             <i class="ti ti-chevron-left"></i>
           </button>
           <div class="chat-peer">

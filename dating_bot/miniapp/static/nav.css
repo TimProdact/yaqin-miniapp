@@ -8,7 +8,7 @@
   border-top: 1px solid var(--yaqin-sep) !important;
   background: var(--yaqin-surface) !important;
   display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-columns: repeat(5, 1fr) !important;
 }
 
 .nav button {

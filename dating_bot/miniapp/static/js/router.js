@@ -27,20 +27,19 @@ const FULL_SCREEN_ROUTES = new Set([
 ]);
 const SHEET_ROUTES = new Set(['person', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets']);
-const TAB_ROUTES = new Set(['people', 'events', 'chats', 'me']);
+const TAB_ROUTES = new Set(['people', 'events', 'chats', 'groups', 'me']);
 
 /** Старые BFF-роуты → живые экраны MVP. */
 const LEGACY_REDIRECT = {
-  groups: 'chats',
-  group: 'chats',
+  group: 'groups',
   activity: 'people',
   friends: 'me',
   'my-events': 'events',
-  'join-group': 'chats',
-  'group-hub': 'chats',
-  'group-posts': 'chats',
-  'group-thread': 'chats',
-  'create-post': 'chats',
+  'join-group': 'groups',
+  'group-hub': 'groups',
+  'group-posts': 'groups',
+  'group-thread': 'groups',
+  'create-post': 'groups',
   'profile-groups': 'me',
   prompts: 'me',
   'share-profile': 'me',

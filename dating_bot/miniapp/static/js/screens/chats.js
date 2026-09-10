@@ -12,123 +12,43 @@ function avatar(photo, team = false) {
   return `<div class="chat-avatar">${photo ? `<img src="${esc(photo)}">` : '✿'}</div>`;
 }
 
-function showComposeSheet() {
-  document.getElementById('chats-compose-sheet')?.remove();
-  const overlay = document.createElement('div');
-  overlay.id = 'chats-compose-sheet';
-  overlay.className = 'chats-compose-overlay';
-  overlay.innerHTML = `
-    <div class="chats-compose-sheet">
-      <div class="confirm-handle"></div>
-      <h2>Что создать</h2>
-      <button type="button" data-action="new-dm">
-        <span class="settings-icon blue"><i class="ti ti-message-circle"></i></span>
-        <span>Личное сообщение<br><small>Написать знакомству</small></span>
-        <i class="ti ti-chevron-right"></i>
-      </button>
-      <button type="button" data-action="create-group">
-        <span class="settings-icon orange"><i class="ti ti-users"></i></span>
-        <span>Группу<br><small>Собрать по интересам и писать вместе</small></span>
-        <i class="ti ti-chevron-right"></i>
-      </button>
-      <button type="button" class="chats-compose-cancel" id="composeCancel">Отмена</button>
-    </div>`;
-  overlay.addEventListener('click', event => {
-    if (event.target === overlay) overlay.remove();
-  });
-  overlay.querySelector('#composeCancel').onclick = () => overlay.remove();
-  overlay.querySelectorAll('[data-action]').forEach(button => {
-    button.addEventListener('click', () => overlay.remove());
-  });
-  document.body.appendChild(overlay);
-}
-
 export function chatsScreen() {
   clearHeader();
-  const stateKey = 'chatsTab';
-  let tab = sessionStorage.getItem(stateKey) || 'dms';
-  const groups = getUserGroups();
   const hasChats = chats.length > 0;
 
-  const render = () => {
-    sessionStorage.setItem(stateKey, tab);
-    view.innerHTML = `
-      <div class="chats-page">
-        <header class="chats-head">
-          <h1>Чаты</h1>
-          <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
-        </header>
+  view.innerHTML = `
+    <div class="chats-page">
+      <header class="chats-head">
+        <h1>Чаты</h1>
+        <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
+      </header>
 
-        <div class="chats-pills">
-          <button type="button" class="${tab === 'dms' ? 'on' : ''}" data-tab="dms">
-            Личные${(() => {
-              const n = chats.filter(c => c.unread).length;
-              return n ? `<b>${n}</b>` : '';
-            })()}
-          </button>
-          <button type="button" class="${tab === 'groups' ? 'on' : ''}" data-tab="groups">
-            Группы${groups.length ? `<b>${groups.length}</b>` : ''}
-          </button>
+      ${hasChats ? `
+        <h2 class="chats-section">Новые знакомства</h2>
+        <div class="new-friends">
+          <div class="new-friend">
+            <img src="${esc(people[0].photo)}" alt="">
+            <b>НОВОЕ</b>
+          </div>
         </div>
-
-        ${tab === 'dms' ? `
-          ${hasChats ? `
-            <h2 class="chats-section">Новые знакомства</h2>
-            <div class="new-friends">
-              <div class="new-friend">
-                <img src="${esc(people[0].photo)}" alt="">
-                <b>НОВОЕ</b>
-              </div>
+        <div class="chat-list">${chats.map((chat, index) => `
+          <button class="chat-row" data-action="chat" data-id="${index}">
+            ${avatar(chat.photo, chat.team)}
+            <div class="chat-copy">
+              <strong>${esc(chat.name)}</strong>
+              <span>${esc(chat.preview)} · ${esc(chat.time)}</span>
             </div>
-            <div class="chat-list">${chats.map((chat, index) => `
-              <button class="chat-row" data-action="chat" data-id="${index}">
-                ${avatar(chat.photo, chat.team)}
-                <div class="chat-copy">
-                  <strong>${esc(chat.name)}</strong>
-                  <span>${esc(chat.preview)} · ${esc(chat.time)}</span>
-                </div>
-                ${chat.unread ? '<i class="unread-dot"></i>' : ''}
-              </button>`).join('')}</div>`
-          : `<div class="chats-empty">
-              <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
-              <h2>Пока нет чатов</h2>
-              <p>После взаимного привета переписка появится здесь.</p>
-              <button class="empty-primary" type="button" data-action="people">Смотреть анкеты</button>
-            </div>`}
-        ` : `
-          ${groups.length
-            ? `<div class="chat-list">${groups.map(group => {
-                const last = group.messages?.[group.messages.length - 1];
-                return `
-                  <button class="chat-row" data-action="group-chat" data-id="${esc(group.id)}">
-                    ${avatar(group.photo)}
-                    <div class="chat-copy">
-                      <strong>${esc(group.title)}</strong>
-                      <span>${esc(last?.text || 'Группа')} · ${esc(last?.time || 'новая')}</span>
-                    </div>
-                  </button>`;
-              }).join('')}</div>`
-            : `<div class="chats-empty groups-empty-in-chats">
-                <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
-                <h2>Создайте группу</h2>
-                <p>Соберите людей по интересам и планируйте встречи вместе.</p>
-                <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
-              </div>`}
-        `}
+            ${chat.unread ? '<i class="unread-dot"></i>' : ''}
+          </button>`).join('')}</div>`
+      : `<div class="chats-empty">
+          <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
+          <h2>Пока нет чатов</h2>
+          <p>После взаимного привета переписка появится здесь.</p>
+          <button class="empty-primary" type="button" data-action="people">Смотреть анкеты</button>
+        </div>`}
 
-        <button class="compose" id="chatsCompose" aria-label="Создать"><i class="ti ti-plus"></i></button>
-      </div>`;
-
-    view.querySelectorAll('[data-tab]').forEach(button => {
-      button.onclick = () => {
-        tab = button.dataset.tab;
-        render();
-      };
-    });
-    view.querySelector('#chatsCompose').onclick = () => showComposeSheet();
-  };
-
-  render();
+      <button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>
+    </div>`;
 }
 
 export function searchChatsScreen(queryOrId = '') {

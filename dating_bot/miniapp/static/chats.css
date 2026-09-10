@@ -1215,3 +1215,63 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   background: var(--yaqin-ink);
   color: var(--yaqin-ink-inverse);
 }
+
+/* Вкладка Группы */
+.groups-tab-page {
+  min-height: 100%;
+  background: var(--yaqin-bg);
+  padding: var(--yaqin-space-2) var(--yaqin-gutter) 120px;
+  position: relative;
+  color: var(--yaqin-text);
+}
+.groups-tab-list {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+.group-tab-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 12px 0;
+  color: inherit;
+  font: inherit;
+}
+.group-tab-row img {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+.group-tab-row strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.group-tab-row span {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--yaqin-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.groups-tab-empty {
+  text-align: center;
+  padding: 80px 20px 40px;
+}
+.groups-tab-empty h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.groups-tab-empty p {
+  margin: 0 0 20px;
+  color: var(--yaqin-text-secondary);
+  line-height: 1.4;
+}

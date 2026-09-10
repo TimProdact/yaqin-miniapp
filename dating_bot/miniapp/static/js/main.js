@@ -13,7 +13,7 @@ import {
 } from './screens/safety.js';
 import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen, myTicketsScreen } from './screens/taneesh-events.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, showMessageMenu, closeMessageMenu } from './screens/chats.js';
-import { createGroupScreen, createEventScreen, groupChatScreen } from './screens/community.js';
+import { createGroupScreen, createEventScreen, groupChatScreen, groupsScreen } from './screens/community.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
@@ -98,6 +98,7 @@ registerScreens({
   'new-dm': newDmScreen,
   'create-group': createGroupScreen,
   'group-chat': groupChatScreen,
+  groups: groupsScreen,
   me: meScreen,
   settings: settingsScreen,
   blocked: blockedScreen,
