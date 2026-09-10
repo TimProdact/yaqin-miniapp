@@ -451,6 +451,11 @@ body.profile-open .view {
 .me-util-block {
   margin: 0;
 }
+.me-panel-util .settings-block {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
 .me-panel-util .settings-row {
   background: transparent;
 }
