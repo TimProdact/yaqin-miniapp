@@ -214,15 +214,85 @@
 }
 .taneesh-who-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   border: 0;
   background: none;
-  padding: 8px 0;
+  padding: 10px 0;
   text-align: left;
   color: var(--yaqin-text);
   font-size: var(--yaqin-fs-body);
   font-weight: 600;
+  width: 100%;
+}
+.taneesh-who-row.me {
+  font-weight: 700;
+}
+.taneesh-who-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.taneesh-who-copy small {
+  font-size: var(--yaqin-fs-caption);
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--yaqin-text-secondary);
+}
+
+.event-cta-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.taneesh-want {
+  width: 100%;
+  border: 1.5px solid var(--yaqin-sep);
+  border-radius: var(--yaqin-radius-pill);
+  padding: 14px 20px;
+  background: transparent;
+  color: var(--yaqin-text);
+  font-size: var(--yaqin-fs-body);
+  font-weight: 700;
+}
+.taneesh-want.on {
+  border-color: var(--yaqin-ink);
+  background: var(--yaqin-bg-subtle);
+}
+
+.want-go-composer {
+  margin-top: 8px;
+  padding: 14px;
+  border-radius: var(--yaqin-radius-md);
+  background: var(--yaqin-bg-subtle);
+  display: grid;
+  gap: 10px;
+}
+.want-go-composer label {
+  font-size: var(--yaqin-fs-caption);
+  font-weight: 600;
+  color: var(--yaqin-text-secondary);
+}
+.want-go-composer textarea {
+  width: 100%;
+  border: 1px solid var(--yaqin-sep);
+  border-radius: var(--yaqin-radius-sm);
+  padding: 12px;
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: var(--yaqin-fs-body-rg);
+  resize: vertical;
+  min-height: 84px;
+}
+.want-go-actions {
+  display: flex;
+  gap: 8px;
+}
+.want-go-actions .taneesh-buy {
+  flex: 1;
 }
 .taneesh-who-row img {
   width: 44px;
