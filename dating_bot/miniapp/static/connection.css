@@ -63,7 +63,7 @@ body.full-screen .view {
   height: 96px;
   border-radius: 50%;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
   display: grid;
   place-items: center;
   font-size: 48px;

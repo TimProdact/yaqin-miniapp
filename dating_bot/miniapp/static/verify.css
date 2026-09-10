@@ -46,7 +46,7 @@ body[data-route='verify'] .view {
 }
 .verify-logo.yaqin {
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
 }
 .verify-logo.bot {
   background: var(--yaqin-bg);

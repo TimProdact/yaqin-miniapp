@@ -116,7 +116,7 @@ body.profile-open .nav{display:grid}body.profile-open .app-header{display:none}b
   top: 10px;
   left: 10px;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 12px;
@@ -310,6 +310,7 @@ body[data-route='edit-photos'] .view { padding: 0 !important; }
   top: 10px;
   left: 10px;
   background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
   border-radius: 999px;
   padding: 5px 10px;
   font-size: 12px;
@@ -364,6 +365,7 @@ body[data-route='edit-photos'] .view { padding: 0 !important; }
   display: inline-block;
   margin-top: 10px;
   background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 12px;

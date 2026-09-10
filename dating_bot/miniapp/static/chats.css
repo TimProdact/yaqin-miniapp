@@ -67,6 +67,7 @@
   bottom: -4px;
   transform: translateX(-50%);
   background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
   border-radius: var(--yaqin-radius-pill);
   padding: 3px 10px;
   font-size: 11px;
@@ -135,7 +136,7 @@
 }
 .chat-avatar.team {
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
 }
 .chat-copy {
   display: grid;
@@ -193,7 +194,7 @@
   margin: 0 auto 18px;
   border-radius: 14px;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
   display: grid;
   place-items: center;
   font-size: 28px;

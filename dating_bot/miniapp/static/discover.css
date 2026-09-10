@@ -305,7 +305,7 @@ body[data-route='people'] .view {
   height: 56px;
   border-radius: 14px;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
   display: grid;
   place-items: center;
   font-size: var(--yaqin-fs-title);

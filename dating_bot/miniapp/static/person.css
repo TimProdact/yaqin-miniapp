@@ -110,7 +110,7 @@ body.sheet-view .view {
   border: 0;
   border-radius: 50%;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
   font-size: 34px;
   display: grid;
   place-items: center;
@@ -223,5 +223,5 @@ body.sheet-view .view {
 .person-wave {
   border: 0;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
 }

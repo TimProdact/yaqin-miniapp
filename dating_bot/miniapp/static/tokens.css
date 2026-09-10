@@ -73,6 +73,8 @@
 }
 
 html[data-theme='dark'] {
+  --yaqin-yellow: #fff292;
+  --yaqin-yellow-ink: #171719;
   --yaqin-bg: #000000;
   --yaqin-bg-subtle: #1c1c1e;
   --yaqin-bg-muted: #1c1c1e;
@@ -90,6 +92,8 @@ html[data-theme='dark'] {
 
 @media (prefers-color-scheme: dark) {
   html[data-theme='system'] {
+    --yaqin-yellow: #fff292;
+    --yaqin-yellow-ink: #171719;
     --yaqin-bg: #000000;
     --yaqin-bg-subtle: #1c1c1e;
     --yaqin-bg-muted: #1c1c1e;
