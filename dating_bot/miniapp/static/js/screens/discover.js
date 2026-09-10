@@ -280,8 +280,11 @@ export function filtersScreen() {
           <h2>Как далеко?</h2>
           <p class="filter-value" id="distanceLabel">${distanceLabel(distance)}</p>
           <div class="single-range">
-            <input type="range" id="distance" min="1" max="50" value="${distance}">
             <div class="range-ends"><span>1 км</span><span>50+ км</span></div>
+            <div class="range-slider">
+              <div class="range-track"><div class="range-fill" id="distFill"></div></div>
+              <input type="range" id="distance" min="1" max="50" value="${distance}">
+            </div>
           </div>
         </section>
 
@@ -319,6 +322,12 @@ export function filtersScreen() {
     const syncDistance = () => {
       distance = Number(distInput.value);
       view.querySelector('#distanceLabel').textContent = distanceLabel(distance);
+      const distFill = view.querySelector('#distFill');
+      if (distFill) {
+        const pct = ((distance - 1) / (50 - 1)) * 100;
+        distFill.style.left = '0';
+        distFill.style.width = `${pct}%`;
+      }
     };
 
     minInput.oninput = syncAge;
