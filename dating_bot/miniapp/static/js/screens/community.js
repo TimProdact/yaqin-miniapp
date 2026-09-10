@@ -424,7 +424,6 @@ export function groupHubScreen(id) {
     <div class="group-hub-page">
       <header class="group-hub-top">
         ${backControlHtml('groups')}
-        <button type="button" id="shareGroup" aria-label="Поделиться"><i class="ti ti-share"></i></button>
       </header>
 
       <div class="group-hub-cover event-photo">
@@ -466,16 +465,16 @@ export function groupHubScreen(id) {
         </div>
       </section>
 
-      <div class="group-hub-cta ${member ? 'two' : 'one'}">
+      <div class="sticky-page-cta group-hub-cta ${member ? 'two' : 'one'}">
         ${member
           ? `
-            <button type="button" class="group-hub-chat" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
-            <button type="button" class="group-hub-invite" id="inviteGroup">Пригласить</button>`
+            <button type="button" class="taneesh-buy-block" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
+            <button type="button" class="taneesh-buy-block ghost" id="inviteGroup">Пригласить</button>`
           : pending
-            ? `<button type="button" class="group-hub-chat" disabled>Заявка отправлена</button>`
+            ? `<button type="button" class="taneesh-buy-block" disabled>Заявка отправлена</button>`
             : open
-              ? `<button type="button" class="group-hub-chat" id="joinOpenGroup">Вступить</button>`
-              : `<button type="button" class="group-hub-chat" id="requestJoin">Подать заявку</button>`}
+              ? `<button type="button" class="taneesh-buy-block" id="joinOpenGroup">Вступить</button>`
+              : `<button type="button" class="taneesh-buy-block" id="requestJoin">Подать заявку</button>`}
       </div>
     </div>`;
 
@@ -492,7 +491,6 @@ export function groupHubScreen(id) {
     } catch (_) { /* ignore */ }
     navigator.share?.({ text }).catch(() => {});
   };
-  view.querySelector('#shareGroup').onclick = share;
   view.querySelector('#inviteGroup')?.addEventListener('click', share);
   view.querySelector('#requestJoin')?.addEventListener('click', () => {
     const result = requestJoinGroup(group.id);
