@@ -51,27 +51,30 @@ export async function peopleScreen(_id, token) {
     return;
   }
 
-  const person = candidates[0];
   view.innerHTML = `
-    <div class="swipe-stage">
-      <div class="next-edge"></div>
-      <div class="profile-card" data-id="${person.id}">
-        <img src="${esc(person.photo)}">
-        <div class="scrim-top"></div>
-        <div class="scrim-bottom"></div>
-        <div class="card-top">
-          <h2>${esc(person.name)}</h2>
-          <p>${person.age} • ${esc(person.city)}</p>
-          <span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>
-        </div>
-        <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
-          <i class="ti ti-hand-stop"></i>
-        </button>
-        <div class="card-bottom">
-          <p class="card-bio">${esc(person.bio)}</p>
-          <div class="chips">${person.tags.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
-        </div>
-      </div>
+    <div class="swipe-stage" role="feed" aria-label="Анкеты">
+      ${candidates.map((person, index) => `
+        <article class="profile-card-slot" data-index="${index}">
+          <div class="profile-card" data-id="${person.id}">
+            <img src="${esc(person.photo)}" alt="">
+            <div class="scrim-top"></div>
+            <div class="scrim-bottom"></div>
+            <div class="card-top">
+              <h2>${esc(person.name)}</h2>
+              <p>${person.age} • ${esc(person.city)}</p>
+              <span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>
+            </div>
+            <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
+              <i class="ti ti-hand-stop"></i>
+            </button>
+            <div class="card-bottom">
+              <p class="card-bio">${esc(person.bio)}</p>
+              <div class="chips">${person.tags.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
+            </div>
+          </div>
+          ${index < candidates.length - 1 ? '<div class="next-edge" aria-hidden="true"></div>' : ''}
+        </article>
+      `).join('')}
     </div>`;
 
   enableSwipe(decide, { onTap: id => navigate('person', Number(id)) });

@@ -36,13 +36,36 @@
 
 body[data-route='people'] .view {
   padding: 0 8px;
+  overflow: hidden;
 }
 
 .swipe-stage {
   position: relative;
   height: 100%;
   min-height: 0;
-  padding-bottom: 28px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.swipe-stage::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-card-slot {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  box-sizing: border-box;
+  padding-bottom: 12px;
+}
+.profile-card-slot:last-child {
+  padding-bottom: 0;
 }
 
 .next-edge {
@@ -53,6 +76,8 @@ body[data-route='people'] .view {
   height: 9px;
   border-radius: 28px 28px 0 0;
   background: linear-gradient(90deg, var(--yaqin-pink), var(--yaqin-link));
+  pointer-events: none;
+  z-index: 1;
 }
 
 .profile-card {
