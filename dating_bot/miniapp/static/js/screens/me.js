@@ -75,7 +75,7 @@ export async function meScreen(_id, token) {
       <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-action="events">
         <div>
           <b>Черновик в Taneesh</b>
-          <span>Активируйте профиль в приложении, чтобы покупать билеты.</span>
+          <span>Билеты можно купить здесь. Активируйте профиль в приложении, чтобы анкета была видима.</span>
         </div>
         <i class="ti ti-chevron-right"></i>
       </button>

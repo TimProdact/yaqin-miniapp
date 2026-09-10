@@ -42,10 +42,13 @@ const FULL_SCREEN_ROUTES = new Set([
   'prompt-picker',
   'camera-roll',
   'my-events',
-  'profile-groups'
+  'profile-groups',
+  'checkout',
+  'ticket',
+  'my-tickets'
 ]);
 const SHEET_ROUTES = new Set(['person', 'group', 'event']);
-const PROFILE_OPEN_ROUTES = new Set(['me', 'events', 'friends', 'my-events']);
+const PROFILE_OPEN_ROUTES = new Set(['me', 'friends', 'my-events']);
 
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'me']);
 

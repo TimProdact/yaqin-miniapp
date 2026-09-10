@@ -35,7 +35,7 @@ import {
   createEventScreen,
   leaveGroupConfirm
 } from './screens/groups.js';
-import { taneeshEventsScreen, taneeshEventDetailScreen } from './screens/taneesh-events.js';
+import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen, myTicketsScreen } from './screens/taneesh-events.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
@@ -124,6 +124,9 @@ registerScreens({
   group: groupScreen,
   events: taneeshEventsScreen,
   event: taneeshEventDetailScreen,
+  checkout: ticketCheckoutScreen,
+  ticket: ticketScreen,
+  'my-tickets': myTicketsScreen,
   'events-legacy': eventsScreen,
   'event-legacy': eventScreen,
   chats: chatsScreen,
@@ -227,6 +230,12 @@ async function handleAction(target) {
   if (action === 'delete-account') return showDeleteAccountDialog();
   if (action === 'leave-group') return leaveGroupConfirm(id);
   if (action === 'announcement-latest') return showAnnouncementLatest();
+  if (action === 'checkout' || action === 'ticket' || action === 'my-tickets') {
+    closeSettingsOverlay();
+    closeSafetyOverlay();
+    closeMessageMenu();
+    return navigate(action, id);
+  }
   closeSettingsOverlay();
   closeSafetyOverlay();
   closeMessageMenu();

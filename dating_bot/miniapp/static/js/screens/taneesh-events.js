@@ -1,62 +1,87 @@
 import { events, people } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { getState, saveState } from '../state.js';
+import { navigate } from '../router.js';
 
 const TANEESH_STORE = 'https://apps.apple.com/search?term=Taneesh';
+
+function money(amount) {
+  return `${Number(amount || 0).toLocaleString('ru-RU')} сум`;
+}
+
+function getTickets() {
+  return getState().tickets || [];
+}
+
+function ticketForEvent(eventId) {
+  return getTickets().find(ticket => Number(ticket.eventId) === Number(eventId));
+}
 
 function activationStatus() {
   return getState().taneeshStatus || 'draft_in_taneesh';
 }
 
 function openTaneesh(reason) {
-  const url = TANEESH_STORE;
   try {
     const tg = window.Telegram?.WebApp;
     if (tg?.openLink) {
-      tg.openLink(url);
+      tg.openLink(TANEESH_STORE);
       return;
     }
   } catch (_) {
     /* ignore */
   }
-  window.open(url, '_blank', 'noopener');
+  window.open(TANEESH_STORE, '_blank', 'noopener');
   console.info('[yaqin] open Taneesh', reason);
 }
 
-/** Лента событий Taneesh (read-only) + CTA в приложение. */
+function priceLabel(event) {
+  if (event.ticketMode === 'free') return 'Бесплатно';
+  if (event.ticketMode === 'door') return `от ${money(event.fee)} · на входе`;
+  return money(event.price);
+}
+
+function buyLabel(event) {
+  if (ticketForEvent(event.id)) return 'Мой билет';
+  if (event.ticketMode === 'free') return 'Записаться';
+  if (event.ticketMode === 'door') return 'Забронировать';
+  return 'Купить билет';
+}
+
+/** Лента событий + покупка билета в Mini App. */
 export function taneeshEventsScreen() {
   clearHeader();
   const status = activationStatus();
   const interested = getState().eventInterest || {};
+  const tickets = getTickets();
 
   view.innerHTML = `
     <div class="events-feed-page">
       <header class="chats-head">
         <h1>События</h1>
+        <button data-action="my-tickets" aria-label="Билеты">
+          <i class="ti ti-ticket"></i>
+          ${tickets.length ? `<b class="ticket-count">${tickets.length}</b>` : ''}
+        </button>
       </header>
 
       <p class="events-feed-lead">
-        Афиша из Taneesh. Смотрите бесплатно — билет только в приложении.
+        Афиша Taneesh. Билет можно купить здесь — QR сразу после оплаты.
       </p>
 
       ${status !== 'active' ? `
         <button type="button" class="taneesh-activate-banner" data-open-taneesh="activate">
           <div>
             <b>Активируйте профиль в Taneesh</b>
-            <span>Анкета уже как черновик. Откройте приложение, чтобы стать видимой и покупать билеты.</span>
+            <span>Билеты уже доступны здесь. Активация нужна, чтобы анкета была видима в приложении.</span>
           </div>
           <i class="ti ti-chevron-right"></i>
-        </button>` : `
-        <div class="taneesh-activate-banner on">
-          <div>
-            <b>Профиль активен в Taneesh</b>
-            <span>Билеты и QR — в приложении.</span>
-          </div>
-        </div>`}
+        </button>` : ''}
 
       <div class="events-feed">
         ${events.map(event => {
           const want = interested[event.id];
+          const owned = ticketForEvent(event.id);
           const goingPreview = people.slice(0, 3);
           return `
             <article class="taneesh-event-card">
@@ -66,6 +91,7 @@ export function taneeshEventsScreen() {
                   <strong>${esc(event.title)}</strong>
                   <span>${esc(event.when)}</span>
                   <span>${esc(event.place)}</span>
+                  <em class="taneesh-price">${esc(priceLabel(event))}</em>
                 </div>
               </button>
               <div class="taneesh-event-foot">
@@ -77,8 +103,8 @@ export function taneeshEventsScreen() {
                   <button type="button" class="taneesh-chip ${want ? 'on' : ''}" data-interest="${event.id}">
                     Интересно
                   </button>
-                  <button type="button" class="taneesh-buy" data-open-taneesh="ticket" data-id="${event.id}">
-                    Билет в Taneesh
+                  <button type="button" class="taneesh-buy ${owned ? 'owned' : ''}" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? owned.id : event.id}">
+                    ${buyLabel(event)}
                   </button>
                 </div>
               </div>
@@ -96,7 +122,8 @@ export function taneeshEventsScreen() {
   });
 
   view.querySelectorAll('[data-interest]').forEach(button => {
-    button.onclick = () => {
+    button.onclick = ev => {
+      ev.stopPropagation();
       const id = Number(button.dataset.interest);
       const state = getState();
       const next = { ...(state.eventInterest || {}) };
@@ -107,11 +134,12 @@ export function taneeshEventsScreen() {
   });
 }
 
-/** Карточка события: детали + кто идёт + CTA билета. */
+/** Карточка события. */
 export function taneeshEventDetailScreen(id) {
   clearHeader();
   const event = events[Number(id) || 0] || events[0];
   const going = people.slice(0, 4);
+  const owned = ticketForEvent(event.id);
 
   view.innerHTML = `
     <article class="taneesh-event-detail">
@@ -123,6 +151,7 @@ export function taneeshEventDetailScreen(id) {
       <img class="taneesh-detail-cover" src="${esc(event.photo)}" alt="">
       <div class="taneesh-detail-body">
         <h2>${esc(event.title)}</h2>
+        <p class="taneesh-detail-price">${esc(priceLabel(event))}</p>
         <ul class="taneesh-detail-meta">
           <li><i class="ti ti-calendar"></i>${esc(event.when)}</li>
           <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
@@ -137,13 +166,166 @@ export function taneeshEventDetailScreen(id) {
             </button>`).join('')}
         </div>
         <p class="taneesh-detail-note">
-          Знакомиться здесь бесплатно. Чтобы купить билет и пройти по QR — откройте Taneesh.
+          ${event.ticketMode === 'door'
+            ? 'Сейчас оплачиваете сервисный сбор. Цену билета — организатору на входе.'
+            : 'После оплаты билет с QR появится здесь. На входе покажите QR контролёру.'}
         </p>
-        <button type="button" class="taneesh-buy-block" id="buyTicket">
-          Купить билет в Taneesh
+        <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? owned.id : event.id}">
+          ${owned ? 'Открыть билет' : buyLabel(event)}
         </button>
       </div>
     </article>`;
+}
 
-  view.querySelector('#buyTicket').onclick = () => openTaneesh('ticket-detail');
+/** Чекаут билета (демо-оплата). */
+export function ticketCheckoutScreen(eventId) {
+  clearHeader();
+  const event = events[Number(eventId) || 0] || events[0];
+  const existing = ticketForEvent(event.id);
+  if (existing) {
+    navigate('ticket', existing.id);
+    return;
+  }
+
+  const ticketPrice = event.ticketMode === 'door' || event.ticketMode === 'free' ? 0 : Number(event.price || 0);
+  const fee = Number(event.fee || 0);
+  const total = ticketPrice + fee;
+  const modeNote =
+    event.ticketMode === 'door'
+      ? `На входе организатору: ${money(event.price)}`
+      : event.ticketMode === 'free'
+        ? 'Бесплатная запись · 1 билет на человека'
+        : '100% цены билета уходит организатору';
+
+  view.innerHTML = `
+    <div class="ticket-checkout-page">
+      <header class="sheet-head">
+        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Оплата</h1>
+        <span style="width:36px"></span>
+      </header>
+
+      <div class="ticket-checkout-card">
+        <img src="${esc(event.photo)}" alt="">
+        <div>
+          <strong>${esc(event.title)}</strong>
+          <span>${esc(event.when)}</span>
+          <span>${esc(event.place)}</span>
+        </div>
+      </div>
+
+      <section class="ticket-breakdown">
+        <div><span>Билет</span><b>${ticketPrice ? money(ticketPrice) : '0 сум'}</b></div>
+        <div><span>Сервисный сбор</span><b>${money(fee)}</b></div>
+        <div class="total"><span>К оплате сейчас</span><b>${money(total)}</b></div>
+      </section>
+
+      <p class="ticket-checkout-note">${esc(modeNote)}</p>
+      <p class="ticket-checkout-note muted">Демо-оплата: платёжный шлюз подключим к Taneesh API. Сейчас билет выдаётся сразу.</p>
+
+      <button type="button" class="taneesh-buy-block" id="payTicket">
+        ${total ? `Оплатить ${money(total)}` : 'Получить билет'}
+      </button>
+    </div>`;
+
+  view.querySelector('#payTicket').onclick = () => {
+    const button = view.querySelector('#payTicket');
+    button.disabled = true;
+    button.textContent = 'Оплачиваем…';
+    setTimeout(() => {
+      const ticket = {
+        id: `t-${event.id}-${Date.now()}`,
+        eventId: event.id,
+        title: event.title,
+        when: event.when,
+        place: event.place,
+        photo: event.photo,
+        mode: event.ticketMode || 'paid',
+        price: ticketPrice,
+        fee,
+        total,
+        doorPay: event.ticketMode === 'door' ? event.price : 0,
+        code: `YQ${event.id}${String(Date.now()).slice(-6)}`,
+        createdAt: new Date().toISOString()
+      };
+      const state = getState();
+      saveState({ ...state, tickets: [...(state.tickets || []), ticket] });
+      navigate('ticket', ticket.id);
+    }, 700);
+  };
+}
+
+/** QR-билет после покупки. */
+export function ticketScreen(ticketId) {
+  clearHeader();
+  const ticket =
+    getTickets().find(item => String(item.id) === String(ticketId)) ||
+    getTickets()[getTickets().length - 1];
+  if (!ticket) {
+    navigate('my-tickets');
+    return;
+  }
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ticket.code)}`;
+
+  view.innerHTML = `
+    <div class="ticket-page">
+      <header class="sheet-head">
+        <button data-action="events" aria-label="К событиям"><i class="ti ti-x"></i></button>
+        <h1>Билет</h1>
+        <span style="width:36px"></span>
+      </header>
+
+      <div class="ticket-pass">
+        <img class="ticket-pass-cover" src="${esc(ticket.photo)}" alt="">
+        <div class="ticket-pass-body">
+          <strong>${esc(ticket.title)}</strong>
+          <span>${esc(ticket.when)}</span>
+          <span>${esc(ticket.place)}</span>
+          <div class="ticket-qr-wrap">
+            <img src="${esc(qrUrl)}" alt="QR">
+          </div>
+          <code class="ticket-code">${esc(ticket.code)}</code>
+          ${ticket.doorPay ? `<p class="ticket-door">На входе организатору: <b>${money(ticket.doorPay)}</b></p>` : ''}
+          <p class="ticket-hint">Покажите QR контролёру на входе</p>
+        </div>
+      </div>
+
+      <button type="button" class="taneesh-chip block" data-action="my-tickets">Все билеты</button>
+    </div>`;
+}
+
+/** Список купленных билетов. */
+export function myTicketsScreen() {
+  clearHeader();
+  const tickets = [...getTickets()].reverse();
+
+  view.innerHTML = `
+    <div class="events-feed-page">
+      <header class="sheet-head">
+        <button data-action="events" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        <h1>Мои билеты</h1>
+        <span style="width:36px"></span>
+      </header>
+
+      ${tickets.length ? `
+        <div class="events-feed">
+          ${tickets.map(ticket => `
+            <button type="button" class="my-ticket-row" data-action="ticket" data-id="${esc(ticket.id)}">
+              <img src="${esc(ticket.photo)}" alt="">
+              <div>
+                <strong>${esc(ticket.title)}</strong>
+                <span>${esc(ticket.when)}</span>
+                <span class="ticket-code-inline">${esc(ticket.code)}</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`).join('')}
+        </div>` : `
+        <div class="chats-empty" style="padding-top:48px">
+          <div class="empty-badge"><i class="ti ti-ticket"></i></div>
+          <h2>Пока нет билетов</h2>
+          <p>Купите билет на событие — он появится здесь с QR.</p>
+          <button class="empty-primary" type="button" data-action="events">К событиям</button>
+        </div>`}
+    </div>`;
 }

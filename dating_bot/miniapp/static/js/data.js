@@ -123,7 +123,11 @@ export const events = [
     group: 'Девушки Ташкента',
     host: 'Камила',
     going: 12,
-    photo: PHOTOS.coffee
+    photo: PHOTOS.coffee,
+    ticketMode: 'paid',
+    price: 45000,
+    fee: 5000,
+    currency: 'UZS'
   },
   {
     id: 1,
@@ -136,7 +140,11 @@ export const events = [
     group: 'Юнусабад: спорт и йога',
     host: 'Мила',
     going: 8,
-    photo: PHOTOS.event
+    photo: PHOTOS.event,
+    ticketMode: 'paid',
+    price: 85000,
+    fee: 8000,
+    currency: 'UZS'
   },
   {
     id: 2,
@@ -149,7 +157,11 @@ export const events = [
     group: 'Юнусабад: спорт и йога',
     host: 'Мила',
     going: 16,
-    photo: PHOTOS.city
+    photo: PHOTOS.city,
+    ticketMode: 'door',
+    price: 30000,
+    fee: 5000,
+    currency: 'UZS'
   }
 ];
 
