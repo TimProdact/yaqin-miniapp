@@ -466,6 +466,38 @@ body[data-route='filters'] .view {
   background: var(--yaqin-text);
   color: var(--yaqin-ink-inverse);
   font-size: 17px;
+  font-weight: 700;
+  padding: 14px 28px;
+}
+
+.filter-interests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.filter-chip {
+  border: 1px solid var(--yaqin-sep);
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+.filter-chip.on {
+  background: var(--yaqin-text);
+  color: var(--yaqin-ink-inverse);
+  border-color: var(--yaqin-text);
+}
+.filter-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--yaqin-text-tertiary);
+}
+
+  font-size: 17px;
   font-weight: 600;
   padding: 14px 36px;
 }

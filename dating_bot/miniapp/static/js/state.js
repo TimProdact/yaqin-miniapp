@@ -6,7 +6,7 @@ const initialState = {
   blocked: [],
   profile: null,
   onboarded: true,
-  filters: { ageMin: 18, ageMax: 40, distance: 50 },
+  filters: { ageMin: 18, ageMax: 40, distance: 50, interests: [] },
   theme: { dark: false, followSystem: true },
   email: '',
   notifications: { dm: true, reactions: true },

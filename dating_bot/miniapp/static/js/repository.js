@@ -35,6 +35,12 @@ export async function loadPeople({ includeSkipped = false } = {}) {
     if (person.age < filters.ageMin || person.age > filters.ageMax) return false;
     const km = person.distanceKm ?? 10;
     if (km > (filters.distance || 50)) return false;
+    const interests = filters.interests || [];
+    if (interests.length) {
+      const bag = [...(person.tags || []), ...(person.looking || [])].map(item => String(item).toLowerCase());
+      const hit = interests.some(interest => bag.some(item => item.includes(String(interest).toLowerCase())));
+      if (!hit) return false;
+    }
     return true;
   });
 }

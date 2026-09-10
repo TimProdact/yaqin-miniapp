@@ -72,7 +72,11 @@ export async function peopleScreen(_id, token) {
   lastShown = candidates;
   if (!candidates.length) {
     const { filters } = getState();
-    const tight = filters.ageMin > 18 || filters.ageMax < 40 || (filters.distance || 50) < 50;
+    const tight =
+      filters.ageMin > 18 ||
+      filters.ageMax < 40 ||
+      (filters.distance || 50) < 50 ||
+      (filters.interests || []).length > 0;
     renderEmptyState(tight ? 'filters' : 'exhausted');
     return;
   }
@@ -198,76 +202,115 @@ function distanceLabel(km) {
   return 'В городе';
 }
 
+const FILTER_INTERESTS = [
+  'кофе',
+  'прогулки',
+  'йога',
+  'книги',
+  'кино',
+  'спорт',
+  'еда',
+  'фото',
+  'музыка',
+  'путешествия',
+  'арт',
+  'бег'
+];
+
 export function filtersScreen() {
   clearHeader();
   const { filters } = getState();
   let ageMin = filters.ageMin;
   let ageMax = filters.ageMax;
   let distance = filters.distance;
+  let interests = new Set(filters.interests || []);
 
-  view.innerHTML = `
-    <div class="filters-page">
-      <header class="filters-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        <h1>Фильтры</h1>
-        <span></span>
-      </header>
+  const render = () => {
+    view.innerHTML = `
+      <div class="filters-page">
+        <header class="filters-head">
+          <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <h1>Фильтры</h1>
+          <span></span>
+        </header>
 
-      <section class="filter-block">
-        <h2>Сколько им лет?</h2>
-        <p class="filter-value">от <b id="ageMinLabel">${ageMin}</b> до <b id="ageMaxLabel">${ageMax}</b></p>
-        <div class="dual-range" id="ageRange">
-          <div class="range-track"><div class="range-fill" id="ageFill"></div></div>
-          <input type="range" id="ageMin" min="18" max="55" value="${ageMin}">
-          <input type="range" id="ageMax" min="18" max="55" value="${ageMax}">
-        </div>
-      </section>
+        <section class="filter-block">
+          <h2>Сколько им лет?</h2>
+          <p class="filter-value">от <b id="ageMinLabel">${ageMin}</b> до <b id="ageMaxLabel">${ageMax}</b></p>
+          <div class="dual-range" id="ageRange">
+            <div class="range-track"><div class="range-fill" id="ageFill"></div></div>
+            <input type="range" id="ageMin" min="18" max="55" value="${ageMin}">
+            <input type="range" id="ageMax" min="18" max="55" value="${ageMax}">
+          </div>
+        </section>
 
-      <section class="filter-block">
-        <h2>Как далеко?</h2>
-        <p class="filter-value" id="distanceLabel">${distanceLabel(distance)}</p>
-        <div class="single-range">
-          <input type="range" id="distance" min="1" max="50" value="${distance}">
-          <div class="range-ends"><span>1 км</span><span>50+ км</span></div>
-        </div>
-      </section>
+        <section class="filter-block">
+          <h2>Как далеко?</h2>
+          <p class="filter-value" id="distanceLabel">${distanceLabel(distance)}</p>
+          <div class="single-range">
+            <input type="range" id="distance" min="1" max="50" value="${distance}">
+            <div class="range-ends"><span>1 км</span><span>50+ км</span></div>
+          </div>
+        </section>
 
-      <button class="filters-save" data-action="save-filters">Сохранить</button>
-    </div>`;
+        <section class="filter-block">
+          <h2>Интересы</h2>
+          <p class="filter-value">${interests.size ? `выбрано <b>${interests.size}</b>` : 'любые'}</p>
+          <div class="filter-interests">
+            ${FILTER_INTERESTS.map(item => `
+              <button type="button" class="filter-chip ${interests.has(item) ? 'on' : ''}" data-interest="${esc(item)}">${esc(item)}</button>`).join('')}
+          </div>
+          <p class="filter-hint">Покажем тех, у кого есть хотя бы один выбранный интерес.</p>
+        </section>
 
-  const minInput = view.querySelector('#ageMin');
-  const maxInput = view.querySelector('#ageMax');
-  const fill = view.querySelector('#ageFill');
-  const distInput = view.querySelector('#distance');
+        <button class="filters-save" data-action="save-filters">Сохранить</button>
+      </div>`;
 
-  const syncAge = () => {
-    ageMin = Math.min(Number(minInput.value), Number(maxInput.value) - 1);
-    ageMax = Math.max(Number(maxInput.value), ageMin + 1);
-    minInput.value = ageMin;
-    maxInput.value = ageMax;
-    view.querySelector('#ageMinLabel').textContent = ageMin;
-    view.querySelector('#ageMaxLabel').textContent = ageMax;
-    const left = ((ageMin - 18) / (55 - 18)) * 100;
-    const right = ((ageMax - 18) / (55 - 18)) * 100;
-    fill.style.left = `${left}%`;
-    fill.style.width = `${right - left}%`;
+    const minInput = view.querySelector('#ageMin');
+    const maxInput = view.querySelector('#ageMax');
+    const fill = view.querySelector('#ageFill');
+    const distInput = view.querySelector('#distance');
+
+    const syncAge = () => {
+      ageMin = Math.min(Number(minInput.value), Number(maxInput.value) - 1);
+      ageMax = Math.max(Number(maxInput.value), ageMin + 1);
+      minInput.value = ageMin;
+      maxInput.value = ageMax;
+      view.querySelector('#ageMinLabel').textContent = ageMin;
+      view.querySelector('#ageMaxLabel').textContent = ageMax;
+      const left = ((ageMin - 18) / (55 - 18)) * 100;
+      const right = ((ageMax - 18) / (55 - 18)) * 100;
+      fill.style.left = `${left}%`;
+      fill.style.width = `${right - left}%`;
+    };
+
+    const syncDistance = () => {
+      distance = Number(distInput.value);
+      view.querySelector('#distanceLabel').textContent = distanceLabel(distance);
+    };
+
+    minInput.oninput = syncAge;
+    maxInput.oninput = syncAge;
+    distInput.oninput = syncDistance;
+    syncAge();
+    syncDistance();
+
+    view.querySelectorAll('[data-interest]').forEach(button => {
+      button.onclick = () => {
+        const value = button.dataset.interest;
+        if (interests.has(value)) interests.delete(value);
+        else interests.add(value);
+        render();
+      };
+    });
+
+    view.querySelector('[data-action="save-filters"]').onclick = () => {
+      saveFilters({ ageMin, ageMax, distance, interests: [...interests] });
+      navigate('people');
+    };
   };
 
-  const syncDistance = () => {
-    distance = Number(distInput.value);
-    view.querySelector('#distanceLabel').textContent = distanceLabel(distance);
-  };
-
-  minInput.oninput = syncAge;
-  maxInput.oninput = syncAge;
-  distInput.oninput = syncDistance;
-  syncAge();
-  syncDistance();
-
-  view.querySelector('[data-action="save-filters"]').onclick = () => {
-    saveFilters({ ageMin, ageMax, distance });
-    navigate('people');
-  };
+  render();
 }
 
 export function connectedScreen(id) {
