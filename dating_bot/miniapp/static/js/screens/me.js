@@ -66,16 +66,6 @@ function mountSheet(markup, className = 'settings-overlay') {
   return overlay;
 }
 
-function verificationRow(verification) {
-  const state = resolveView(verification);
-  return `
-    <button class="verify-row verify-${state.tone}" data-action="verify">
-      <span class="verify-dot"></span>
-      <span>Проверка анкеты</span>
-      <span>${esc(state.short)}</span>
-    </button>`;
-}
-
 export async function meScreen(_id, token) {
   clearHeader();
   showLoading('Загружаем профиль...');
