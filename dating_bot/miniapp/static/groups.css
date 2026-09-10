@@ -3134,9 +3134,20 @@ body[data-route='group-media'] .view { padding: 0 !important; background: var(--
 .rsvp-list b { font-size: 15px; }
 .rsvp-list span { color: var(--yaqin-text-tertiary); font-size: 12px; }
 
-/* create event ticket chips */
-.create-chips button.on {
-  background: var(--yaqin-ink);
-  color: var(--yaqin-ink-inverse);
-  border-color: var(--yaqin-ink);
+.create-legal button.legal-inline {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--yaqin-link);
+  font: inherit;
+  font-weight: 600;
+}
+.create-event-page .settings-label {
+  margin: 16px 20px 8px;
+}
+.create-event-page .settings-row {
+  margin: 0 8px;
+}
+.create-event-page .create-chips {
+  margin-bottom: 12px;
 }
