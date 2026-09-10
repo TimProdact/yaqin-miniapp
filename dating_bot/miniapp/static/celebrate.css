@@ -49,7 +49,7 @@
   width: 100%;
   border: 0;
   border-radius: var(--yaqin-radius-pill);
-  padding: 14px 18px;
+  padding: 16px 20px;
   background: var(--yaqin-yellow);
   color: var(--yaqin-yellow-ink);
   font-size: var(--yaqin-fs-body);
@@ -60,7 +60,7 @@
   margin-top: 10px;
   border: 1.5px solid var(--yaqin-sep);
   border-radius: var(--yaqin-radius-pill);
-  padding: 12px 18px;
+  padding: 14px 20px;
   background: transparent;
   color: var(--yaqin-text);
   font-size: var(--yaqin-fs-secondary);

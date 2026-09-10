@@ -218,9 +218,11 @@ body[data-route='notifications'] .settings-row.toggle input:checked {
   border: 0;
   background: none;
   color: var(--yaqin-text-tertiary);
-  font-size: 20px;
-  width: 36px;
-  height: 36px;
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
 }
 
 .danger-block {

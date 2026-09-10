@@ -42,7 +42,7 @@ body[data-route='onboarding'] .view {
 .ob-card h1 {
   margin: 0 0 22px;
   text-align: center;
-  font-size: 28px;
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
 }
 .ob-perm {
@@ -142,7 +142,7 @@ body[data-route='onboarding'] .view {
 .ob-form h1,
 .ob-processing h1 {
   margin: 0;
-  font-size: 28px;
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;

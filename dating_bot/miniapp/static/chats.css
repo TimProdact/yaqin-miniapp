@@ -166,14 +166,14 @@
 .compose {
   position: fixed;
   right: max(var(--yaqin-gutter), calc(50% - 221px + var(--yaqin-gutter)));
-  bottom: 150px;
+  bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 12px);
   width: var(--yaqin-fab-size);
   height: var(--yaqin-fab-size);
   border: 0;
   border-radius: 50%;
   background: var(--yaqin-ink);
   color: var(--yaqin-ink-inverse);
-  font-size: 24px;
+  font-size: 22px;
   display: grid;
   place-items: center;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
@@ -202,7 +202,7 @@
 .chats-empty h2,
 .groups-empty h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--yaqin-fs-title-sm);
   font-weight: 700;
 }
 .chats-empty p,
@@ -258,8 +258,8 @@
   flex-direction: column;
 }
 .chat-top {
-  height: 48px;
-  min-height: 48px;
+  height: var(--yaqin-header-h);
+  min-height: var(--yaqin-header-h);
   flex-shrink: 0;
   border-bottom: 1px solid var(--yaqin-sep);
   display: grid;
@@ -270,13 +270,13 @@
 .chat-top button {
   border: 0;
   background: none;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--yaqin-text);
 }
 .chat-back {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
 }
@@ -446,9 +446,10 @@ body[data-route='new-dm'] .view {
 }
 
 .modal-head {
-  height: 52px;
+  height: var(--yaqin-header-h);
+  min-height: var(--yaqin-header-h);
   display: grid;
-  grid-template-columns: 56px 1fr auto;
+  grid-template-columns: 40px 1fr auto;
   align-items: center;
   column-gap: 4px;
   padding: 0 12px;
@@ -456,13 +457,13 @@ body[data-route='new-dm'] .view {
 .modal-head h1 {
   margin: 0;
   text-align: center;
-  font-size: 17px;
+  font-size: var(--yaqin-fs-modal);
   font-weight: 700;
 }
 .modal-head > button:not(.head-action),
 .modal-head > span {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: 0;
   background: none;
   color: var(--yaqin-text);
@@ -930,8 +931,8 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   background: var(--yaqin-link) !important;
 }
 .msg-send {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border: 0;
   border-radius: 50%;
   background: var(--yaqin-link);
@@ -1245,8 +1246,8 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   font-weight: 600;
 }
 .group-hub-member img {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -1267,8 +1268,8 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
 .group-hub-invite {
   border: 0;
   border-radius: var(--yaqin-radius-pill);
-  padding: 14px 16px;
-  font-size: 16px;
+  padding: 16px 20px;
+  font-size: var(--yaqin-fs-body);
   font-weight: 700;
 }
 .group-hub-chat {
@@ -1373,8 +1374,8 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   font: inherit;
 }
 .group-chat-lite .chat-compose button {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: 0;
   border-radius: 50%;
   background: var(--yaqin-ink);
@@ -1447,7 +1448,7 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
 }
 .groups-tab-empty h2 {
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: var(--yaqin-fs-title-sm);
 }
 .groups-tab-empty p {
   margin: 0 0 20px;

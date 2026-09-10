@@ -206,7 +206,7 @@ body.safety-open .person-view {
 .report-flow h2 {
   margin: 12px 0 18px;
   text-align: center;
-  font-size: 26px;
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
   line-height: 1.2;
 }

@@ -1,8 +1,9 @@
 /* Лента людей. Метрики сняты с design/bff-ios-jan-2026/04-discover/card--040.png (393pt). */
 
 .app-header.discover-header {
-  height: 56px;
-  padding: 0 16px;
+  height: var(--yaqin-header-h);
+  min-height: var(--yaqin-header-h);
+  padding: 0 var(--yaqin-gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -11,6 +12,10 @@
   font-size: 26px;
   line-height: 1;
   color: var(--yaqin-text);
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
 }
 .discover-header .city {
   display: flex;
@@ -31,7 +36,11 @@
   border: 0;
   background: none;
   color: var(--yaqin-text);
-  font-size: 23px;
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  display: grid;
+  place-items: center;
 }
 
 body[data-route='people'] .view {
@@ -346,7 +355,7 @@ body[data-route='people'] .view {
 }
 .empty-card h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -398,7 +407,8 @@ body[data-route='filters'] .view {
   box-sizing: border-box;
 }
 .filters-head {
-  height: 48px;
+  height: var(--yaqin-header-h);
+  min-height: var(--yaqin-header-h);
   display: grid;
   grid-template-columns: 40px 1fr 40px;
   align-items: center;
@@ -417,7 +427,7 @@ body[data-route='filters'] .view {
 .filters-head h1 {
   margin: 0;
   text-align: center;
-  font-size: 17px;
+  font-size: var(--yaqin-fs-modal);
   font-weight: 700;
 }
 
@@ -546,9 +556,9 @@ body[data-route='filters'] .view {
   border-radius: 999px;
   background: var(--yaqin-text);
   color: var(--yaqin-ink-inverse);
-  font-size: 16px;
+  font-size: var(--yaqin-fs-body);
   font-weight: 700;
-  padding: 14px 32px;
+  padding: 16px 20px;
 }
 
 .filter-interests {

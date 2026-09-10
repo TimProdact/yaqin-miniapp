@@ -25,8 +25,33 @@ html, body {
   flex: 0 0 auto;
   position: relative;
   z-index: 20;
+  height: var(--yaqin-header-h);
+  min-height: var(--yaqin-header-h);
+  padding: 0 var(--yaqin-gutter);
+  box-sizing: border-box;
   background: var(--yaqin-surface);
   color: var(--yaqin-text);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: var(--yaqin-fs-modal);
+  font-weight: 700;
+}
+.app-header p {
+  margin: 2px 0 0;
+  font-size: var(--yaqin-fs-caption);
+  color: var(--yaqin-text-secondary);
+}
+.app-header .theme-button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: none;
+  color: var(--yaqin-text);
+  font-size: 22px;
+  display: grid;
+  place-items: center;
 }
 
 .view {
@@ -66,22 +91,32 @@ body.full-screen .view {
 .me-top,
 .gchat-top,
 .sheet-head,
-.picker-head {
+.picker-head,
+.chat-top,
+.screen-head {
   position: sticky;
   top: 0;
   z-index: 15;
   background: var(--yaqin-surface);
   color: var(--yaqin-text);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  min-height: var(--yaqin-header-h);
+  height: var(--yaqin-header-h);
 }
 
-.chats-head,
-.modal-head,
-.filters-head,
-.me-top,
-.gchat-top,
 .sheet-head {
-  flex-shrink: 0;
-  min-height: var(--yaqin-header-h);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 var(--yaqin-gutter);
+}
+.sheet-head h1 {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: var(--yaqin-fs-modal);
+  font-weight: 600;
 }
 
 .me-tabs {
@@ -95,10 +130,45 @@ body.full-screen .view {
   border-bottom: 1px solid var(--yaqin-sep-soft);
 }
 
+/* Shared header icon tap targets */
+.chats-head button,
+.filters-head button,
+.modal-head > button:not(.head-action),
+.sheet-head button,
+.picker-head button,
+.chat-top button,
+.screen-head button,
+.me-top button,
+.account-row > button {
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+}
+
+/* Shared primary pill CTA */
+.empty-primary,
+.filters-save,
+.connected-cta,
+.celebrate-primary,
+.verify-cta,
+.ob-next,
+.photos-save,
+.taneesh-buy-block,
+.group-hub-chat,
+.feedback-submit {
+  padding: 16px 20px !important;
+  font-size: var(--yaqin-fs-body) !important;
+  font-weight: 700;
+  border-radius: var(--yaqin-radius-pill);
+}
+
 .compose {
   bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 12px) !important;
   width: var(--yaqin-fab-size) !important;
   height: var(--yaqin-fab-size) !important;
+  font-size: 22px !important;
 }
 
 @media (min-width: 520px) {

@@ -287,7 +287,7 @@
   width: 100%;
   border: 1.5px solid var(--yaqin-sep);
   border-radius: var(--yaqin-radius-pill);
-  padding: 14px 20px;
+  padding: 16px 20px;
   background: transparent;
   color: var(--yaqin-text);
   font-size: var(--yaqin-fs-body);
@@ -331,8 +331,8 @@
   flex: 1;
 }
 .taneesh-who-row img {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
 }

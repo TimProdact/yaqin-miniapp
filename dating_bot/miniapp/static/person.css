@@ -90,7 +90,7 @@ body.sheet-view .view {
 .person-head h1 {
   margin: 0;
   max-width: none;
-  font-size: 32px;
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -121,13 +121,13 @@ body.sheet-view .view {
   top: auto;
   right: auto;
   flex: 0 0 auto;
-  width: 66px;
-  height: 66px;
+  width: 72px;
+  height: 72px;
   border: 0;
   border-radius: 50%;
   background: var(--yaqin-yellow);
   color: var(--yaqin-yellow-ink);
-  font-size: 34px;
+  font-size: 38px;
   display: grid;
   place-items: center;
   box-shadow: none;

@@ -23,6 +23,7 @@ body[data-route='create-event'] .view {
   margin: 12px auto 8px;
   border-radius: 20px;
 }
+.create-cover {
   width: 112px;
   height: 112px;
   margin: 18px auto 20px;

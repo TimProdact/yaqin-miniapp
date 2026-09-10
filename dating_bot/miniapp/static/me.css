@@ -251,15 +251,15 @@ body.profile-open .view {
   position: absolute;
   right: 16px;
   bottom: 16px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border: 0;
   border-radius: 50%;
   background: rgba(23,23,25,.72);
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 16px;
+  font-size: 18px;
   z-index: 2;
 }
 .me-hero:has(.me-dots) .edit-photos-btn {
@@ -284,7 +284,7 @@ body.profile-open .view {
 }
 .edit-photos-page h1 {
   margin: 8px 0 8px;
-  font-size: 28px;
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
 }
 .photos-lead {
@@ -355,9 +355,9 @@ body.profile-open .view {
   border-radius: 999px;
   background: var(--yaqin-text);
   color: var(--yaqin-ink-inverse);
-  font-size: 17px;
-  font-weight: 600;
-  padding: 16px;
+  font-size: var(--yaqin-fs-body);
+  font-weight: 700;
+  padding: 16px 20px;
   z-index: 5;
 }
 
@@ -411,8 +411,8 @@ body.profile-open .view {
 .edit-photos-fab {
   right: 16px;
   bottom: 48px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(23,23,25,.72);
   color: #fff;
@@ -543,12 +543,14 @@ body[data-route='edit-photos'] .view {
 .picker-head {
   display: flex;
   align-items: center;
+  gap: 4px;
   margin-bottom: 12px;
+  padding: 0;
 }
 .picker-head button {
   border: 0;
   background: none;
-  font-size: 24px;
+  font-size: 22px;
   color: var(--yaqin-text);
 }
 .pick-slot {

@@ -62,7 +62,7 @@ body[data-route='verify'] .view {
 .verify-intro h1,
 .verify-submitted h1 {
   margin: 0;
-  font-size: 32px;
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -102,14 +102,14 @@ body[data-route='verify'] .view {
   border-radius: var(--yaqin-radius-pill);
   background: var(--yaqin-text);
   color: var(--yaqin-ink-inverse);
-  font-size: 17px;
-  font-weight: 600;
-  padding: 16px 40px;
+  font-size: var(--yaqin-fs-body);
+  font-weight: 700;
+  padding: 16px 20px;
 }
 
 .verify-brand {
   margin-top: 48px;
-  font-size: 28px;
+  font-size: var(--yaqin-fs-title);
   color: var(--yaqin-text);
 }
 .verify-check {
