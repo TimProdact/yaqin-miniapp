@@ -235,7 +235,7 @@ export function createGroupScreen() {
         <header class="modal-head">
           <button data-action="groups" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <h1>Создать группу</h1>
-          <button class="head-action ${canCreate ? 'on coral' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>Создать</button>
+          <span></span>
         </header>
 
         <div class="create-cover ${cover ? 'has-photo' : ''}">
@@ -259,6 +259,10 @@ export function createGroupScreen() {
             ? 'Любая может вступить сразу и писать в чат.'
             : 'Вход только по заявке. Вы принимаете участниц вручную.'}
         </p>
+
+        <div class="create-sticky-cta">
+          <button type="button" class="create-submit ${canCreate ? 'on' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>Создать</button>
+        </div>
       </div>`;
 
     view.querySelector('#groupName').oninput = event => {
@@ -267,7 +271,6 @@ export function createGroupScreen() {
       const ready = name.trim().length > 1;
       btn.disabled = !ready;
       btn.classList.toggle('on', ready);
-      btn.classList.toggle('coral', ready);
     };
     view.querySelector('#setCover').onclick = () => {
       cover = nextCover(coverIndex++);
@@ -525,7 +528,7 @@ export function createEventScreen() {
         <header class="modal-head">
           <button data-action="events" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <h1>Новое событие</h1>
-          <button class="head-action coral ${ready ? 'on' : ''}" id="createEventBtn" ${ready ? '' : 'disabled'}>Создать</button>
+          <span></span>
         </header>
 
         <div class="create-cover create-event-cover ${cover ? 'has-photo' : ''}">
@@ -567,6 +570,10 @@ export function createEventScreen() {
             ? 'Гость записывается бесплатно и получает QR для входа.'
             : `Гость бронирует место бесплатно, на входе платит ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'указанную сумму'} и показывает QR.`}
         </p>
+
+        <div class="create-sticky-cta">
+          <button type="button" class="create-submit ${ready ? 'on' : ''}" id="createEventBtn" ${ready ? '' : 'disabled'}>Создать</button>
+        </div>
       </div>
 
       ${sheet === 'when' ? `

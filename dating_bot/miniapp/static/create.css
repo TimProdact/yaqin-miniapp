@@ -14,7 +14,7 @@ body[data-route='create-event'] .view {
 .create-event-page {
   min-height: 100%;
   background: var(--yaqin-bg);
-  padding: 4px 0 40px;
+  padding: 4px 0 calc(100px + env(safe-area-inset-bottom, 0px));
 }
 .create-event-cover {
   width: min(100%, 220px);
@@ -243,6 +243,34 @@ body[data-route='create-event'] .view {
   font-size: 13px;
   color: var(--yaqin-text-tertiary);
   line-height: 1.4;
+}
+.create-sticky-cta {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: min(442px, 100%);
+  padding: 12px var(--yaqin-gutter) calc(16px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, transparent, var(--yaqin-bg) 28%);
+  z-index: 20;
+  box-sizing: border-box;
+}
+.create-submit {
+  width: 100%;
+  border: 0;
+  border-radius: var(--yaqin-radius-pill);
+  padding: 16px 20px;
+  font-size: var(--yaqin-fs-body);
+  font-weight: 700;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text-tertiary);
+}
+.create-submit.on {
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
+}
+.create-submit:disabled {
+  opacity: 1;
 }
 .create-legal a,
 .create-legal button.legal-inline {
