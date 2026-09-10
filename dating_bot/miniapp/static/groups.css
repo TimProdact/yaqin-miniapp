@@ -3133,3 +3133,10 @@ body[data-route='group-media'] .view { padding: 0 !important; background: var(--
 }
 .rsvp-list b { font-size: 15px; }
 .rsvp-list span { color: var(--yaqin-text-tertiary); font-size: 12px; }
+
+/* create event ticket chips */
+.create-chips button.on {
+  background: var(--yaqin-ink);
+  color: var(--yaqin-ink-inverse);
+  border-color: var(--yaqin-ink);
+}

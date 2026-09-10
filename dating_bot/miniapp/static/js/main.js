@@ -13,6 +13,7 @@ import {
 } from './screens/safety.js';
 import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen, myTicketsScreen } from './screens/taneesh-events.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, showMessageMenu, closeMessageMenu } from './screens/chats.js';
+import { createGroupScreen, createEventScreen, groupChatScreen } from './screens/community.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
@@ -90,10 +91,13 @@ registerScreens({
   checkout: ticketCheckoutScreen,
   ticket: ticketScreen,
   'my-tickets': myTicketsScreen,
+  'create-event': createEventScreen,
   chats: chatsScreen,
   chat: chatScreen,
   search: searchChatsScreen,
   'new-dm': newDmScreen,
+  'create-group': createGroupScreen,
+  'group-chat': groupChatScreen,
   me: meScreen,
   settings: settingsScreen,
   blocked: blockedScreen,
@@ -109,6 +113,12 @@ registerScreens({
   onboarding: onboardingScreen,
   verify: verifyScreen
 });
+
+function parseRouteId(id) {
+  if (id === undefined || id === '') return undefined;
+  if (/^-?\d+$/.test(String(id))) return Number(id);
+  return id;
+}
 
 async function submitProfile() {
   const value = id => view.querySelector(`#${id}`)?.value.trim() ?? '';
@@ -166,12 +176,12 @@ async function handleAction(target) {
     closeSettingsOverlay();
     closeSafetyOverlay();
     closeMessageMenu();
-    return navigate(action, id);
+    return navigate(action, parseRouteId(id));
   }
   closeSettingsOverlay();
   closeSafetyOverlay();
   closeMessageMenu();
-  return navigate(action, id === undefined ? undefined : Number(id));
+  return navigate(action, parseRouteId(id));
 }
 
 document.querySelectorAll('.nav button').forEach(button => {

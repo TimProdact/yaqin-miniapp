@@ -1,7 +1,8 @@
-import { events, people, defaultProfile } from '../data.js';
+import { people, defaultProfile } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { getState, saveState } from '../state.js';
 import { navigate } from '../router.js';
+import { allEvents, findEvent } from './community.js';
 
 const TANEESH_STORE = 'https://apps.apple.com/search?term=Taneesh';
 
@@ -76,7 +77,8 @@ function meGuest() {
 }
 
 function goingForEvent(eventId) {
-  const demo = DEMO_GOING[Number(eventId)] || DEMO_GOING[0];
+  const key = Number(eventId);
+  const demo = Number.isFinite(key) && DEMO_GOING[key] ? DEMO_GOING[key] : (Number.isFinite(key) ? DEMO_GOING[0] : []);
   const mine = (getState().eventGoing || {})[eventId];
   if (!mine) return demo;
   return [mine, ...demo.filter(person => person.id !== 'me')];
@@ -120,19 +122,23 @@ export function taneeshEventsScreen() {
   const status = activationStatus();
   const interested = getState().eventInterest || {};
   const tickets = getTickets();
+  const feed = allEvents();
 
   view.innerHTML = `
     <div class="events-feed-page">
       <header class="chats-head">
         <h1>События</h1>
-        <button data-action="my-tickets" aria-label="Билеты">
-          <i class="ti ti-ticket"></i>
-          ${tickets.length ? `<b class="ticket-count">${tickets.length}</b>` : ''}
-        </button>
+        <div class="events-head-actions">
+          <button data-action="my-tickets" aria-label="Билеты">
+            <i class="ti ti-ticket"></i>
+            ${tickets.length ? `<b class="ticket-count">${tickets.length}</b>` : ''}
+          </button>
+          <button data-action="create-event" aria-label="Создать"><i class="ti ti-plus"></i></button>
+        </div>
       </header>
 
       <p class="events-feed-lead">
-        Афиша Taneesh. Можно отметить «хочу пойти» и купить билет здесь.
+        Афиша Taneesh и ваши события. Можно отметить «хочу пойти» и купить билет здесь.
       </p>
 
       ${status !== 'active' ? `
@@ -145,15 +151,17 @@ export function taneeshEventsScreen() {
         </button>` : ''}
 
       <div class="events-feed">
-        ${events.map(event => {
+        ${feed.map(event => {
           const want = interested[event.id] || (getState().eventGoing || {})[event.id];
           const owned = ticketForEvent(event.id);
           const goingPreview = goingForEvent(event.id).slice(0, 3);
+          const source = event.source === 'yaqin' ? 'Yaqin' : 'Taneesh';
           return `
             <article class="taneesh-event-card">
-              <button type="button" class="taneesh-event-hit" data-action="event" data-id="${event.id}">
+              <button type="button" class="taneesh-event-hit" data-action="event" data-id="${esc(event.id)}">
                 <img src="${esc(event.photo)}" alt="">
                 <div class="taneesh-event-copy">
+                  <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${source}</em>
                   <strong>${esc(event.title)}</strong>
                   <span>${esc(event.when)}</span>
                   <span>${esc(event.place)}</span>
@@ -166,10 +174,10 @@ export function taneeshEventsScreen() {
                   <span>${goingForEvent(event.id).length} хотят пойти</span>
                 </div>
                 <div class="taneesh-event-actions">
-                  <button type="button" class="taneesh-chip ${want ? 'on' : ''}" data-action="event" data-id="${event.id}">
+                  <button type="button" class="taneesh-chip ${want ? 'on' : ''}" data-action="event" data-id="${esc(event.id)}">
                     ${want ? 'Иду' : 'Хочу пойти'}
                   </button>
-                  <button type="button" class="taneesh-buy ${owned ? 'owned' : ''}" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? owned.id : event.id}">
+                  <button type="button" class="taneesh-buy ${owned ? 'owned' : ''}" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
                     ${buyLabel(event)}
                   </button>
                 </div>
@@ -191,7 +199,7 @@ export function taneeshEventsScreen() {
 /** Карточка события: кто идёт + хочу пойти + билет. */
 export function taneeshEventDetailScreen(id) {
   clearHeader();
-  const event = events[Number(id) || 0] || events[0];
+  const event = findEvent(id);
   const owned = ticketForEvent(event.id);
   let composerOpen = false;
   let draft = ((getState().eventGoing || {})[event.id]?.message) || '';
@@ -207,6 +215,7 @@ export function taneeshEventDetailScreen(id) {
         </header>
         <img class="taneesh-detail-cover" src="${esc(event.photo)}" alt="">
         <div class="taneesh-detail-body">
+          <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${event.source === 'yaqin' ? 'Yaqin' : 'Taneesh'}</em>
           <h2>${esc(event.title)}</h2>
           <p class="taneesh-detail-price">${esc(priceLabel(event))}</p>
           <ul class="taneesh-detail-meta">
@@ -234,7 +243,7 @@ export function taneeshEventDetailScreen(id) {
                 ${mine ? 'Вы идёте · изменить' : 'Хочу пойти'}
               </button>
               ${mine ? `<button type="button" class="taneesh-chip block" id="leaveWant">Не иду</button>` : ''}
-              <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? owned.id : event.id}">
+              <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
                 ${owned ? 'Открыть билет' : buyLabel(event)}
               </button>
             </div>
@@ -272,7 +281,7 @@ export function taneeshEventDetailScreen(id) {
 /** Чекаут билета (демо-оплата). */
 export function ticketCheckoutScreen(eventId) {
   clearHeader();
-  const event = events[Number(eventId) || 0] || events[0];
+  const event = findEvent(eventId);
   const existing = ticketForEvent(event.id);
   if (existing) {
     navigate('ticket', existing.id);
