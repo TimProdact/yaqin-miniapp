@@ -56,3 +56,8 @@
 body:not(.full-screen) .view {
   padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom) + 16px);
 }
+
+/* nav.css ставит display:grid !important — без этого поле ввода в чате перекрывается таббаром */
+body.full-screen .nav {
+  display: none !important;
+}

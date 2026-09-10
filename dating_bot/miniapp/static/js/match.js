@@ -1,18 +1,30 @@
 import { getState, saveState, addToList } from './state.js';
 import { people, chats as seedChats } from './data.js';
 
-const TEAM_CHAT = {
+const TEAM_SEED = [
+  { from: 'them', name: 'Команда Yaqin', text: 'Добро пожаловать в Yaqin ✨', time: '2 д' }
+];
+
+const TEAM_CHAT_META = {
   personId: null,
   name: 'Команда Yaqin',
   preview: 'Добро пожаловать в Yaqin ✨',
   photo: null,
   unread: false,
   time: '2 д',
-  team: true,
-  messages: [
-    { from: 'them', name: 'Команда Yaqin', text: 'Добро пожаловать в Yaqin ✨', time: '2 д' }
-  ]
+  team: true
 };
+
+function getTeamChat() {
+  const messages = getState().teamMessages?.length ? getState().teamMessages : TEAM_SEED;
+  const last = messages[messages.length - 1];
+  return {
+    ...TEAM_CHAT_META,
+    preview: last?.text || (last?.image ? 'Фото' : TEAM_CHAT_META.preview),
+    time: last?.time || TEAM_CHAT_META.time,
+    messages: [...messages]
+  };
+}
 
 export function hasIncomingWave(personId) {
   return (getState().incomingWaves || []).map(Number).includes(Number(personId));
@@ -36,7 +48,7 @@ export function listDmChats() {
 }
 
 export function listVisibleChats() {
-  return [...listDmChats(), TEAM_CHAT];
+  return [...listDmChats(), getTeamChat()];
 }
 
 export function chatIndexForPerson(personId) {
@@ -102,6 +114,9 @@ export function unreadChatCount() {
 }
 
 export function appendChatMessage(personId, message) {
+  if (personId == null || personId === 'team') {
+    return appendTeamMessage(message);
+  }
   const state = getState();
   const chats = (state.userChats || []).map(chat => ({ ...chat, messages: [...(chat.messages || [])] }));
   const chat = chats.find(item => item.personId === Number(personId));
@@ -112,6 +127,13 @@ export function appendChatMessage(personId, message) {
   chat.unread = false;
   saveState({ ...state, userChats: chats });
   return chat;
+}
+
+export function appendTeamMessage(message) {
+  const state = getState();
+  const messages = [...(state.teamMessages?.length ? state.teamMessages : TEAM_SEED), message];
+  saveState({ ...state, teamMessages: messages });
+  return getTeamChat();
 }
 
 export function markChatRead(personId) {

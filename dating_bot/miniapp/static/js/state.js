@@ -6,6 +6,7 @@ const initialState = {
   incomingWaves: [1, 3, 7],
   matches: [],
   userChats: [],
+  teamMessages: [],
   skipped: [],
   blocked: [],
   profile: null,

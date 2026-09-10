@@ -234,7 +234,7 @@ export function chatScreen(id) {
         </button>
         <div class="chat-peer">
           <h1>${esc(chat.name)}</h1>
-          <p>${chat.team ? 'Yaqin' : 'Чат'}</p>
+          ${chat.team ? '' : '<p>Чат</p>'}
         </div>
         ${chat.personId ? `<button id="chatMenuBtn" aria-label="Ещё"><i class="ti ti-dots"></i></button>` : '<span></span>'}
       </header>
@@ -256,25 +256,21 @@ export function chatScreen(id) {
         ${messages.map(renderMessage).join('')}
       </main>
 
-      ${chat.team ? '' : `
-        ${ui.attachPhoto ? `
-          <div class="draft-attach">
-            <img src="${esc(ui.attachPhoto)}" alt="">
-            <button type="button" id="clearAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
-          </div>` : ''}
-        <div class="message-bar">
-          <button class="msg-add" id="attachPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
-          <label class="msg-field">
-            <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
-          </label>
-          <button class="msg-send ${hasDraft ? 'on' : ''}" id="sendMsg" aria-label="Отправить" ${hasDraft ? '' : 'disabled'}>
-            <i class="ti ti-arrow-up"></i>
-          </button>
-        </div>
-      `}
+      ${ui.attachPhoto ? `
+        <div class="draft-attach">
+          <img src="${esc(ui.attachPhoto)}" alt="">
+          <button type="button" id="clearAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
+        </div>` : ''}
+      <div class="message-bar">
+        <button class="msg-add" id="attachPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
+        <label class="msg-field">
+          <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
+        </label>
+        <button class="msg-send ${hasDraft ? 'on' : ''}" id="sendMsg" aria-label="Отправить" ${hasDraft ? '' : 'disabled'}>
+          <i class="ti ti-arrow-up"></i>
+        </button>
+      </div>
     </div>`;
-
-  if (chat.team) return;
 
   const input = view.querySelector('#msgInput');
   input?.addEventListener('input', () => {
@@ -306,7 +302,7 @@ export function chatScreen(id) {
   });
   view.querySelector('#sendMsg')?.addEventListener('click', () => {
     if (!ui.draft.trim() && !ui.attachPhoto) return;
-    appendChatMessage(chat.personId, {
+    appendChatMessage(chat.team ? 'team' : chat.personId, {
       from: 'me',
       name: 'Вы',
       text: ui.draft.trim(),
