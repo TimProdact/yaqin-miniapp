@@ -190,6 +190,44 @@ export const events = [
     price: 30000,
     fee: 0,
     currency: 'UZS'
+  },
+  {
+    id: 3,
+    title: 'Открытый пикник у канала',
+    when: 'Вс, 21 сен · 16:00–19:00',
+    day: '21',
+    month: 'сен',
+    place: 'Канал Анхор',
+    address: 'Ташкент, набережная',
+    group: 'Девушки Ташкента',
+    host: 'Сара',
+    going: 9,
+    photo: PHOTOS.palms,
+    isFree: true,
+    ticketMode: 'free',
+    freeEntryMode: 'open',
+    price: 0,
+    fee: 0,
+    currency: 'UZS'
+  },
+  {
+    id: 4,
+    title: 'Книжный вечер',
+    when: 'Чт, 18 сен · 19:00–21:00',
+    day: '18',
+    month: 'сен',
+    place: 'Коворкинг Loom',
+    address: 'Мирабад',
+    group: 'Книжный клуб',
+    host: 'Аня',
+    going: 5,
+    photo: PHOTOS.books,
+    isFree: true,
+    ticketMode: 'free',
+    freeEntryMode: 'register',
+    price: 0,
+    fee: 0,
+    currency: 'UZS'
   }
 ];
 

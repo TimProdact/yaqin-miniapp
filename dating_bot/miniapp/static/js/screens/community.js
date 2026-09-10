@@ -508,6 +508,7 @@ export function groupHubScreen(id) {
 
         <div class="people-going-wrap">
           ${peopleGoingBlockHtml(wanting, {
+            key: 'group-wanting',
             title: 'Хотят пойти',
             empty: 'Пока никто не отметил интерес к встречам'
           })}
@@ -527,7 +528,7 @@ export function groupHubScreen(id) {
       </div>
     </div>`;
 
-  bindPeopleGoingBlock(view, wanting, { title: 'Хотят пойти' });
+  bindPeopleGoingBlock(view, wanting, { key: 'group-wanting', title: 'Хотят пойти' });
 
   const share = () => {
     const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
@@ -714,6 +715,7 @@ export function createEventScreen() {
   let cover = null;
   let coverIndex = 0;
   let ticketMode = 'free';
+  let freeEntryMode = 'open'; // open = свободный вход · register = с записью + QR
   let doorPrice = '50000';
   let paidPrice = '45000';
   let capacity = '30';
@@ -937,6 +939,17 @@ export function createEventScreen() {
           </button>
         </div>
 
+        ${ticketMode === 'free' ? `
+          <div class="create-chips" id="freeEntryChips">
+            <button type="button" class="${freeEntryMode === 'open' ? 'on' : ''}" data-free-entry="open">
+              Свободный вход
+            </button>
+            <button type="button" class="${freeEntryMode === 'register' ? 'on' : ''}" data-free-entry="register">
+              С регистрацией
+            </button>
+          </div>
+        ` : ''}
+
         ${ticketMode === 'door' ? `
           <label class="create-price-field">
             <span>Сумма на входе</span>
@@ -958,9 +971,11 @@ export function createEventScreen() {
 
         <p class="create-legal">
           ${ticketMode === 'free'
-            ? 'Гость записывается бесплатно и получает QR для входа.'
+            ? (freeEntryMode === 'register'
+              ? 'Гость записывается бесплатно и получает QR. «Хочу пойти» — отдельно, без QR.'
+              : 'Свободный вход: без записи и QR. Гость может только отметить «Хочу пойти».')
             : ticketMode === 'paid'
-              ? `Гость оплачивает ${paidSum ? paidSum.toLocaleString('ru-RU') + ' сум' : 'билет'} в Mini App и получает QR.`
+              ? `Гость оплачивает ${paidSum ? paidSum.toLocaleString('ru-RU') + ' сум' : 'билет'} в Mini App и получает QR. Интерес — отдельно.`
               : `Гость бронирует место бесплатно, на входе платит ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'указанную сумму'} и показывает QR.`}
         </p>
 
@@ -1017,6 +1032,12 @@ export function createEventScreen() {
       button.onclick = () => {
         const mode = button.dataset.mode;
         ticketMode = mode === 'door' || mode === 'paid' ? mode : 'free';
+        render();
+      };
+    });
+    view.querySelectorAll('[data-free-entry]').forEach(button => {
+      button.onclick = () => {
+        freeEntryMode = button.dataset.freeEntry === 'register' ? 'register' : 'open';
         render();
       };
     });
@@ -1153,6 +1174,7 @@ export function createEventScreen() {
         going: 1,
         photo: cover || nextCover(1),
         isFree: ticketMode === 'free',
+        freeEntryMode: ticketMode === 'free' ? freeEntryMode : undefined,
         ticketMode,
         paymentMode: ticketMode === 'door' ? 'at_door' : ticketMode === 'paid' ? 'online' : undefined,
         price,
@@ -1200,9 +1222,11 @@ export function createEventScreen() {
       showCelebrate({
         title: 'Событие создано',
         subtitle: ticketMode === 'free'
-          ? 'Гости запишутся и получат QR. Ваш QR уже в «Билеты».'
+          ? (freeEntryMode === 'register'
+            ? 'Гости запишутся и получат QR. Интерес — отдельно.'
+            : 'Свободный вход: гости отмечают интерес без QR.')
           : ticketMode === 'paid'
-            ? 'Гости оплатят онлайн и получат QR. Ваш QR уже в «Билеты».'
+            ? 'Гости оплатят онлайн и получат QR. Интерес — отдельно.'
             : 'Гости бронируют место, платят на входе и показывают QR.',
         primaryLabel: 'Открыть QR',
         secondaryLabel: 'К событию',

@@ -1,4 +1,4 @@
-/** Универсальный блок «Кто идёт»: горизонтальный превью → полный список по тапу. */
+/** Универсальный блок «Кто идёт» / «Хотят пойти»: превью → sheet по тапу. */
 import { esc } from './dom.js';
 import { navigate } from './router.js';
 
@@ -40,19 +40,21 @@ function rowHtml(person) {
     </${isMe ? 'div' : 'button'}>`;
 }
 
-/** Превью-карточка (горизонтальный ряд). */
+/** Превью-карточка (горизонтальный ряд). `key` — для нескольких блоков на экране. */
 export function peopleGoingBlockHtml(people = [], {
   title = 'Кто идёт',
   empty = 'Пока никого',
-  previewLimit = PREVIEW_LIMIT
+  previewLimit = PREVIEW_LIMIT,
+  key = 'default'
 } = {}) {
   const list = Array.isArray(people) ? people : [];
   const count = list.length;
   const preview = list.slice(0, previewLimit);
+  const keyAttr = esc(String(key));
 
   if (!count) {
     return `
-      <section class="people-going-block is-empty" aria-label="${esc(title)}">
+      <section class="people-going-block is-empty" aria-label="${esc(title)}" data-people-going-key="${keyAttr}">
         <div class="people-going-head">
           <h3>${esc(title)}</h3>
           <span>0</span>
@@ -62,7 +64,7 @@ export function peopleGoingBlockHtml(people = [], {
   }
 
   return `
-    <button type="button" class="people-going-block" data-people-going-open aria-label="${esc(title)}, ${count}">
+    <button type="button" class="people-going-block" data-people-going-open="${keyAttr}" aria-label="${esc(title)}, ${count}">
       <div class="people-going-head">
         <h3>${esc(title)}</h3>
         <span>${count} <i class="ti ti-chevron-right"></i></span>
@@ -115,9 +117,10 @@ export function showPeopleGoingSheet(people = [], { title = 'Кто идёт' } 
   document.body.classList.add('people-going-open');
 }
 
-/** Навесить открытие sheet на блок внутри root. */
-export function bindPeopleGoingBlock(root, people, options) {
-  root?.querySelector('[data-people-going-open]')?.addEventListener('click', () => {
+/** Навесить открытие sheet на блок с данным key (по умолчанию — первый / default). */
+export function bindPeopleGoingBlock(root, people, options = {}) {
+  const key = String(options.key || 'default');
+  root?.querySelector(`[data-people-going-open="${key}"]`)?.addEventListener('click', () => {
     showPeopleGoingSheet(people, options);
   });
 }

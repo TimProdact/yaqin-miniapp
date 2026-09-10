@@ -8,19 +8,43 @@ import { isLive } from '../api.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
 
-const DEMO_GOING = {
+/** Демо: купили билет / записались (жёсткое участие). */
+const DEMO_ATTENDING = {
   0: [
-    { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Новенькая в Мирабаде, давайте сходим на кофе ☕' },
-    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: 'Могу подсказать маршрут по улице' },
-    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: '' }
+    { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Билет куплен' },
+    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: 'Билет куплен' }
   ],
   1: [
-    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: 'Беру билет на вечерний сеанс' },
-    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: 'Кто за попкорн после?' }
+    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: 'Билет куплен' }
   ],
   2: [
-    { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Утром на пробежку — буду рада компании' },
-    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: '' }
+    { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Бронь · оплата на входе' }
+  ],
+  4: [
+    { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Запись оформлена' },
+    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: 'Запись оформлена' }
+  ]
+};
+
+/** Демо: нажали «Хочу пойти», но ещё без билета/записи. */
+const DEMO_WANT = {
+  0: [
+    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: 'Пока только интерес' }
+  ],
+  1: [
+    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: 'Кто за попкорн после?' },
+    { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Думаю взять билет' }
+  ],
+  2: [
+    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: 'Ещё не забронировала' }
+  ],
+  3: [
+    { id: 1, name: 'Малика', age: 26, photo: people[0].photo, message: 'Планирую прийти' },
+    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: 'Если будет хорошая погода' },
+    { id: 3, name: 'Аня', age: 24, photo: people[2].photo, message: '' }
+  ],
+  4: [
+    { id: 2, name: 'Мила', age: 27, photo: people[1].photo, message: 'Ещё не записалась' }
   ]
 };
 
@@ -73,37 +97,86 @@ function isFreeMode(event) {
   return mode === 'free' || (!mode && !Number(event?.price));
 }
 
+/** Свободный вход без регистрации — второй кнопки нет. */
+function isOpenWalkIn(event) {
+  if (!isFreeMode(event) || isDoorMode(event)) return false;
+  const mode = event?.freeEntryMode || 'open';
+  return mode === 'open' || mode === 'walkin';
+}
+
+/** Нужен учёт гостей: онлайн / на входе / бесплатно с регистрацией. */
+function needsGuestPass(event) {
+  if (isDoorMode(event)) return true;
+  if (!isFreeMode(event)) return true;
+  const mode = event?.freeEntryMode;
+  return mode === 'approval' || mode === 'register' || mode === 'rsvp';
+}
+
 function priceLabel(event) {
-  if (isFreeMode(event) && !isDoorMode(event)) return 'Бесплатно';
+  if (isOpenWalkIn(event)) return 'Свободный вход';
+  if (isFreeMode(event) && !isDoorMode(event)) return 'Бесплатно · с записью';
   if (isDoorMode(event)) return `на входе · ${money(event.price)}`;
   return money(event.price);
 }
 
-function buyLabel(event) {
+function hardPassLabel(event) {
   if (ticketForEvent(event.id)) return 'Мой билет';
-  if (isFreeMode(event) && !isDoorMode(event)) return 'Записаться';
-  if (isDoorMode(event)) return 'Забронировать';
+  if (isDoorMode(event)) return 'Оформить бронь';
+  if (isFreeMode(event)) return 'Записаться';
   return 'Купить билет';
 }
 
-function meGuest() {
+function meGuest(message = '') {
   const profile = getState().profile || defaultProfile;
   return {
     id: 'me',
     name: profile.name || defaultProfile.name,
     age: profile.age || defaultProfile.age,
     photo: profile.photo || defaultProfile.photo,
-    message: ''
+    message
   };
 }
 
-function goingForEvent(eventId) {
+function demoList(map, eventId) {
   const key = Number(eventId);
-  const demoRaw = Number.isFinite(key) && DEMO_GOING[key] ? DEMO_GOING[key] : [];
-  const demo = demoRaw.map(person => ({ ...person, demo: true }));
-  const mine = (getState().eventGoing || {})[eventId];
+  const raw = Number.isFinite(key) && map[key] ? map[key] : [];
+  return raw.map(person => ({ ...person, demo: true }));
+}
+
+function mergeMeFirst(demo, mine) {
   if (!mine) return demo;
   return [mine, ...demo.filter(person => person.id !== 'me' && String(person.id) !== String(mine.id))];
+}
+
+/** Кто купил билет / записался / забронировал. */
+function attendingForEvent(eventId) {
+  const demo = demoList(DEMO_ATTENDING, eventId);
+  const owned = ticketForEvent(eventId);
+  if (!owned || owned.role === 'host') return demo;
+  const label = owned.mode === 'door'
+    ? 'Бронь · оплата на входе'
+    : owned.mode === 'free'
+      ? 'Запись оформлена'
+      : 'Билет куплен';
+  return mergeMeFirst(demo, meGuest(label));
+}
+
+/** Интерес без билета/записи. */
+function wantingForEvent(eventId) {
+  const attendingIds = new Set(attendingForEvent(eventId).map(person => String(person.id)));
+  const demo = demoList(DEMO_WANT, eventId)
+    .filter(person => !attendingIds.has(String(person.id)));
+  if (ticketForEvent(eventId)) return demo;
+  const mine = (getState().eventGoing || {})[eventId]
+    || (getState().eventGoing || {})[String(eventId)];
+  const flagged = isInterested(eventId);
+  if (!mine && !flagged) return demo;
+  return mergeMeFirst(demo, mine || meGuest('Пока только интерес'));
+}
+
+/** @deprecated используйте attendingForEvent / wantingForEvent */
+function goingForEvent(eventId) {
+  return wantingForEvent(eventId);
 }
 
 function saveGoing(eventId, entry) {
@@ -115,31 +188,61 @@ function saveGoing(eventId, entry) {
   });
 }
 
-function removeGoing(eventId) {
+function clearInterest(eventId) {
   const state = getState();
-  const next = { ...(state.eventGoing || {}) };
-  delete next[eventId];
-  saveState({ ...state, eventGoing: next });
-}
-
-function toggleInterest(eventId) {
-  const state = getState();
-  const interested = { ...(state.eventInterest || {}) };
-  const key = String(eventId);
-  const wasOn = Boolean(interested[key] || interested[eventId]);
-  if (wasOn) {
-    delete interested[key];
-    delete interested[eventId];
-  } else {
-    interested[eventId] = true;
-  }
-  saveState({ ...state, eventInterest: interested });
-  return !wasOn;
+  const nextGoing = { ...(state.eventGoing || {}) };
+  const nextInterest = { ...(state.eventInterest || {}) };
+  delete nextGoing[eventId];
+  delete nextGoing[String(eventId)];
+  delete nextInterest[eventId];
+  delete nextInterest[String(eventId)];
+  saveState({ ...state, eventGoing: nextGoing, eventInterest: nextInterest });
 }
 
 function isInterested(eventId) {
   const interested = getState().eventInterest || {};
   return Boolean(interested[eventId] || interested[String(eventId)] || (getState().eventGoing || {})[eventId]);
+}
+
+function peopleBlocksHtml(event) {
+  const attending = attendingForEvent(event.id);
+  const wanting = wantingForEvent(event.id);
+  const hard = needsGuestPass(event);
+  return `
+    ${hard ? `
+      <div class="people-going-wrap">
+        ${peopleGoingBlockHtml(attending, {
+          key: 'attending',
+          title: 'Кто идёт',
+          empty: isDoorMode(event)
+            ? 'Пока никто не оформил бронь'
+            : isFreeMode(event)
+              ? 'Пока никто не записался'
+              : 'Пока никто не купил билет'
+        })}
+      </div>` : ''}
+    <div class="people-going-wrap">
+      ${peopleGoingBlockHtml(wanting, {
+        key: 'wanting',
+        title: 'Хотят пойти',
+        empty: hard
+          ? 'Пока никто не отметил интерес без билета'
+          : 'Будьте первой — нажмите «Хочу пойти»'
+      })}
+    </div>`;
+}
+
+function bindPeopleBlocks(root, event) {
+  if (needsGuestPass(event)) {
+    bindPeopleGoingBlock(root, attendingForEvent(event.id), {
+      key: 'attending',
+      title: 'Кто идёт'
+    });
+  }
+  bindPeopleGoingBlock(root, wantingForEvent(event.id), {
+    key: 'wanting',
+    title: 'Хотят пойти'
+  });
 }
 
 /** Лента событий + покупка билета в Mini App. */
@@ -162,7 +265,12 @@ export function taneeshEventsScreen() {
 
       <div class="events-feed">
         ${feed.map(event => {
-          const goingPreview = goingForEvent(event.id).slice(0, 3);
+          const hard = needsGuestPass(event);
+          const previewPeople = hard
+            ? attendingForEvent(event.id)
+            : wantingForEvent(event.id);
+          const preview = previewPeople.slice(0, 3);
+          const count = previewPeople.length;
           const source = event.source === 'yaqin'
             ? (event.hostId === 'me' ? 'Ваше' : 'Yaqin')
             : 'Афиша';
@@ -182,8 +290,8 @@ export function taneeshEventsScreen() {
               </button>
               <div class="taneesh-event-foot">
                 <div class="taneesh-going">
-                  ${goingPreview.map(person => `<img src="${esc(person.photo)}" alt="">`).join('')}
-                  <span>${goingForEvent(event.id).length}</span>
+                  ${preview.map(person => `<img src="${esc(person.photo)}" alt="">`).join('')}
+                  <span>${count}</span>
                 </div>
               </div>
             </article>`;
@@ -213,20 +321,23 @@ function renderHostEventDashboard(event) {
 
   const render = () => {
     closePeopleGoingSheet();
-    const going = goingForEvent(event.id);
+    const attending = attendingForEvent(event.id);
+    const wanting = wantingForEvent(event.id);
     const tickets = ticketsForEvent(event.id);
     const guestTickets = tickets.filter(ticket => ticket.role !== 'host');
     const hostQr = hostTicket(event.id);
     const capacity = Number(event.capacity) || 0;
-    const interested = going.length;
-    const sold = guestTickets.length;
-    const fill = capacity ? Math.min(100, Math.round((sold / capacity) * 100)) : 0;
+    const interested = wanting.length;
+    const soldCount = needsGuestPass(event)
+      ? Math.max(guestTickets.length, attending.length)
+      : 0;
+    const fill = capacity ? Math.min(100, Math.round((soldCount / capacity) * 100)) : 0;
     const revenue = guestTickets.reduce((sum, ticket) => {
       if (ticket.mode === 'paid') return sum + Number(ticket.price || 0);
       return sum;
     }, 0);
     const doorExpected = isDoorMode(event)
-      ? sold * Number(event.price || 0)
+      ? soldCount * Number(event.price || 0)
       : 0;
     const metaLine = [event.when, event.place].filter(Boolean).join(' · ');
     const tabs = [
@@ -272,17 +383,12 @@ function renderHostEventDashboard(event) {
                 <li><i class="ti ti-calendar"></i>${esc(event.when)}</li>
                 <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
                 ${event.address ? `<li><i class="ti ti-building"></i>${esc(event.address)}</li>` : ''}
-                ${capacity ? `<li><i class="ti ti-users"></i>до ${capacity} мест · занято ${sold}</li>` : ''}
+                ${capacity ? `<li><i class="ti ti-users"></i>до ${capacity} мест · занято ${soldCount}</li>` : ''}
                 <li><i class="ti ti-ticket"></i>${esc(priceLabel(event))}</li>
               </ul>
             </section>
 
-            <div class="people-going-wrap">
-              ${peopleGoingBlockHtml(going, {
-                title: 'Хотят пойти',
-                empty: 'Пока никто не отметил интерес'
-              })}
-            </div>
+            ${peopleBlocksHtml(event)}
 
             <section class="me-panel event-detail-panel">
               <div class="me-section-head"><div><h3>Действия</h3></div></div>
@@ -308,7 +414,7 @@ function renderHostEventDashboard(event) {
                   <span class="host-action-icon green"><i class="ti ti-users"></i></span>
                   <div>
                     <strong>Гости</strong>
-                    <span>${sold} с билетом · ${interested} интерес</span>
+                    <span>${soldCount} идут · ${interested} интерес</span>
                   </div>
                   <i class="ti ti-chevron-right"></i>
                 </button>
@@ -317,34 +423,35 @@ function renderHostEventDashboard(event) {
           ` : ''}
 
           ${tab === 'guests' ? `
-            <section class="me-panel event-detail-panel">
-              <div class="me-section-head">
-                <div><h3>С билетом</h3></div>
-                <span class="host-count">${guestTickets.length}</span>
-              </div>
-              ${guestTickets.length ? `
-                <div class="me-mini-list">
-                  ${guestTickets.map(ticket => `
-                    <button type="button" class="me-mini-row" data-action="ticket" data-id="${esc(ticket.id)}">
-                      <img src="${esc(ticket.photo || event.photo)}" alt="">
-                      <div>
-                        <strong>${esc(ticket.code || 'Билет')}</strong>
-                        <span>${ticket.mode === 'paid' ? 'Онлайн' : ticket.mode === 'door' ? 'На входе' : 'Бесплатно'} · ${esc(ticket.when || event.when || '')}</span>
-                      </div>
-                      <i class="ti ti-chevron-right"></i>
-                    </button>`).join('')}
-                </div>` : `
-                <p class="host-empty">Пока нет оформленных билетов</p>`}
-            </section>
+            ${needsGuestPass(event) ? `
+              <section class="me-panel event-detail-panel">
+                <div class="me-section-head">
+                  <div><h3>Кто идёт</h3></div>
+                  <span class="host-count">${attending.length}</span>
+                </div>
+                ${attending.length ? `
+                  <div class="me-mini-list">
+                    ${attending.map(person => `
+                      <${person.id === 'me' ? 'div' : 'button type="button"'} class="me-mini-row" ${person.id === 'me' ? '' : `data-action="person" data-id="${esc(String(person.id))}"`}>
+                        <img src="${esc(person.photo)}" alt="">
+                        <div>
+                          <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}${person.id === 'me' ? ' · вы' : ''}</strong>
+                          <span>${person.message ? esc(person.message) : 'Билет / запись'}</span>
+                        </div>
+                        ${person.id === 'me' ? '' : '<i class="ti ti-chevron-right"></i>'}
+                      </${person.id === 'me' ? 'div' : 'button'}>`).join('')}
+                  </div>` : `
+                  <p class="host-empty">Пока никто не оформил участие</p>`}
+              </section>` : ''}
 
             <section class="me-panel event-detail-panel">
               <div class="me-section-head">
-                <div><h3>Интерес</h3></div>
-                <span class="host-count">${going.length}</span>
+                <div><h3>Хотят пойти</h3></div>
+                <span class="host-count">${wanting.length}</span>
               </div>
-              ${going.length ? `
+              ${wanting.length ? `
                 <div class="me-mini-list">
-                  ${going.map(person => `
+                  ${wanting.map(person => `
                     <${person.id === 'me' ? 'div' : 'button type="button"'} class="me-mini-row" ${person.id === 'me' ? '' : `data-action="person" data-id="${esc(String(person.id))}"`}>
                       <img src="${esc(person.photo)}" alt="">
                       <div>
@@ -367,8 +474,8 @@ function renderHostEventDashboard(event) {
                   <span>Хотят пойти</span>
                 </div>
                 <div class="host-stat">
-                  <strong>${sold}</strong>
-                  <span>Билетов</span>
+                  <strong>${soldCount}</strong>
+                  <span>${needsGuestPass(event) ? 'Идут' : '—'}</span>
                 </div>
                 <div class="host-stat">
                   <strong>${capacity ? `${fill}%` : '—'}</strong>
@@ -407,7 +514,7 @@ function renderHostEventDashboard(event) {
       </article>`;
 
     if (tab === 'overview') {
-      bindPeopleGoingBlock(view, going, { title: 'Хотят пойти' });
+      bindPeopleBlocks(view, event);
     }
 
     view.querySelectorAll('[data-host-tab]').forEach(button => {
@@ -427,13 +534,13 @@ function renderHostEventDashboard(event) {
 function renderGuestEventDetail(event) {
   const owned = ticketForEvent(event.id);
   const sourceLabel = event.source === 'yaqin' ? 'Yaqin' : 'Афиша';
+  const hard = needsGuestPass(event);
 
   const render = () => {
     closePeopleGoingSheet();
     const mine = (getState().eventGoing || {})[event.id];
-    const want = isInterested(event.id) || mine;
+    const want = !owned && (isInterested(event.id) || mine);
     const metaLine = [event.when, event.place].filter(Boolean).join(' · ');
-    const going = goingForEvent(event.id);
     view.innerHTML = `
       <article class="person-view event-detail-view">
         <div class="person-hero event-detail-hero">
@@ -449,12 +556,16 @@ function renderGuestEventDetail(event) {
               <p class="person-meta">${esc(metaLine)}</p>
               <p class="event-detail-price">${esc(priceLabel(event))}</p>
             </div>
-            <button class="hero-wave event-want-btn ${want ? 'on' : ''}" type="button" id="toggleWant" aria-label="${want ? 'Иду' : 'Хочу пойти'}" aria-pressed="${want ? 'true' : 'false'}">
+            <button class="hero-wave event-want-btn ${want ? 'on' : ''}" type="button" id="toggleWant" aria-label="${want ? 'Интерес снят' : 'Хочу пойти'}" aria-pressed="${want ? 'true' : 'false'}">
               <i class="ti ${want ? 'ti-check' : 'ti-hand-stop'}"></i>
             </button>
           </div>
           ${event.description ? `<p class="person-bio">${esc(event.description)}</p>` : ''}
-          <p class="event-want-hint">${want ? 'Статус: идёте' : 'Отметьте «Хочу пойти» — это не билет'}</p>
+          <p class="event-want-hint">${owned
+            ? 'Участие оформлено — QR внизу'
+            : want
+              ? 'Статус: хотите пойти · это не билет'
+              : 'Это не билет — только интерес'}</p>
         </section>
 
         <section class="me-panel event-detail-panel">
@@ -476,20 +587,15 @@ function renderGuestEventDetail(event) {
               </div>
             </div>
           ` : ''}
-          ${!owned ? `
+          ${!owned && hard ? `
             <button type="button" class="event-ticket-link" data-action="checkout" data-id="${esc(event.id)}">
-              ${isDoorMode(event) ? 'Оформить бронь' : isFreeMode(event) ? 'Получить QR' : 'Купить билет'} · отдельно от статуса
+              ${esc(hardPassLabel(event))}
               <i class="ti ti-chevron-right"></i>
             </button>
           ` : ''}
         </section>
 
-        <div class="people-going-wrap">
-          ${peopleGoingBlockHtml(going, {
-            title: 'Кто идёт',
-            empty: 'Будьте первой — нажмите «Хочу пойти»'
-          })}
-        </div>
+        ${peopleBlocksHtml(event)}
 
         ${owned ? `
           <div class="person-actions event-detail-actions">
@@ -501,23 +607,21 @@ function renderGuestEventDetail(event) {
         ` : ''}
       </article>`;
 
-    bindPeopleGoingBlock(view, going, { title: 'Кто идёт' });
+    bindPeopleBlocks(view, event);
 
     view.querySelector('#toggleWant')?.addEventListener('click', () => {
+      if (owned) return;
       if (want) {
-        removeGoing(event.id);
-        const state = getState();
-        const interested = { ...(state.eventInterest || {}) };
-        delete interested[event.id];
-        delete interested[String(event.id)];
-        saveState({ ...state, eventInterest: interested });
+        clearInterest(event.id);
         render();
       } else {
-        saveGoing(event.id, { ...meGuest(), message: '' });
+        saveGoing(event.id, meGuest('Пока только интерес'));
         render();
         showCelebrate({
           title: 'Отметили интерес',
-          subtitle: `«${event.title}» — это статус, не билет`,
+          subtitle: hard
+            ? `«${event.title}» — это не билет. Чтобы попасть в «Кто идёт», ${isDoorMode(event) ? 'оформите бронь' : isFreeMode(event) ? 'запишитесь' : 'купите билет'}.`
+            : `«${event.title}» — свободный вход, достаточно интереса`,
           primaryLabel: 'Понятно',
           secondaryLabel: 'Пригласить подруг',
           shareText: `Хочу пойти на «${event.title}» — присоединяйся в Yaqin`,
@@ -538,6 +642,10 @@ export function ticketCheckoutScreen(eventId) {
     showPlaceholder('✿', 'Событие не найдено', 'Нельзя оформить билет — события нет.');
     return;
   }
+  if (!needsGuestPass(event)) {
+    navigate('event', event.id);
+    return;
+  }
   const existing = ticketForEvent(event.id);
   if (existing) {
     navigate('ticket', existing.id);
@@ -547,7 +655,6 @@ export function ticketCheckoutScreen(eventId) {
   const door = isDoorMode(event);
   const free = isFreeMode(event) && !door;
   const ticketPrice = door || free ? 0 : Number(event.price || 0);
-  // fee только для online-paid; free/door — 0 в Mini App
   const fee = door || free ? 0 : Number(event.fee || 0);
   const total = ticketPrice + fee;
   const modeNote = door
@@ -591,7 +698,7 @@ export function ticketCheckoutScreen(eventId) {
           ? `${isLive ? 'Оплатить' : 'Демо: получить QR'} ${money(total)}`
           : door
             ? 'Забронировать и получить QR'
-            : 'Получить QR'}
+            : 'Записаться и получить QR'}
       </button>
     </div>`;
 
@@ -618,7 +725,18 @@ export function ticketCheckoutScreen(eventId) {
         createdAt: new Date().toISOString()
       };
       const state = getState();
-      saveState({ ...state, tickets: [...(state.tickets || []), ticket] });
+      const nextGoing = { ...(state.eventGoing || {}) };
+      const nextInterest = { ...(state.eventInterest || {}) };
+      delete nextGoing[event.id];
+      delete nextGoing[String(event.id)];
+      delete nextInterest[event.id];
+      delete nextInterest[String(event.id)];
+      saveState({
+        ...state,
+        tickets: [...(state.tickets || []), ticket],
+        eventGoing: nextGoing,
+        eventInterest: nextInterest
+      });
       navigate('ticket', ticket.id);
     }, 500);
   };
