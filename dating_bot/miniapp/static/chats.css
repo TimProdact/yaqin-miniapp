@@ -1305,15 +1305,6 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   color: var(--yaqin-text-tertiary);
   margin-bottom: 6px;
 }
-.group-hub-title-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-.group-hub-title-copy {
-  flex: 1;
-  min-width: 0;
-}
 .group-hub-body h1 {
   margin: 0 0 8px;
   font-size: var(--yaqin-fs-title-sm);
@@ -1327,12 +1318,9 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   line-height: 1.4;
 }
 .group-hub-meta {
-  margin: 0;
+  margin: 0 0 16px;
   font-size: var(--yaqin-fs-caption);
   color: var(--yaqin-text-tertiary);
-}
-.group-hub-body .event-want-hint {
-  margin: 10px 0 16px;
 }
 .group-hub-panel {
   margin-bottom: 12px;
@@ -1401,11 +1389,16 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   bottom: 0;
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 10px;
   padding: 12px var(--yaqin-gutter) calc(12px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, transparent, var(--yaqin-bg) 28%);
   z-index: 20;
+}
+.group-hub-cta.two {
+  grid-template-columns: 1fr 1fr;
+}
+.group-hub-cta.one {
+  grid-template-columns: 1fr;
 }
 .group-hub-chat,
 .group-hub-invite {

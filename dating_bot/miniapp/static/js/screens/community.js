@@ -387,60 +387,29 @@ export function createGroupScreen() {
   render();
 }
 
-/** Демо: кто отметил интерес к встречам группы (не весь список участниц). */
-function groupWantingDemo(group) {
-  const seed = String(group?.id || '').length;
-  const start = seed % Math.max(1, people.length - 3);
-  return people.slice(start, start + 3).map(person => ({
+/** Превью участниц группы (компактный блок, не весь каталог). */
+function groupMembersPreview(group) {
+  const count = Math.min(8, Math.max(3, Number(group.members) || 4));
+  const demo = people.slice(0, count).map(person => ({
     id: person.id,
     name: person.name,
     age: person.age,
     photo: person.photo,
-    message: 'Хочет на встречу',
     demo: true
   }));
-}
-
-function meGuestForGroup() {
+  if (!isGroupMember(group)) return demo;
   const profile = getState().profile || defaultProfile;
-  return {
+  const mine = {
     id: 'me',
     name: profile.name || defaultProfile.name,
     age: profile.age || defaultProfile.age,
     photo: profile.photo || defaultProfile.photo,
-    message: 'Хочет на встречу'
+    message: 'вы'
   };
+  return [mine, ...demo.filter(person => person.id !== 'me')];
 }
 
-function wantingForGroup(group) {
-  const demo = groupWantingDemo(group);
-  const mine = (getState().groupWanting || {})[group.id]
-    || (getState().groupWanting || {})[String(group.id)];
-  if (!mine) return demo;
-  return [mine, ...demo.filter(person => person.id !== 'me' && String(person.id) !== String(mine.id))];
-}
-
-function isGroupWanting(groupId) {
-  const map = getState().groupWanting || {};
-  return Boolean(map[groupId] || map[String(groupId)]);
-}
-
-function toggleGroupWanting(groupId) {
-  const state = getState();
-  const map = { ...(state.groupWanting || {}) };
-  const key = String(groupId);
-  if (map[groupId] || map[key]) {
-    delete map[groupId];
-    delete map[key];
-    saveState({ ...state, groupWanting: map });
-    return false;
-  }
-  map[groupId] = meGuestForGroup();
-  saveState({ ...state, groupWanting: map });
-  return true;
-}
-
-/** Хаб группы: обложка, «Хотят пойти», чат / заявка / пригласить. */
+/** Хаб группы: обложка, участницы, чат / заявка / пригласить. */
 export function groupHubScreen(id) {
   clearHeader();
   closePeopleGoingSheet();
@@ -455,8 +424,7 @@ export function groupHubScreen(id) {
   const open = isGroupPublic(group);
   const isOwner = member && (group.ownerId === 'me' || String(group.id).startsWith('g-'));
   const joinRequests = isOwner ? (group.joinRequests || []) : [];
-  const wanting = wantingForGroup(group);
-  const want = isGroupWanting(group.id);
+  const members = groupMembersPreview(group);
 
   view.innerHTML = `
     <div class="group-hub-page">
@@ -471,20 +439,9 @@ export function groupHubScreen(id) {
 
       <section class="group-hub-body">
         <em class="group-hub-city">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'}</em>
-        <div class="group-hub-title-row">
-          <div class="group-hub-title-copy">
-            <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
-            <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
-            <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
-          </div>
-          ${member ? `
-            <button class="hero-wave event-want-btn ${want ? 'on' : ''}" type="button" id="toggleGroupWant"
-              aria-label="${want ? 'Интерес снят' : 'Хочу пойти'}" aria-pressed="${want ? 'true' : 'false'}">
-              <i class="ti ${want ? 'ti-check' : 'ti-hand-stop'}"></i>
-            </button>` : ''}
-        </div>
-        ${member ? `
-          <p class="event-want-hint">${want ? 'Статус: хотите на встречи' : '«Хочу пойти» — интерес к встречам группы, не заявка'}</p>` : ''}
+        <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
+        <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
+        <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
 
         ${joinRequests.length ? `
           <section class="me-panel group-hub-panel">
@@ -507,15 +464,15 @@ export function groupHubScreen(id) {
           </section>` : ''}
 
         <div class="people-going-wrap">
-          ${peopleGoingBlockHtml(wanting, {
-            key: 'group-wanting',
-            title: 'Хотят пойти',
-            empty: 'Пока никто не отметил интерес к встречам'
+          ${peopleGoingBlockHtml(members, {
+            key: 'group-members',
+            title: 'Участницы',
+            empty: 'Пока никого нет'
           })}
         </div>
       </section>
 
-      <div class="group-hub-cta">
+      <div class="group-hub-cta ${member ? 'two' : 'one'}">
         ${member
           ? `
             <button type="button" class="group-hub-chat" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
@@ -528,7 +485,7 @@ export function groupHubScreen(id) {
       </div>
     </div>`;
 
-  bindPeopleGoingBlock(view, wanting, { key: 'group-wanting', title: 'Хотят пойти' });
+  bindPeopleGoingBlock(view, members, { key: 'group-members', title: 'Участницы' });
 
   const share = () => {
     const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
@@ -543,17 +500,6 @@ export function groupHubScreen(id) {
   };
   view.querySelector('#shareGroup').onclick = share;
   view.querySelector('#inviteGroup')?.addEventListener('click', share);
-  view.querySelector('#toggleGroupWant')?.addEventListener('click', () => {
-    const on = toggleGroupWanting(group.id);
-    groupHubScreen(group.id);
-    if (on) {
-      showCelebrate({
-        title: 'Отметили интерес',
-        subtitle: 'Вы в блоке «Хотят пойти» — это не заявка в группу',
-        primaryLabel: 'Понятно'
-      });
-    }
-  });
   view.querySelector('#requestJoin')?.addEventListener('click', () => {
     const result = requestJoinGroup(group.id);
     if (!result) return;
