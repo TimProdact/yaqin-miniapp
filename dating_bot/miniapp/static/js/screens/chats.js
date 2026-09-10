@@ -137,7 +137,6 @@ export function chatsScreen() {
             <button class="empty-primary" type="button" data-action="${segment === 'events' ? 'events' : 'people'}">${segment === 'events' ? 'К событиям' : 'Смотреть анкеты'}</button>
           </div>`}
 
-        ${hasAny || dmCount ? `<button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>` : ''}
       </div>`;
 
     view.querySelectorAll('[data-segment]').forEach(button => {
