@@ -86,6 +86,15 @@ body.profile-open .view {
   font-style: normal;
 }
 
+.my-tickets-page .my-tickets-list {
+  display: grid;
+  gap: 12px;
+  padding: 8px var(--yaqin-gutter) 120px;
+}
+.my-tickets-page .my-ticket-row {
+  background: var(--yaqin-surface-raised);
+}
+
 .me-profile-card {
   margin: 0;
   background: var(--yaqin-bg);
