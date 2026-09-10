@@ -153,8 +153,6 @@ export function taneeshEventsScreen() {
 
       <div class="events-feed">
         ${feed.map(event => {
-          const want = isInterested(event.id);
-          const owned = ticketForEvent(event.id);
           const goingPreview = goingForEvent(event.id).slice(0, 3);
           const source = event.source === 'yaqin'
             ? (event.hostId === 'me' ? 'Ваше' : 'Yaqin')
@@ -178,40 +176,11 @@ export function taneeshEventsScreen() {
                   ${goingPreview.map(person => `<img src="${esc(person.photo)}" alt="">`).join('')}
                   <span>${goingForEvent(event.id).length}</span>
                 </div>
-                <div class="taneesh-event-actions">
-                  <button type="button" class="taneesh-chip ${want ? 'on' : ''}" data-toggle-want="${esc(event.id)}">
-                    ${want ? 'Иду' : 'Хочу'}
-                  </button>
-                  <button type="button" class="taneesh-buy ${owned ? 'owned' : ''}" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
-                    ${owned ? 'Билет' : isFreeMode(event) && !isDoorMode(event) ? 'Запись' : isDoorMode(event) ? 'Бронь' : 'Билет'}
-                  </button>
-                </div>
               </div>
             </article>`;
         }).join('')}
       </div>
     </div>`;
-
-  view.querySelectorAll('[data-toggle-want]').forEach(button => {
-    button.onclick = event => {
-      event.preventDefault();
-      event.stopPropagation();
-      const eventId = button.dataset.toggleWant;
-      const turnedOn = toggleInterest(eventId);
-      taneeshEventsScreen();
-      if (turnedOn) {
-        const item = findEvent(eventId);
-        showCelebrate({
-          title: 'Вы идёте!',
-          subtitle: item?.title || 'Событие добавлено в ваши планы',
-          primaryLabel: 'Смотреть событие',
-          secondaryLabel: 'Пригласить подруг',
-          shareText: `Иду на «${item?.title || 'событие'}» — присоединяйся в Yaqin`,
-          onPrimary: () => navigate('event', eventId)
-        });
-      }
-    };
-  });
 }
 
 /** Карточка события: кто идёт + хочу пойти + билет. */
