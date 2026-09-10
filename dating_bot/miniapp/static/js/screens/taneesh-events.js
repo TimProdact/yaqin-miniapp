@@ -387,21 +387,27 @@ export function ticketScreen(ticketId) {
     </div>`;
 }
 
-/** Список купленных билетов. */
+/** Список купленных билетов — вкладка профиля. */
 export function myTicketsScreen() {
   clearHeader();
   const tickets = [...getTickets()].reverse();
 
   view.innerHTML = `
-    <div class="events-feed-page">
-      <header class="sheet-head">
-        <button data-action="events" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <h1>Мои билеты</h1>
-        <span style="width:36px"></span>
-      </header>
+    <div class="me-page my-tickets-page">
+      <div class="me-top">
+        <h1>Профиль</h1>
+        <div>
+          <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
+          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+        </div>
+      </div>
+      <div class="me-tabs">
+        <button data-action="me">Анкета</button>
+        <button class="active">Билеты</button>
+      </div>
 
       ${tickets.length ? `
-        <div class="events-feed">
+        <div class="my-tickets-list">
           ${tickets.map(ticket => `
             <button type="button" class="my-ticket-row" data-action="ticket" data-id="${esc(ticket.id)}">
               <img src="${esc(ticket.photo)}" alt="">
@@ -413,7 +419,7 @@ export function myTicketsScreen() {
               <i class="ti ti-chevron-right"></i>
             </button>`).join('')}
         </div>` : `
-        <div class="chats-empty" style="padding-top:48px">
+        <div class="chats-empty" style="padding:48px 20px">
           <div class="empty-badge"><i class="ti ti-ticket"></i></div>
           <h2>Пока нет билетов</h2>
           <p>Купите билет на событие — он появится здесь с QR.</p>

@@ -70,9 +70,9 @@ export async function meScreen(_id, token) {
       </div>
       <div class="me-tabs">
         <button class="active">Анкета</button>
-        <button data-action="events">События</button>
+        <button data-action="my-tickets">Билеты</button>
       </div>
-      <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-action="events">
+      <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-action="my-tickets">
         <div>
           <b>Черновик в Taneesh</b>
           <span>Билеты можно купить здесь. Активируйте профиль в приложении, чтобы анкета была видима.</span>
