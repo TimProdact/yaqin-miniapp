@@ -496,8 +496,3 @@ body[data-route='filters'] .view {
   line-height: 1.35;
   color: var(--yaqin-text-tertiary);
 }
-
-  font-size: 17px;
-  font-weight: 600;
-  padding: 14px 36px;
-}
