@@ -18,11 +18,30 @@ import {
 let closeOverlay = null;
 
 export const ME_TABS = [
-  { id: 'me', label: 'Анкета' },
+  { id: 'me', label: 'Профиль' },
   { id: 'my-events', label: 'События' },
   { id: 'my-tickets', label: 'Билеты' },
   { id: 'my-groups', label: 'Группы' }
 ];
+
+function profileFillPercent(profile) {
+  const checks = [
+    Boolean(profile.name),
+    Boolean(profile.age),
+    Boolean(profile.city),
+    Boolean(profile.bio),
+    Boolean((profile.photos || []).length || profile.photo),
+    interestsOf(profile).length > 0,
+    lookingOf(profile).length > 0,
+    Boolean(profile.work || (profile.languages || []).length)
+  ];
+  const done = checks.filter(Boolean).length;
+  return Math.round((done / checks.length) * 100);
+}
+
+function listTickets() {
+  return [...(getState().tickets || [])].reverse();
+}
 
 export function meTopHtml() {
   return `
@@ -66,6 +85,16 @@ function mountSheet(markup, className = 'settings-overlay') {
   return overlay;
 }
 
+function sectionHead(title, action, actionLabel = 'Все') {
+  return `
+    <div class="me-section-head">
+      <div>
+        <h3>${esc(title)}</h3>
+      </div>
+      ${action ? `<button type="button" class="me-section-all" data-action="${esc(action)}">${esc(actionLabel)} <i class="ti ti-chevron-right"></i></button>` : ''}
+    </div>`;
+}
+
 export async function meScreen(_id, token) {
   clearHeader();
   showLoading('Загружаем профиль...');
@@ -88,93 +117,136 @@ export async function meScreen(_id, token) {
   const photos = (profile.photos?.length ? profile.photos : [profile.photo]).filter(Boolean);
   const heroPhoto = photos[0] || profile.photo;
   const verify = resolveView(verification);
-  const interests = interestsOf(profile);
-  const looking = lookingOf(profile);
-  const media = mediaOf(profile);
-  const basics = basicRowsFromProfile(profile);
-  const links = [
-    profile.instagram && `IG @${profile.instagram}`,
-    profile.tiktok && `TT @${profile.tiktok}`,
-    profile.website
-  ].filter(Boolean);
-
-  const preview = (items, empty) => {
-    if (!items?.length) return empty;
-    const text = Array.isArray(items) ? items.join(', ') : String(items);
-    return text.length > 36 ? `${text.slice(0, 36)}…` : text;
-  };
+  const fill = profileFillPercent(profile);
+  const tickets = listTickets().slice(0, 6);
+  const events = getUserEvents().slice(0, 4);
+  const groups = getUserGroups().slice(0, 4);
+  const privacy = getState().privacy || { showOnline: true, showInFeed: true };
+  const nextTicket = tickets[0];
 
   view.innerHTML = `
-    <div class="me-page me-hub-page">
+    <div class="me-page me-overview-page">
       ${meTopHtml()}
-      ${meTabsHtml('me')}
 
-      <button type="button" class="me-hub-identity" data-action="edit">
-        <img src="${esc(heroPhoto)}" alt="">
-        <div>
-          <strong>${esc(profile.name || 'Без имени')}</strong>
-          <span>${esc(String(profile.age || ''))}${profile.city ? ` · ${esc(profile.city)}` : ''}</span>
+      <section class="me-identity">
+        <button type="button" class="me-identity-avatar" data-action="edit-photos" aria-label="Фото">
+          <img src="${esc(heroPhoto)}" alt="">
+          ${verify.tone === 'ok' ? '<i class="ti ti-circle-check me-verified"></i>' : ''}
+        </button>
+        <div class="me-identity-copy">
+          <h2>${esc(profile.name || 'Без имени')}${profile.age ? `, ${esc(String(profile.age))}` : ''}</h2>
+          <button type="button" class="me-identity-city" data-action="city">
+            <i class="ti ti-map-pin"></i> ${esc(profile.city || 'Город')}
+          </button>
+          <span class="me-fill-pill">Заполнен на ${fill}%</span>
         </div>
-        <i class="ti ti-chevron-right"></i>
-      </button>
-
-      <h3 class="settings-label">Анкета</h3>
-      <section class="settings-block me-hub-block">
-        <button class="settings-row" type="button" data-action="edit-photos">
-          <span class="settings-icon blue square"><i class="ti ti-photo"></i></span>
-          <span>Фото<br><small>${photos.length ? `${photos.length} фото` : 'Добавить'}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="edit">
-          <span class="settings-icon purple square"><i class="ti ti-user"></i></span>
-          <span>Имя и о себе<br><small>${esc(preview(profile.bio, 'Добавить'))}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="edit">
-          <span class="settings-icon pink square"><i class="ti ti-sparkles"></i></span>
-          <span>Интересы<br><small>${esc(preview(interests, 'Добавить'))}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="edit">
-          <span class="settings-icon orange square"><i class="ti ti-heart"></i></span>
-          <span>Чего хочу<br><small>${esc(preview(looking, 'Добавить'))}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="edit">
-          <span class="settings-icon green square"><i class="ti ti-book"></i></span>
-          <span>Сейчас смотрю / читаю<br><small>${esc(preview(media, 'Добавить'))}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="basic">
-          <span class="settings-icon yellow square"><i class="ti ti-briefcase"></i></span>
-          <span>Основное<br><small>${esc(preview(basics.map(row => row.value), 'Работа, языки'))}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" type="button" data-action="edit">
-          <span class="settings-icon red square"><i class="ti ti-link"></i></span>
-          <span>Ссылки<br><small>${esc(preview(links, 'Instagram, TikTok, сайт'))}</small></span>
-          <i class="ti ti-chevron-right"></i>
+        <button type="button" class="me-identity-edit" data-action="edit" aria-label="Редактировать">
+          <i class="ti ti-pencil"></i>
         </button>
       </section>
 
-      <h3 class="settings-label">Проверка</h3>
-      <section class="settings-block me-hub-block">
-        <button class="settings-row" type="button" data-action="verify">
-          <span class="settings-icon yellow square"><i class="ti ti-shield-check"></i></span>
-          <span>Проверка анкеты<br><small>${esc(verify.short)}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
+      ${profile.bio ? `<p class="me-overview-bio">${esc(profile.bio)}</p>` : ''}
+
+      <section class="me-block">
+        ${sectionHead('Мои билеты', 'my-tickets')}
+        ${nextTicket ? `<p class="me-block-lead">Ближайший · ${esc(nextTicket.when || '')}</p>` : ''}
+        ${tickets.length ? `
+          <div class="me-rail" role="list">
+            ${tickets.map(ticket => `
+              <button type="button" class="me-ticket-card" data-action="ticket" data-id="${esc(ticket.id)}" role="listitem">
+                <div class="me-ticket-photo"><img src="${esc(ticket.photo)}" alt=""></div>
+                <div class="me-ticket-body">
+                  <strong>${esc(ticket.title)}</strong>
+                  <span>${esc(ticket.when || '')}</span>
+                  <span>${esc(ticket.place || '')}</span>
+                  <em>${ticket.role === 'host' ? 'Организатор' : ticket.mode === 'door' ? 'На входе' : ticket.mode === 'paid' ? 'Онлайн' : 'Бесплатно'}</em>
+                </div>
+              </button>`).join('')}
+          </div>` : `
+          <button type="button" class="me-empty-card" data-action="events">
+            <i class="ti ti-ticket"></i>
+            <span>Пока нет билетов — откройте афишу</span>
+          </button>`}
       </section>
 
-      <h3 class="settings-label">Ещё</h3>
-      <section class="settings-block me-hub-block">
-        <button class="settings-row" type="button" data-action="settings">
-          <span class="settings-icon green square"><i class="ti ti-settings"></i></span>
-          <span>Настройки</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
+      <section class="me-block">
+        ${sectionHead('Мои события', 'my-events')}
+        ${events.length ? `
+          <div class="me-mini-list">
+            ${events.map(event => `
+              <button type="button" class="me-mini-row" data-action="event" data-id="${esc(event.id)}">
+                <img src="${esc(event.photo)}" alt="">
+                <div>
+                  <strong>${esc(event.title)}</strong>
+                  <span>${esc(event.when)} · ${esc(event.place)}</span>
+                </div>
+                <i class="ti ti-chevron-right"></i>
+              </button>`).join('')}
+          </div>` : `
+          <button type="button" class="me-empty-card" data-action="create-event">
+            <i class="ti ti-calendar-plus"></i>
+            <span>Создать своё событие</span>
+          </button>`}
+      </section>
+
+      <section class="me-block">
+        ${sectionHead('Группы', 'my-groups')}
+        ${groups.length ? `
+          <div class="me-mini-list">
+            ${groups.map(group => `
+              <button type="button" class="me-mini-row" data-action="group" data-id="${esc(group.id)}">
+                <img src="${esc(group.photo)}" alt="">
+                <div>
+                  <strong>${esc(group.title)}</strong>
+                  <span>${group.members || 1} участниц${group.membership === 'pending' ? ' · заявка' : ''}</span>
+                </div>
+                <i class="ti ti-chevron-right"></i>
+              </button>`).join('')}
+          </div>` : `
+          <button type="button" class="me-empty-card" data-action="groups">
+            <i class="ti ti-users"></i>
+            <span>Найти или создать группу</span>
+          </button>`}
+      </section>
+
+      <section class="me-block me-util">
+        <div class="settings-block me-util-block">
+          <label class="settings-row toggle">
+            <span class="settings-icon green square"><i class="ti ti-eye"></i></span>
+            <span>Показывать в ленте<br><small>Анкета появляется во вкладке «Люди»</small></span>
+            <input type="checkbox" id="showInFeed" ${privacy.showInFeed !== false ? 'checked' : ''}>
+          </label>
+          <button class="settings-row" type="button" data-action="verify">
+            <span class="settings-icon yellow square"><i class="ti ti-shield-check"></i></span>
+            <span>Проверка анкеты<br><small>${esc(verify.short)}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" id="inviteFriends">
+            <span class="settings-icon blue square"><i class="ti ti-user-plus"></i></span>
+            <span>Пригласить подруг<br><small>Ссылка на Yaqin</small></span>
+            <i class="ti ti-share"></i>
+          </button>
+        </div>
       </section>
     </div>`;
+
+  view.querySelector('#showInFeed')?.addEventListener('change', event => {
+    saveState({
+      ...getState(),
+      privacy: { ...(getState().privacy || {}), showInFeed: event.target.checked }
+    });
+  });
+  view.querySelector('#inviteFriends')?.addEventListener('click', () => {
+    const text = 'Присоединяйся ко мне в Yaqin ✨';
+    try {
+      const tg = window.Telegram?.WebApp;
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/yaqin_bot')}&text=${encodeURIComponent(text)}`);
+        return;
+      }
+    } catch (_) { /* ignore */ }
+    navigator.share?.({ text }).catch(() => {});
+  });
 }
 
 /** Вкладка «События» — созданные вами. */
@@ -248,67 +320,98 @@ export function myGroupsScreen() {
 
 export function settingsScreen() {
   clearHeader();
-  const privacy = getState().privacy || { showOnline: true };
-  const profileId = (getState().profileId || 'yaqin-demo-local').slice(0, 36);
+  const state = getState();
+  const privacy = state.privacy || { showOnline: true };
+  const profile = { ...defaultProfile, ...(state.profile || {}) };
+  const email = state.email || '';
+  const profileId = (state.profileId || 'yaqin-demo-local').slice(0, 36);
 
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
         <h1>Настройки</h1>
         <span></span>
       </header>
 
+      <h3 class="settings-label">Основные</h3>
       <section class="settings-block">
-        <label class="settings-row toggle">
-          <span class="settings-icon green"><i class="ti ti-circle-filled"></i></span>
-          <span>Показывать онлайн</span>
-          <input type="checkbox" id="showOnline" ${privacy.showOnline !== false ? 'checked' : ''}>
-        </label>
-        <button class="settings-row" data-action="account" type="button">
-          <span class="settings-icon orange"><i class="ti ti-info-circle"></i></span>
-          <span>Мой аккаунт</span>
+        <button class="settings-row" data-action="edit" type="button">
+          <span class="settings-icon purple square"><i class="ti ti-user"></i></span>
+          <span>Имя<br><small>${esc(profile.name || 'Добавить')}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" data-action="edit" type="button">
+          <span class="settings-icon orange square"><i class="ti ti-cake"></i></span>
+          <span>Возраст<br><small>${esc(String(profile.age || 'Добавить'))}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" data-action="city" type="button">
+          <span class="settings-icon blue square"><i class="ti ti-map-pin"></i></span>
+          <span>Город<br><small>${esc(profile.city || 'Выбрать')}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" data-action="add-email" type="button">
+          <span class="settings-icon green square"><i class="ti ti-mail"></i></span>
+          <span>Email<br><small>${esc(email || 'Добавить')}</small></span>
           <i class="ti ti-chevron-right"></i>
         </button>
         <button class="settings-row" data-action="verify" type="button">
-          <span class="settings-icon yellow"><i class="ti ti-shield-check"></i></span>
+          <span class="settings-icon yellow square"><i class="ti ti-shield-check"></i></span>
           <span>Проверка анкеты</span>
           <i class="ti ti-chevron-right"></i>
         </button>
       </section>
 
-      <h3 class="settings-label">Параметры</h3>
+      <h3 class="settings-label">Приложение</h3>
       <section class="settings-block">
+        <label class="settings-row toggle">
+          <span class="settings-icon green square"><i class="ti ti-circle-filled"></i></span>
+          <span>Показывать онлайн</span>
+          <input type="checkbox" id="showOnline" ${privacy.showOnline !== false ? 'checked' : ''}>
+        </label>
         <button class="settings-row" data-action="notifications" type="button">
-          <span class="settings-icon green"><i class="ti ti-bell"></i></span>
+          <span class="settings-icon green square"><i class="ti ti-bell"></i></span>
           <span>Уведомления</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row" data-action="blocked" type="button">
-          <span class="settings-icon red"><i class="ti ti-eye-off"></i></span>
-          <span>Заблокированные</span>
+        <button class="settings-row" data-action="dark-mode" type="button">
+          <span class="settings-icon purple square"><i class="ti ti-moon"></i></span>
+          <span>Тема</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-      </section>
-
-      <h3 class="settings-label">Аккаунт</h3>
-      <section class="settings-block">
-        <button class="settings-row" data-action="legal" type="button">
-          <span class="settings-icon pink"><i class="ti ti-file-text"></i></span>
-          <span>Правовая информация</span>
+        <button class="settings-row" data-action="blocked" type="button">
+          <span class="settings-icon red square"><i class="ti ti-eye-off"></i></span>
+          <span>Чёрный список</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" data-action="help" type="button">
+          <span class="settings-icon blue square"><i class="ti ti-help-circle"></i></span>
+          <span>FAQ</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" data-action="feedback" type="button">
+          <span class="settings-icon orange square"><i class="ti ti-message-report"></i></span>
+          <span>Сообщить о проблеме</span>
           <i class="ti ti-chevron-right"></i>
         </button>
         <button class="settings-row danger" type="button" id="logoutBtn">
-          <span class="settings-icon red"><i class="ti ti-logout"></i></span>
+          <span class="settings-icon red square"><i class="ti ti-logout"></i></span>
           <span>Выйти</span>
           <i class="ti ti-chevron-right"></i>
         </button>
       </section>
 
+      <div class="settings-plain-links">
+        <button type="button" data-action="legal">Политика конфиденциальности</button>
+        <button type="button" data-action="legal">Пользовательское соглашение</button>
+        <button type="button" data-action="delete-account" class="danger">Удалить аккаунт</button>
+      </div>
+
       <footer class="settings-footer">
         <span class="settings-brand"><i class="ti ti-flower"></i></span>
-        <p>Версия 1.0.0 · демо</p>
-        <p>Profile ID: ${esc(profileId)}</p>
+        <p>Yaqin · v 1.0.0</p>
+        <p>ID: ${esc(profileId)}</p>
       </footer>
     </div>`;
 
