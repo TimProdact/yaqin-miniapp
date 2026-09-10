@@ -237,9 +237,16 @@ export function taneeshEventDetailScreen(id) {
           <ul class="taneesh-detail-meta">
             <li><i class="ti ti-calendar"></i>${esc(event.when)}</li>
             <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
-            <li><i class="ti ti-building"></i>${esc(event.address || '')}</li>
+            ${event.address ? `<li><i class="ti ti-building"></i>${esc(event.address)}</li>` : ''}
+            ${event.capacity ? `<li><i class="ti ti-users"></i>до ${esc(String(event.capacity))} мест</li>` : ''}
             ${event.host ? `<li><i class="ti ti-user"></i>Организатор · ${esc(event.host)}</li>` : ''}
           </ul>
+          ${event.description ? `<p class="taneesh-detail-desc">${esc(event.description)}</p>` : ''}
+          ${Array.isArray(event.interests) && event.interests.length ? `
+            <div class="taneesh-detail-tags">
+              ${event.interests.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}
+            </div>
+          ` : ''}
 
           <h3>Кто идёт</h3>
           <div class="taneesh-who">

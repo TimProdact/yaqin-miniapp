@@ -216,6 +216,19 @@
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+.taneesh-detail-desc {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--yaqin-text-secondary, var(--yaqin-text-tertiary));
+  white-space: pre-wrap;
+}
+.taneesh-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
 .taneesh-detail-meta {
   list-style: none;
   margin: 0 0 24px;

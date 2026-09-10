@@ -3,6 +3,7 @@ import { view, esc, clearHeader } from '../dom.js';
 import { navigate } from '../router.js';
 import { getState, saveState } from '../state.js';
 import { showCelebrate } from '../celebrate.js';
+import { INTEREST_OPTIONS, filterOptions } from '../profile-fields.js';
 
 const COVER_POOL = [PHOTOS.palms, PHOTOS.coffee, PHOTOS.city, PHOTOS.books, PHOTOS.event, PHOTOS.mila].filter(Boolean);
 
@@ -494,7 +495,7 @@ export function groupChatScreen(id) {
   render();
 }
 
-/** Создание события — как в Taneesh: обложка, название, место, когда, вход. */
+/** Создание события — поля как в Taneesh: ряды → модалки. */
 export function createEventScreen() {
   clearHeader();
   const WHEN_OPTIONS = [
@@ -505,17 +506,166 @@ export function createEventScreen() {
     { when: 'Пт, 26 сен · 19:30', day: '26', month: 'сен' },
     { when: 'Сб, 27 сен · 16:00', day: '27', month: 'сен' }
   ];
+  const PLACE_OPTIONS = [
+    'Кофейня в центре',
+    'Парк Ашхабад',
+    'Мирабад',
+    'Юнусабад',
+    'Чиланзар',
+    'Next',
+    'Magic City',
+    'Бродвей',
+    'Самарканд · Регистан',
+    'Онлайн'
+  ];
+  const INTEREST_MAX = 5;
 
   let title = '';
   let place = '';
+  let city = 'Ташкент';
+  let description = '';
+  let interests = [];
   let whenIdx = 3;
   let cover = null;
   let coverIndex = 0;
-  let ticketMode = 'free'; // free | door
+  let ticketMode = 'free';
   let doorPrice = '50000';
-  let sheet = null; // null | when
+  let capacity = '30';
+  let sheet = null;
+  let sheetQuery = '';
+  let draftText = '';
+  let restoreFocus = false;
 
   const whenOf = () => WHEN_OPTIONS[whenIdx] || WHEN_OPTIONS[0];
+  const preview = (text, empty) => {
+    const value = String(text || '').trim();
+    if (!value) return empty;
+    return value.length > 42 ? `${value.slice(0, 42)}…` : value;
+  };
+
+  const closeSheet = () => {
+    sheet = null;
+    sheetQuery = '';
+    draftText = '';
+    restoreFocus = false;
+    render();
+  };
+
+  const sheetHead = (heading, sub) => `
+    <header class="edit-sheet-head">
+      <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+      <div class="edit-sheet-titles"><h2>${esc(heading)}</h2><p>${esc(sub)}</p></div>
+      <span class="edit-sheet-spacer"></span>
+    </header>`;
+
+  const renderSheet = () => {
+    if (sheet === 'when') {
+      return `
+        <div class="edit-sheet-scrim" id="sheetScrim"></div>
+        <div class="edit-sheet edit-sheet--picker create-when-sheet" role="dialog" aria-modal="true">
+          ${sheetHead('Когда', 'Выберите дату и время')}
+          <div class="create-when-list">
+            ${WHEN_OPTIONS.map((option, index) => `
+              <button type="button" class="create-when-row ${index === whenIdx ? 'on' : ''}" data-when="${index}">
+                <span>${esc(option.when)}</span>
+                ${index === whenIdx ? '<i class="ti ti-check"></i>' : ''}
+              </button>
+            `).join('')}
+          </div>
+        </div>`;
+    }
+
+    if (sheet === 'place') {
+      const filtered = filterOptions(PLACE_OPTIONS, sheetQuery);
+      return `
+        <div class="edit-sheet-scrim" id="sheetScrim"></div>
+        <div class="edit-sheet edit-sheet--picker create-when-sheet" role="dialog" aria-modal="true">
+          ${sheetHead('Место', 'Где пройдёт встреча')}
+          <label class="edit-sheet-search">
+            <i class="ti ti-search"></i>
+            <input id="sheetSearch" type="search" placeholder="Поиск или своё место" value="${esc(sheetQuery)}" autocomplete="off">
+          </label>
+          <div class="create-when-list">
+            ${filtered.map(item => `
+              <button type="button" class="create-when-row ${place === item ? 'on' : ''}" data-place="${esc(item)}">
+                <span>${esc(item)}</span>
+                ${place === item ? '<i class="ti ti-check"></i>' : ''}
+              </button>
+            `).join('')}
+          </div>
+          <div class="edit-work-custom">
+            <span>Своё место</span>
+            <input id="placeCustom" type="text" maxlength="80" value="${esc(PLACE_OPTIONS.includes(place) ? '' : place)}" placeholder="Адрес или название" autocomplete="off">
+          </div>
+          <div class="edit-sheet-foot">
+            <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+          </div>
+        </div>`;
+    }
+
+    if (sheet === 'description') {
+      return `
+        <div class="edit-sheet-scrim" id="sheetScrim"></div>
+        <div class="edit-sheet edit-sheet--text create-when-sheet" role="dialog" aria-modal="true">
+          ${sheetHead('Описание', 'Расскажите, что будет')}
+          <textarea class="create-sheet-textarea" id="descInput" maxlength="400" rows="6" placeholder="Коротко о встрече, дресс-код, что взять с собой…">${esc(draftText)}</textarea>
+          <div class="edit-sheet-foot">
+            ${draftText ? '<button type="button" class="edit-sheet-clear-field" id="clearDesc">Очистить</button>' : ''}
+            <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+          </div>
+        </div>`;
+    }
+
+    if (sheet === 'interests') {
+      const filtered = filterOptions(INTEREST_OPTIONS, sheetQuery);
+      const ordered = [
+        ...interests.filter(item => filtered.includes(item)),
+        ...filtered.filter(item => !interests.includes(item))
+      ];
+      return `
+        <div class="edit-sheet-scrim" id="sheetScrim"></div>
+        <div class="edit-sheet edit-sheet--picker create-when-sheet" role="dialog" aria-modal="true">
+          ${sheetHead('Интересы', interests.length ? `выбрано ${interests.length} из ${INTEREST_MAX}` : 'Выберите темы события')}
+          <label class="edit-sheet-search">
+            <i class="ti ti-search"></i>
+            <input id="sheetSearch" type="search" placeholder="Поиск" value="${esc(sheetQuery)}" autocomplete="off">
+          </label>
+          <div class="edit-chip-picker">
+            ${ordered.map(item => `
+              <button type="button" class="pick-chip ${interests.includes(item) ? 'on' : ''}" data-interest="${esc(item)}">${esc(item)}</button>
+            `).join('') || '<p class="edit-sheet-empty">Ничего не найдено</p>'}
+          </div>
+          <div class="edit-sheet-foot">
+            <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+          </div>
+        </div>`;
+    }
+
+    if (sheet === 'capacity') {
+      return `
+        <div class="edit-sheet-scrim" id="sheetScrim"></div>
+        <div class="edit-sheet edit-sheet--text create-when-sheet" role="dialog" aria-modal="true">
+          ${sheetHead('Места', 'Сколько гостей ждёте')}
+          <div class="create-when-list">
+            ${['10', '20', '30', '50', '100'].map(item => `
+              <button type="button" class="create-when-row ${capacity === item ? 'on' : ''}" data-capacity="${item}">
+                <span>до ${item}</span>
+                ${capacity === item ? '<i class="ti ti-check"></i>' : ''}
+              </button>
+            `).join('')}
+          </div>
+          <div class="edit-work-custom">
+            <span>Своё число</span>
+            <input id="capacityCustom" type="text" inputmode="numeric" maxlength="4" value="${esc(['10', '20', '30', '50', '100'].includes(capacity) ? '' : capacity)}" placeholder="например 25" autocomplete="off">
+          </div>
+          <div class="edit-sheet-foot">
+            <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+          </div>
+        </div>`;
+    }
+
+    return '';
+  };
 
   const render = () => {
     const ready = title.trim().length > 1 && place.trim().length > 1
@@ -537,13 +687,34 @@ export function createEventScreen() {
         </div>
 
         <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}" maxlength="80" autocomplete="off">
-        <input class="create-name smaller" id="eventPlace" placeholder="Место" value="${esc(place)}" maxlength="80" autocomplete="off">
 
-        <button class="settings-row" type="button" id="eventWhen">
-          <span class="settings-icon blue square"><i class="ti ti-calendar-event"></i></span>
-          <span>Когда<br><small>${esc(when.when)}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
+        <div class="create-field-rows">
+          <button class="settings-row" type="button" data-sheet="place">
+            <span class="settings-icon orange square"><i class="ti ti-map-pin"></i></span>
+            <span>Место<br><small>${esc(preview(place, 'Добавить'))}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" data-sheet="when">
+            <span class="settings-icon blue square"><i class="ti ti-calendar-event"></i></span>
+            <span>Когда<br><small>${esc(when.when)}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" data-sheet="description">
+            <span class="settings-icon purple square"><i class="ti ti-align-left"></i></span>
+            <span>Описание<br><small>${esc(preview(description, 'Добавить'))}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" data-sheet="interests">
+            <span class="settings-icon pink square"><i class="ti ti-sparkles"></i></span>
+            <span>Интересы<br><small>${esc(interests.length ? interests.join(', ') : 'Добавить')}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" data-sheet="capacity">
+            <span class="settings-icon green square"><i class="ti ti-users"></i></span>
+            <span>Места<br><small>до ${esc(capacity || '30')}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+        </div>
 
         <h3 class="settings-label">Вход</h3>
         <div class="create-chips" id="ticketModeChips">
@@ -576,24 +747,7 @@ export function createEventScreen() {
         </div>
       </div>
 
-      ${sheet === 'when' ? `
-        <div class="edit-sheet-scrim" id="whenScrim"></div>
-        <div class="edit-sheet edit-sheet--picker create-when-sheet" role="dialog" aria-modal="true">
-          <header class="edit-sheet-head">
-            <button type="button" class="edit-sheet-close" id="closeWhen" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-            <div class="edit-sheet-titles"><h2>Когда</h2><p>Выберите дату и время</p></div>
-            <span class="edit-sheet-spacer"></span>
-          </header>
-          <div class="create-when-list">
-            ${WHEN_OPTIONS.map((option, index) => `
-              <button type="button" class="create-when-row ${index === whenIdx ? 'on' : ''}" data-when="${index}">
-                <span>${esc(option.when)}</span>
-                ${index === whenIdx ? '<i class="ti ti-check"></i>' : ''}
-              </button>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}`;
+      ${renderSheet()}`;
 
     const syncReady = () => {
       const btn = view.querySelector('#createEventBtn');
@@ -605,21 +759,15 @@ export function createEventScreen() {
     };
 
     view.querySelector('#eventTitle').oninput = event => { title = event.target.value; syncReady(); };
-    view.querySelector('#eventPlace').oninput = event => { place = event.target.value; syncReady(); };
     view.querySelector('#setCover').onclick = () => {
       cover = nextCover(coverIndex++);
       render();
     };
-    view.querySelector('#eventWhen').onclick = () => {
-      sheet = 'when';
-      render();
-    };
-    view.querySelector('#whenScrim')?.addEventListener('click', () => { sheet = null; render(); });
-    view.querySelector('#closeWhen')?.addEventListener('click', () => { sheet = null; render(); });
-    view.querySelectorAll('[data-when]').forEach(button => {
+    view.querySelectorAll('[data-sheet]').forEach(button => {
       button.onclick = () => {
-        whenIdx = Number(button.dataset.when);
-        sheet = null;
+        sheet = button.dataset.sheet;
+        sheetQuery = '';
+        if (sheet === 'description') draftText = description;
         render();
       };
     });
@@ -638,6 +786,80 @@ export function createEventScreen() {
       };
     }
 
+    view.querySelector('#sheetScrim')?.addEventListener('click', closeSheet);
+    view.querySelector('#closeSheet')?.addEventListener('click', closeSheet);
+    view.querySelector('#doneSheet')?.addEventListener('click', () => {
+      if (sheet === 'place') {
+        const custom = view.querySelector('#placeCustom')?.value?.trim() || '';
+        if (custom) place = custom;
+      }
+      if (sheet === 'description') {
+        description = (view.querySelector('#descInput')?.value || draftText || '').trim();
+      }
+      if (sheet === 'capacity') {
+        const custom = view.querySelector('#capacityCustom')?.value?.replace(/\D/g, '') || '';
+        if (custom) capacity = custom;
+      }
+      closeSheet();
+    });
+
+    view.querySelectorAll('[data-when]').forEach(button => {
+      button.onclick = () => {
+        whenIdx = Number(button.dataset.when);
+        closeSheet();
+      };
+    });
+    view.querySelectorAll('[data-place]').forEach(button => {
+      button.onclick = () => {
+        place = button.dataset.place;
+        const custom = view.querySelector('#placeCustom');
+        if (custom) custom.value = '';
+        render();
+      };
+    });
+    view.querySelectorAll('[data-capacity]').forEach(button => {
+      button.onclick = () => {
+        capacity = button.dataset.capacity;
+        render();
+      };
+    });
+    view.querySelectorAll('[data-interest]').forEach(button => {
+      button.onclick = () => {
+        const value = button.dataset.interest;
+        const index = interests.indexOf(value);
+        if (index >= 0) interests.splice(index, 1);
+        else if (interests.length < INTEREST_MAX) interests.push(value);
+        restoreFocus = Boolean(sheetQuery);
+        render();
+      };
+    });
+
+    const search = view.querySelector('#sheetSearch');
+    if (search) {
+      if (restoreFocus) {
+        search.focus();
+        const len = search.value.length;
+        search.setSelectionRange(len, len);
+        restoreFocus = false;
+      }
+      search.oninput = () => {
+        sheetQuery = search.value;
+        restoreFocus = true;
+        render();
+      };
+    }
+
+    const descInput = view.querySelector('#descInput');
+    if (descInput) {
+      descInput.focus();
+      descInput.oninput = () => { draftText = descInput.value; };
+    }
+    view.querySelector('#clearDesc')?.addEventListener('click', () => {
+      draftText = '';
+      description = '';
+      render();
+    });
+
     view.querySelector('#createEventBtn').onclick = () => {
       if (!(title.trim().length > 1 && place.trim().length > 1)) return;
       const profile = getState().profile || defaultProfile;
@@ -653,14 +875,17 @@ export function createEventScreen() {
         day: slot.day,
         month: slot.month,
         place: place.trim(),
-        address: 'Ташкент',
+        address: city,
+        description: description.trim(),
+        interests: [...interests],
+        capacity: Number(capacity) || 30,
         group: 'Yaqin',
         host: profile.name || 'Вы',
         hostId: 'me',
         going: 1,
         photo: cover || nextCover(1),
         isFree: ticketMode === 'free',
-        ticketMode, // free | door (Taneesh: free | at_door)
+        ticketMode,
         paymentMode: ticketMode === 'door' ? 'at_door' : undefined,
         price,
         fee: 0,
