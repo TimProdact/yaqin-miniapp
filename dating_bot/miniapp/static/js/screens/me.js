@@ -459,7 +459,7 @@ export async function editScreen(_id, token) {
 
   const draft = {
     name: profile.name || '',
-    age: profile.age || 25,
+    age: Number(profile.age) || 25,
     city: profile.city || 'Ташкент',
     bio: profile.bio || '',
     interests: [...interestsOf(profile)],
@@ -471,7 +471,18 @@ export async function editScreen(_id, token) {
     tiktok: profile.tiktok || '',
     website: profile.website || ''
   };
-  let sheet = null; // interests | looking | media | languages
+  /** null | interests | looking | media | languages | text */
+  let sheet = null;
+  let textField = null; // { key, label }
+  let textDraft = '';
+  let notice = '';
+
+  const FIELD_LABELS = {
+    work: 'Работа',
+    instagram: 'Instagram',
+    tiktok: 'TikTok',
+    website: 'Сайт'
+  };
 
   const render = () => {
     view.innerHTML = `
@@ -479,35 +490,42 @@ export async function editScreen(_id, token) {
         <div class="edit-hero">
           <img src="${esc(profile.photo || profile.photos?.[0] || promptPhoto)}" alt="">
           <button class="edit-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-          <button class="edit-done" id="saveEdit">Готово</button>
+          <button type="button" class="edit-done" id="saveEdit">Готово</button>
           <div class="me-dots"><span class="on"></span><span></span></div>
-          <button class="edit-photos-fab" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
+          <button type="button" class="edit-photos-fab" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
         </div>
         <section class="edit-card">
+          ${notice ? `<p class="edit-notice">${esc(notice)}</p>` : ''}
           <div class="edit-identity">
-            <input class="edit-name" id="profileName" maxlength="40" value="${esc(draft.name)}">
+            <input class="edit-name" id="profileName" maxlength="40" value="${esc(draft.name)}" placeholder="Имя" autocomplete="off">
             <p>
-              <input class="edit-age" id="profileAge" type="number" min="18" max="100" value="${draft.age}">
+              <input class="edit-age" id="profileAge" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${esc(String(draft.age))}" aria-label="Возраст">
               ·
               <span class="edit-city-static">${esc(draft.city || 'Ташкент')}</span>
             </p>
           </div>
-          <textarea class="edit-motto" id="profileAbout" maxlength="120" placeholder="короткий девиз">${esc(draft.bio)}</textarea>
+          <textarea class="edit-motto" id="profileAbout" maxlength="120" placeholder="короткий девиз" rows="2">${esc(draft.bio)}</textarea>
 
           <h3 class="settings-label">О себе</h3>
           <div class="me-box">
             <button type="button" class="edit-block-head" data-sheet="interests">
               <h4>Интересы</h4><i class="ti ti-pencil"></i>
             </button>
-            <div class="big-chips">${chipList(draft.interests)}</div>
+            <button type="button" class="edit-chips-hit" data-sheet="interests">
+              <div class="big-chips">${draft.interests.length ? chipList(draft.interests) : '<span class="chip-empty">Добавить</span>'}</div>
+            </button>
             <button type="button" class="edit-block-head" data-sheet="looking">
               <h4>Чего хочу</h4><i class="ti ti-pencil"></i>
             </button>
-            <div class="big-chips">${chipList(draft.looking)}</div>
+            <button type="button" class="edit-chips-hit" data-sheet="looking">
+              <div class="big-chips">${draft.looking.length ? chipList(draft.looking) : '<span class="chip-empty">Добавить</span>'}</div>
+            </button>
             <button type="button" class="edit-block-head" data-sheet="media">
               <h4>Сейчас смотрю / читаю</h4><i class="ti ti-pencil"></i>
             </button>
-            <div class="big-chips">${chipList(draft.media)}</div>
+            <button type="button" class="edit-chips-hit" data-sheet="media">
+              <div class="big-chips">${draft.media.length ? chipList(draft.media) : '<span class="chip-empty">Добавить</span>'}</div>
+            </button>
           </div>
 
           <h3 class="settings-label">Основное</h3>
@@ -537,6 +555,7 @@ export async function editScreen(_id, token) {
         </section>
 
         ${sheet === 'interests' || sheet === 'looking' || sheet === 'media' ? `
+          <div class="edit-sheet-scrim" id="sheetScrim"></div>
           <div class="edit-sheet">
             <header>
               <h2>${sheet === 'interests' ? 'Интересы' : sheet === 'looking' ? 'Чего хочу' : 'Сейчас в медиа'}</h2>
@@ -551,6 +570,7 @@ export async function editScreen(_id, token) {
           </div>` : ''}
 
         ${sheet === 'languages' ? `
+          <div class="edit-sheet-scrim" id="sheetScrim"></div>
           <div class="edit-sheet">
             <header>
               <h2>Языки</h2>
@@ -563,27 +583,57 @@ export async function editScreen(_id, token) {
               }).join('')}
             </div>
           </div>` : ''}
+
+        ${sheet === 'text' && textField ? `
+          <div class="edit-sheet-scrim" id="sheetScrim"></div>
+          <div class="edit-sheet">
+            <header>
+              <h2>${esc(textField.label)}</h2>
+              <button type="button" id="closeSheet">Готово</button>
+            </header>
+            <input class="edit-text-input" id="fieldInput" type="text" maxlength="80" value="${esc(textDraft)}" placeholder="${esc(textField.label)}" autocomplete="off">
+          </div>` : ''}
       </div>`;
 
     const syncDraft = () => {
       draft.name = view.querySelector('#profileName')?.value || '';
-      draft.age = Number(view.querySelector('#profileAge')?.value) || draft.age;
+      const ageRaw = String(view.querySelector('#profileAge')?.value || '').replace(/\D/g, '');
+      const ageNum = Number(ageRaw);
+      if (Number.isFinite(ageNum) && ageNum > 0) draft.age = ageNum;
       draft.bio = view.querySelector('#profileAbout')?.value || '';
     };
 
-    view.querySelectorAll('[data-sheet]').forEach(button => {
-      button.onclick = () => {
-        syncDraft();
-        sheet = button.dataset.sheet;
-        render();
-      };
-    });
-    view.querySelector('#closeSheet')?.addEventListener('click', () => {
+    const openSheet = next => {
+      syncDraft();
+      notice = '';
+      sheet = next;
+      render();
+    };
+
+    const closeSheet = () => {
+      if (sheet === 'text' && textField) {
+        const input = view.querySelector('#fieldInput');
+        if (input) draft[textField.key] = input.value.trim();
+        textField = null;
+        textDraft = '';
+      }
       sheet = null;
       render();
+    };
+
+    view.querySelectorAll('[data-sheet]').forEach(button => {
+      button.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
+        openSheet(button.dataset.sheet);
+      };
     });
+    view.querySelector('#sheetScrim')?.addEventListener('click', closeSheet);
+    view.querySelector('#closeSheet')?.addEventListener('click', closeSheet);
     view.querySelectorAll('[data-chip]').forEach(button => {
-      button.onclick = () => {
+      button.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
         const value = button.dataset.chip;
         const list = draft[sheet];
         const index = list.indexOf(value);
@@ -593,7 +643,9 @@ export async function editScreen(_id, token) {
       };
     });
     view.querySelectorAll('[data-lang]').forEach(button => {
-      button.onclick = () => {
+      button.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
         const value = button.dataset.lang;
         const index = draft.languages.indexOf(value);
         if (index >= 0) draft.languages.splice(index, 1);
@@ -602,39 +654,59 @@ export async function editScreen(_id, token) {
       };
     });
     view.querySelectorAll('[data-field]').forEach(button => {
-      button.onclick = () => {
+      button.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
         syncDraft();
         const key = button.dataset.field;
         if (key === 'languages') {
-          sheet = 'languages';
-          render();
+          openSheet('languages');
           return;
         }
-        const labels = {
-          work: 'Работа',
-          instagram: 'Instagram',
-          tiktok: 'TikTok',
-          website: 'Сайт'
-        };
-        const next = window.prompt(labels[key] || key, draft[key] || '');
-        if (next !== null) {
-          draft[key] = next.trim();
-          render();
-        }
+        textField = { key, label: FIELD_LABELS[key] || key };
+        textDraft = draft[key] || '';
+        openSheet('text');
       };
     });
-    view.querySelector('#saveEdit').onclick = async () => {
+
+    const fieldInput = view.querySelector('#fieldInput');
+    if (fieldInput) {
+      fieldInput.focus();
+      fieldInput.setSelectionRange(textDraft.length, textDraft.length);
+      fieldInput.oninput = () => {
+        textDraft = fieldInput.value;
+      };
+      fieldInput.onkeydown = event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          closeSheet();
+        }
+      };
+    }
+
+    view.querySelector('#saveEdit').onclick = async event => {
+      event.preventDefault();
+      event.stopPropagation();
       syncDraft();
-      if (!draft.name.trim() || !Number.isInteger(draft.age) || draft.age < 18 || draft.age > 100) {
-        showError('Проверьте имя и возраст: возраст должен быть от 18 до 100.');
+      const ageOk = Number.isFinite(draft.age) && draft.age >= 18 && draft.age <= 100;
+      if (!draft.name.trim() || !ageOk) {
+        notice = 'Проверьте имя и возраст (от 18 до 100).';
+        render();
         return;
+      }
+      const button = view.querySelector('#saveEdit');
+      if (button) {
+        button.disabled = true;
+        button.textContent = '…';
       }
       try {
         await saveProfile({
+          ...profile,
           name: draft.name.trim(),
-          age: draft.age,
+          age: Math.round(draft.age),
           city: draft.city,
           about: draft.bio.trim(),
+          bio: draft.bio.trim(),
           interests: draft.interests,
           looking: draft.looking,
           media: draft.media,
@@ -642,11 +714,14 @@ export async function editScreen(_id, token) {
           languages: draft.languages,
           instagram: draft.instagram,
           tiktok: draft.tiktok,
-          website: draft.website
+          website: draft.website,
+          photo: profile.photo,
+          photos: profile.photos
         });
         navigate('me');
       } catch {
-        showError('Анкета не сохранилась. Попробуйте ещё раз.');
+        notice = 'Анкета не сохранилась. Попробуйте ещё раз.';
+        render();
       }
     };
   };

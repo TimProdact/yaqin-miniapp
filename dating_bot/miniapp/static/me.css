@@ -364,6 +364,8 @@ body.profile-open .view {
 .edit-profile-page {
   min-height: 100%;
   background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  padding-bottom: 48px;
 }
 .edit-hero {
   position: relative;
@@ -388,6 +390,7 @@ body.profile-open .view {
   height: 40px;
   border-radius: 50%;
   background: rgba(255,255,255,.88);
+  color: #171719;
   display: grid;
   place-items: center;
   font-size: 20px;
@@ -397,9 +400,13 @@ body.profile-open .view {
   right: 16px;
   border-radius: 999px;
   background: rgba(255,255,255,.88);
+  color: #171719;
   padding: 10px 16px;
   font-size: 15px;
   font-weight: 600;
+}
+.edit-done:disabled {
+  opacity: 0.7;
 }
 .edit-photos-fab {
   right: 16px;
@@ -408,7 +415,7 @@ body.profile-open .view {
   height: 36px;
   border-radius: 50%;
   background: rgba(23,23,25,.72);
-  color: var(--yaqin-ink-inverse);
+  color: #fff;
   display: grid;
   place-items: center;
 }
@@ -420,6 +427,15 @@ body.profile-open .view {
   border-radius: 28px 28px 0 0;
   padding: 28px 20px 40px;
 }
+.edit-notice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--yaqin-radius-sm);
+  background: var(--yaqin-danger-soft);
+  color: var(--yaqin-danger);
+  font-size: var(--yaqin-fs-secondary);
+  line-height: 1.35;
+}
 .edit-identity .edit-name {
   width: 100%;
   border: 0;
@@ -427,6 +443,8 @@ body.profile-open .view {
   font-size: 28px;
   font-weight: 700;
   background: none;
+  color: var(--yaqin-text);
+  caret-color: var(--yaqin-text);
 }
 .edit-identity p {
   margin: 8px 0 0;
@@ -445,25 +463,53 @@ body.profile-open .view {
   color: inherit;
   width: auto;
   max-width: 160px;
+  caret-color: var(--yaqin-text);
 }
 .edit-city-static {
   color: inherit;
   opacity: 0.85;
 }
-.edit-age { width: 42px; }
+.edit-age {
+  width: 42px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.edit-age::-webkit-outer-spin-button,
+.edit-age::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 .edit-motto {
   width: 100%;
   margin: 18px 0 8px;
   min-height: 52px;
   border: 1.5px solid var(--yaqin-sep);
-  border-radius: 999px;
+  border-radius: var(--yaqin-radius-md);
   padding: 14px 18px;
-  text-align: center;
-  resize: none;
+  text-align: left;
+  resize: vertical;
   font: inherit;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   outline: 0;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  caret-color: var(--yaqin-text);
+}
+.edit-chips-hit {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0 0 4px;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+.chip-empty {
+  background: var(--yaqin-bg-subtle) !important;
+  color: var(--yaqin-text-tertiary) !important;
 }
 .edit-card .me-box h4 {
   display: flex;
@@ -471,9 +517,16 @@ body.profile-open .view {
   align-items: center;
 }
 body[data-route='edit'] .nav,
-body[data-route='edit-photos'] .nav { display: none; }
+body[data-route='edit-photos'] .nav {
+  display: none !important;
+}
 body[data-route='edit'] .view,
-body[data-route='edit-photos'] .view { padding: 0 !important; }
+body[data-route='edit-photos'] .view {
+  padding: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
 
 
 
@@ -707,6 +760,12 @@ body[data-route='edit-photos'] .view { padding: 0 !important; }
 .edit-basic-row span { color: var(--yaqin-text-secondary); }
 .edit-basic-row b { font-size: 14px; display: inline-flex; align-items: center; gap: 4px; }
 .edit-basic-row b.muted { color: var(--yaqin-text-tertiary); font-weight: 600; }
+.edit-sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--yaqin-overlay);
+}
 .edit-sheet {
   position: fixed;
   left: 50%;
@@ -714,11 +773,12 @@ body[data-route='edit-photos'] .view { padding: 0 !important; }
   bottom: 0;
   width: min(442px, 100%);
   max-height: 70vh;
-  background: var(--yaqin-bg);
+  background: var(--yaqin-surface-raised);
+  color: var(--yaqin-text);
   border-radius: 20px 20px 0 0;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.13);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.35);
   z-index: 50;
-  padding: 16px 16px 28px;
+  padding: 16px 16px calc(28px + env(safe-area-inset-bottom, 0px));
   overflow: auto;
 }
 .edit-sheet header {
@@ -727,12 +787,13 @@ body[data-route='edit-photos'] .view { padding: 0 !important; }
   align-items: center;
   margin-bottom: 14px;
 }
-.edit-sheet h2 { margin: 0; font-size: 20px; }
+.edit-sheet h2 { margin: 0; font-size: 20px; color: var(--yaqin-text); }
 .edit-sheet header button {
   border: 0;
   background: none;
-  color: var(--yaqin-danger);
+  color: var(--yaqin-link);
   font-weight: 700;
+  font-size: 16px;
 }
 .edit-chip-picker {
   display: flex;
@@ -742,11 +803,26 @@ body[data-route='edit-photos'] .view { padding: 0 !important; }
 .edit-chip-picker button {
   border: 0;
   background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
   border-radius: 999px;
   padding: 10px 14px;
   font-weight: 600;
 }
-.edit-chip-picker .on { background: var(--yaqin-text); color: var(--yaqin-ink-inverse); }
+.edit-chip-picker .on {
+  background: var(--yaqin-ink);
+  color: var(--yaqin-ink-inverse);
+}
+.edit-text-input {
+  width: 100%;
+  border: 1.5px solid var(--yaqin-sep);
+  border-radius: var(--yaqin-radius-md);
+  padding: 14px 16px;
+  font: inherit;
+  font-size: 16px;
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  outline: 0;
+}
 .edit-radio-list { display: grid; gap: 8px; }
 .edit-radio-list button {
   border: 0;

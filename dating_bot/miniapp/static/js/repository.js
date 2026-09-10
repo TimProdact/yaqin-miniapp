@@ -91,15 +91,16 @@ export async function loadVerification() {
 export async function saveProfile(payload) {
   if (!isLive) {
     const state = getState();
-    const prev = state.profile || {};
+    const prev = { ...defaultProfile, ...(state.profile || {}) };
     const next = {
       ...prev,
       ...payload,
-      bio: payload.about ?? payload.bio ?? prev.bio
+      bio: payload.about ?? payload.bio ?? prev.bio,
+      age: Number(payload.age ?? prev.age) || prev.age
     };
     if (payload.about !== undefined) delete next.about;
     saveState({ ...state, profile: next });
-    return;
+    return next;
   }
   await api.updateMe(payload);
 }
