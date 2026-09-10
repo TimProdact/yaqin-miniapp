@@ -1,0 +1,30 @@
+---
+description: Yaqin — правила хедера страниц и чатов
+globs: yaqin-miniapp/dating_bot/miniapp/static/**/*
+alwaysApply: false
+---
+
+# Yaqin: хедер
+
+Контракт из `design/DESIGN-SYSTEM.md` + Telegram BackButton.
+
+## Page / list header (`.chats-head`, `.me-top`, `.filters-head`)
+
+- Высота `--yaqin-header-h` (52). Sticky, фон `--yaqin-bg` / `--yaqin-surface`.
+- **Title слева**, actions справа.
+- Title: `--yaqin-fs-title` / 700 (вкладки) или `--yaqin-fs-modal` / 700 (модальные/чат).
+- Горизонтальный padding = `--yaqin-gutter`.
+- Не дублировать «✕ Закрыть» в UI, если есть системный Telegram Close/Back.
+
+## Conversation header (`.chat-top`)
+
+- Та же высота и gutter.
+- Layout: `[назад?] · title+subtitle слева (flex:1) · action`.
+- В Telegram Mini App: системный `BackButton`, **без** пустого spacer слева — title сразу от gutter.
+- Вне Telegram: chevron `data-action` назад.
+- Имя собеседника / группы — tap → профиль / хаб группы.
+- Title **не** по центру экрана (не Telegram Web-кэтч с центрированием).
+
+## Safe area
+
+- Отступ сверху даёт `.app { padding-top: var(--yaqin-safe-top) }` — хедер не дублирует safe-top, кроме sheet/hero full-bleed.

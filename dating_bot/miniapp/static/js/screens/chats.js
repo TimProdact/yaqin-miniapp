@@ -326,13 +326,20 @@ export function chatScreen(id) {
     <div class="chat-page">
       <header class="chat-top">
         ${hasTelegramBack()
-          ? '<span class="head-spacer" aria-hidden="true"></span>'
-          : '<button class="chat-back" data-action="chats" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
-        <div class="chat-peer">
-          <h1>${esc(chat.name)}</h1>
-          ${chat.team ? '' : '<p>Чат</p>'}
-        </div>
-        ${chat.personId ? `<button id="chatMenuBtn" aria-label="Ещё"><i class="ti ti-dots"></i></button>` : '<span></span>'}
+          ? ''
+          : '<button type="button" class="chat-back" data-action="chats" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
+        ${chat.personId
+          ? `<button type="button" class="chat-peer chat-peer-btn" data-action="person" data-id="${esc(chat.personId)}">
+              <h1>${esc(chat.name)}</h1>
+              <p>Чат</p>
+            </button>`
+          : `<div class="chat-peer">
+              <h1>${esc(chat.name)}</h1>
+              ${chat.team ? '' : '<p>Чат</p>'}
+            </div>`}
+        ${chat.personId
+          ? '<button type="button" id="chatMenuBtn" aria-label="Ещё"><i class="ti ti-dots"></i></button>'
+          : '<span class="head-spacer" aria-hidden="true"></span>'}
       </header>
 
       ${ui.menuOpen && chat.personId ? `
@@ -343,12 +350,13 @@ export function chatScreen(id) {
 
       <main class="chat-thread ${empty ? 'start' : ''}">
         ${chat.team ? '' : `
-          <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
-          <p class="chat-meta">${empty
-            ? `Это начало вашей переписки · ${esc(chat.name)}`
-            : `Вы познакомились · ${esc(chat.name)}`}</p>
-          <div class="chat-pills">${emptyPills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
-        `}
+          <section class="chat-intro me-panel">
+            <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
+            <p class="chat-meta">${empty
+              ? `Это начало вашей переписки · ${esc(chat.name)}`
+              : `Вы познакомились · ${esc(chat.name)}`}</p>
+            <div class="chat-pills">${emptyPills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
+          </section>`}
         ${messages.map(renderMessage).join('')}
       </main>
 

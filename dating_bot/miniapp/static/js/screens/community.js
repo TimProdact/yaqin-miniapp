@@ -538,13 +538,13 @@ export function groupChatScreen(id) {
       <div class="chat-page group-chat-lite">
         <header class="chat-top">
           ${hasTelegramBack()
-            ? '<span class="head-spacer" aria-hidden="true"></span>'
-            : `<button class="chat-back" data-action="group" data-id="${esc(group.id)}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
+            ? ''
+            : `<button type="button" class="chat-back" data-action="group" data-id="${esc(group.id)}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
           <button type="button" class="chat-peer chat-peer-btn" data-action="group" data-id="${esc(group.id)}">
             <h1>${esc(group.title)}</h1>
             <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
           </button>
-          <span></span>
+          <span class="head-spacer" aria-hidden="true"></span>
         </header>
 
         <div class="chat-thread">

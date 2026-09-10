@@ -261,11 +261,23 @@
   height: var(--yaqin-header-h);
   min-height: var(--yaqin-header-h);
   flex-shrink: 0;
-  border-bottom: 1px solid var(--yaqin-sep);
-  display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--yaqin-sep-soft);
+  display: flex;
   align-items: center;
-  padding: 0 8px;
+  gap: 8px;
+  padding: 0 var(--yaqin-gutter);
+  background: var(--yaqin-bg);
+  position: sticky;
+  top: 0;
+  z-index: 15;
+}
+.chat-top > button:not(.chat-peer-btn),
+.chat-top > .chat-back,
+.chat-top > .head-spacer {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
 }
 .chat-top button {
   border: 0;
@@ -275,8 +287,6 @@
 }
 .chat-back {
   position: relative;
-  width: 40px;
-  height: 40px;
   display: grid;
   place-items: center;
 }
@@ -294,23 +304,40 @@
   display: grid;
   place-items: center;
 }
-.chat-peer {
-  text-align: center;
+.chat-peer,
+.chat-peer-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
 }
-.chat-peer h1 {
+.chat-peer h1,
+.chat-peer-btn h1 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--yaqin-fs-modal);
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.chat-peer p {
+.chat-peer p,
+.chat-peer-btn p {
   margin: 1px 0 0;
-  font-size: 11px;
+  font-size: var(--yaqin-fs-caption);
   color: var(--yaqin-text-tertiary);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .chat-peer p i {
   width: 8px;
@@ -321,11 +348,20 @@
 .chat-thread {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 16px 20px;
+  padding: 16px var(--yaqin-gutter) 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+.chat-intro {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  text-align: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 18px 16px 16px;
 }
 .chat-photo {
   width: 120px;
