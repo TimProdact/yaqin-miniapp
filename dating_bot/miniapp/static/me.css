@@ -210,14 +210,39 @@ body.profile-open .view {
 }
 
 .me-overview-page {
-  padding-bottom: 32px;
+  padding: 0 var(--yaqin-gutter) 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+.me-overview-page > .me-top {
+  margin: 0 calc(var(--yaqin-gutter) * -1);
+  width: calc(100% + 2 * var(--yaqin-gutter));
+  box-sizing: border-box;
+}
+.me-panel {
+  width: 100%;
+  margin: 0;
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--yaqin-surface-raised);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.me-panel-identity {
+  padding: 18px 16px 16px;
+}
+.me-panel-util {
+  padding: 4px 8px;
 }
 .me-identity {
   display: grid;
   grid-template-columns: 72px 1fr 40px;
   gap: 14px;
   align-items: center;
-  margin: 8px var(--yaqin-gutter) 12px;
+  margin: 0;
 }
 .me-identity-avatar {
   position: relative;
@@ -273,7 +298,7 @@ body.profile-open .view {
   margin-top: 8px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--yaqin-bg-subtle);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text-secondary);
   font-size: 12px;
   font-weight: 600;
@@ -283,26 +308,23 @@ body.profile-open .view {
   height: 40px;
   border: 0;
   border-radius: 50%;
-  background: var(--yaqin-bg-subtle);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text);
   display: grid;
   place-items: center;
   font-size: 18px;
 }
 .me-overview-bio {
-  margin: 0 var(--yaqin-gutter) 18px;
+  margin: 14px 0 0;
   font-size: 15px;
   line-height: 1.4;
   color: var(--yaqin-text-secondary);
 }
-.me-block {
-  margin: 0 0 22px;
+.me-panel .me-section-head {
+  padding: 0;
+  margin: 0 0 10px;
 }
-.me-block .me-section-head {
-  padding: 0 var(--yaqin-gutter);
-  margin-bottom: 6px;
-}
-.me-block .me-section-head h3 {
+.me-panel .me-section-head h3 {
   font-size: 18px;
   font-weight: 700;
 }
@@ -319,7 +341,7 @@ body.profile-open .view {
   padding: 0;
 }
 .me-block-lead {
-  margin: 0 var(--yaqin-gutter) 10px;
+  margin: 0 0 10px;
   font-size: 13px;
   color: var(--yaqin-text-tertiary);
 }
@@ -327,7 +349,8 @@ body.profile-open .view {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding: 4px var(--yaqin-gutter) 8px;
+  margin: 0 -16px;
+  padding: 4px 16px 2px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -336,7 +359,7 @@ body.profile-open .view {
   flex: 0 0 220px;
   border: 0;
   border-radius: var(--yaqin-radius-md);
-  background: var(--yaqin-surface-raised);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text);
   text-align: left;
   font: inherit;
@@ -366,23 +389,16 @@ body.profile-open .view {
   font-size: 12px;
   color: var(--yaqin-text-tertiary);
 }
-.me-ticket-body em {
-  margin-top: 6px;
-  font-style: normal;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--yaqin-text-secondary);
-}
 .me-empty-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: calc(100% - 2 * var(--yaqin-gutter));
-  margin: 0 var(--yaqin-gutter);
-  padding: 16px;
+  width: 100%;
+  margin: 0;
+  padding: 14px;
   border: 0;
   border-radius: var(--yaqin-radius-md);
-  background: var(--yaqin-surface-raised);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text-secondary);
   font: inherit;
   font-size: 14px;
@@ -396,7 +412,7 @@ body.profile-open .view {
 .me-mini-list {
   display: grid;
   gap: 8px;
-  padding: 0 var(--yaqin-gutter);
+  padding: 0;
 }
 .me-mini-row {
   display: grid;
@@ -406,7 +422,7 @@ body.profile-open .view {
   width: 100%;
   border: 0;
   border-radius: var(--yaqin-radius-md);
-  background: var(--yaqin-surface-raised);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text);
   text-align: left;
   font: inherit;
@@ -421,6 +437,7 @@ body.profile-open .view {
 .me-mini-row strong {
   display: block;
   font-size: 15px;
+  font-weight: 700;
 }
 .me-mini-row span {
   display: block;
@@ -431,11 +448,11 @@ body.profile-open .view {
 .me-mini-row > i {
   color: var(--yaqin-text-tertiary);
 }
-.me-util {
-  margin-top: 8px;
-}
 .me-util-block {
-  margin: 0 var(--yaqin-gutter);
+  margin: 0;
+}
+.me-panel-util .settings-row {
+  background: transparent;
 }
 
 .me-hub-page .settings-label {

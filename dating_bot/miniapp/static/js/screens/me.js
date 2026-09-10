@@ -129,26 +129,27 @@ export async function meScreen(_id, token) {
     <div class="me-page me-overview-page">
       ${meTopHtml()}
 
-      <section class="me-identity">
-        <button type="button" class="me-identity-avatar" data-action="edit-photos" aria-label="Фото">
-          <img src="${esc(heroPhoto)}" alt="">
-          ${verify.tone === 'ok' ? '<i class="ti ti-circle-check me-verified"></i>' : ''}
-        </button>
-        <div class="me-identity-copy">
-          <h2>${esc(profile.name || 'Без имени')}${profile.age ? `, ${esc(String(profile.age))}` : ''}</h2>
-          <button type="button" class="me-identity-city" data-action="city">
-            <i class="ti ti-map-pin"></i> ${esc(profile.city || 'Город')}
+      <section class="me-panel me-panel-identity">
+        <div class="me-identity">
+          <button type="button" class="me-identity-avatar" data-action="edit-photos" aria-label="Фото">
+            <img src="${esc(heroPhoto)}" alt="">
+            ${verify.tone === 'ok' ? '<i class="ti ti-circle-check me-verified"></i>' : ''}
           </button>
-          <span class="me-fill-pill">Заполнен на ${fill}%</span>
+          <div class="me-identity-copy">
+            <h2>${esc(profile.name || 'Без имени')}${profile.age ? `, ${esc(String(profile.age))}` : ''}</h2>
+            <button type="button" class="me-identity-city" data-action="city">
+              <i class="ti ti-map-pin"></i> ${esc(profile.city || 'Город')}
+            </button>
+            <span class="me-fill-pill">Заполнен на ${fill}%</span>
+          </div>
+          <button type="button" class="me-identity-edit" data-action="edit" aria-label="Редактировать">
+            <i class="ti ti-pencil"></i>
+          </button>
         </div>
-        <button type="button" class="me-identity-edit" data-action="edit" aria-label="Редактировать">
-          <i class="ti ti-pencil"></i>
-        </button>
+        ${profile.bio ? `<p class="me-overview-bio">${esc(profile.bio)}</p>` : ''}
       </section>
 
-      ${profile.bio ? `<p class="me-overview-bio">${esc(profile.bio)}</p>` : ''}
-
-      <section class="me-block">
+      <section class="me-panel">
         ${sectionHead('Мои билеты', 'my-tickets')}
         ${nextTicket ? `<p class="me-block-lead">Ближайший · ${esc(nextTicket.when || '')}</p>` : ''}
         ${tickets.length ? `
@@ -160,7 +161,6 @@ export async function meScreen(_id, token) {
                   <strong>${esc(ticket.title)}</strong>
                   <span>${esc(ticket.when || '')}</span>
                   <span>${esc(ticket.place || '')}</span>
-                  <em>${ticket.role === 'host' ? 'Организатор' : ticket.mode === 'door' ? 'На входе' : ticket.mode === 'paid' ? 'Онлайн' : 'Бесплатно'}</em>
                 </div>
               </button>`).join('')}
           </div>` : `
@@ -170,7 +170,7 @@ export async function meScreen(_id, token) {
           </button>`}
       </section>
 
-      <section class="me-block">
+      <section class="me-panel">
         ${sectionHead('Мои события', 'my-events')}
         ${events.length ? `
           <div class="me-mini-list">
@@ -190,7 +190,7 @@ export async function meScreen(_id, token) {
           </button>`}
       </section>
 
-      <section class="me-block">
+      <section class="me-panel">
         ${sectionHead('Группы', 'my-groups')}
         ${groups.length ? `
           <div class="me-mini-list">
@@ -210,7 +210,7 @@ export async function meScreen(_id, token) {
           </button>`}
       </section>
 
-      <section class="me-block me-util">
+      <section class="me-panel me-panel-util">
         <div class="settings-block me-util-block">
           <label class="settings-row toggle">
             <span class="settings-icon green square"><i class="ti ti-eye"></i></span>
