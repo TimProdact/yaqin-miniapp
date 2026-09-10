@@ -89,7 +89,7 @@ function fitCardChips(root = view) {
 }
 
 export async function peopleScreen(_id, token) {
-  setDiscoverHeader('Ташкент');
+  setDiscoverHeader(getState().filters?.city || 'Ташкент');
   showDiscoverLoading();
 
   let candidates;
@@ -108,7 +108,8 @@ export async function peopleScreen(_id, token) {
       filters.ageMin > 18 ||
       filters.ageMax < 40 ||
       (filters.distance || 50) < 50 ||
-      (filters.interests || []).length > 0;
+      (filters.interests || []).length > 0 ||
+      (filters.city && filters.city !== 'Ташкент' && filters.city !== 'Все');
     renderEmptyState(tight ? 'filters' : 'exhausted');
     return;
   }
@@ -352,6 +353,37 @@ export function filtersScreen() {
   };
 
   render();
+}
+
+const CITIES = ['Ташкент', 'Самарканд', 'Бухара', 'Наманган', 'Андижан', 'Все'];
+
+export function cityScreen() {
+  clearHeader();
+  const current = getState().filters?.city || 'Ташкент';
+
+  view.innerHTML = `
+    <div class="filters-page city-page">
+      <header class="filters-head">
+        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <h1>Город</h1>
+        <span></span>
+      </header>
+      <p class="city-lead">Показывать анкеты из города</p>
+      <div class="city-list">
+        ${CITIES.map(city => `
+          <button type="button" class="city-row ${current === city ? 'on' : ''}" data-city="${esc(city)}">
+            <span>${esc(city === 'Все' ? 'Все города' : city)}</span>
+            ${current === city ? '<i class="ti ti-check"></i>' : ''}
+          </button>`).join('')}
+      </div>
+    </div>`;
+
+  view.querySelectorAll('[data-city]').forEach(button => {
+    button.onclick = () => {
+      saveFilters({ city: button.dataset.city });
+      navigate('people');
+    };
+  });
 }
 
 export function connectedScreen(id) {

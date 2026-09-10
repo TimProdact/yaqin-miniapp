@@ -577,3 +577,44 @@ body[data-route='filters'] .view {
   line-height: 1.4;
   color: var(--yaqin-text-tertiary);
 }
+
+body[data-route='city'] .nav {
+  display: none;
+}
+body[data-route='city'] .view {
+  padding: 0 !important;
+  background: var(--yaqin-bg);
+}
+.city-lead {
+  margin: 8px 0 16px;
+  font-size: 15px;
+  color: var(--yaqin-text-secondary);
+}
+.city-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.city-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  text-align: left;
+  padding: 16px 14px;
+}
+.city-row.on {
+  background: color-mix(in srgb, var(--yaqin-text) 8%, transparent);
+}
+.city-row i {
+  font-size: 20px;
+  color: var(--yaqin-yellow);
+}

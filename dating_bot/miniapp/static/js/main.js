@@ -3,7 +3,7 @@ import { view, header, showError } from './dom.js';
 import { decide, blockPerson, reportPerson } from './actions.js';
 import { saveProfile } from './repository.js';
 import { getChatByIndex } from './match.js';
-import { peopleScreen, personScreen, filtersScreen, connectedScreen, getPersonById, showSkippedPeople } from './screens/discover.js';
+import { peopleScreen, personScreen, filtersScreen, cityScreen, connectedScreen, getPersonById, showSkippedPeople } from './screens/discover.js';
 import {
   showPersonMenu,
   showBlockConfirm,
@@ -85,6 +85,7 @@ registerScreens({
   people: peopleScreen,
   person: personScreen,
   filters: filtersScreen,
+  city: cityScreen,
   connected: connectedScreen,
   events: taneeshEventsScreen,
   event: taneeshEventDetailScreen,

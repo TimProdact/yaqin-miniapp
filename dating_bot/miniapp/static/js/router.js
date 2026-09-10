@@ -7,6 +7,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'chat',
   'onboarding',
   'filters',
+  'city',
   'verify',
   'settings',
   'search',

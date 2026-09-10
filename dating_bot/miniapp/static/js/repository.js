@@ -41,7 +41,11 @@ export async function loadPeople({ includeSkipped = false } = {}) {
   const candidates = isLive ? (await api.discover()).items.map(toPerson) : demoPeople;
   return candidates.filter(person => {
     if (hidden.map(Number).includes(Number(person.id))) return false;
-    if (person.age < filters.ageMin || person.age > filters.ageMax) return false;
+    const selectedCity = filters.city || 'Ташкент';
+    if (selectedCity !== 'Все') {
+      const city = String(person.city || '').toLowerCase();
+      if (!city.includes(String(selectedCity).toLowerCase())) return false;
+    }
     const km = person.distanceKm ?? 10;
     if (km > (filters.distance || 50)) return false;
     const interests = filters.interests || [];
