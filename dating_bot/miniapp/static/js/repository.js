@@ -20,7 +20,6 @@ function toPerson(item) {
     bio: item.about,
     tags: [],
     looking: [],
-    groups: [],
     basic: [],
     photo,
     photos: [photo]

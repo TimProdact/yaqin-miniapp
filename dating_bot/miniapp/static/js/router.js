@@ -29,6 +29,7 @@ const SHEET_ROUTES = new Set(['person', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'me']);
 
+/** Старые BFF-роуты → живые экраны MVP. */
 const LEGACY_REDIRECT = {
   groups: 'chats',
   group: 'chats',
@@ -36,28 +37,14 @@ const LEGACY_REDIRECT = {
   friends: 'me',
   'my-events': 'events',
   'join-group': 'chats',
-  'group-thread': 'chats',
   'group-hub': 'chats',
   'group-posts': 'chats',
+  'group-thread': 'chats',
   'create-post': 'chats',
-  'group-search': 'chats',
-  'group-settings': 'settings',
-  'organize-rooms': 'chats',
-  'post-comments': 'chats',
-  'invite-friends': 'chats',
-  'invite-sheet': 'chats',
-  'invite-dm': 'chats',
-  'group-pins': 'chats',
-  'group-media': 'chats',
   'profile-groups': 'me',
   prompts: 'me',
-  'prompt-picker': 'me',
-  'camera-roll': 'edit-photos',
   'share-profile': 'me',
-  announcements: 'settings',
-  'group-notifications': 'notifications',
-  'events-legacy': 'events',
-  'event-legacy': 'event'
+  announcements: 'settings'
 };
 
 let currentRoute = 'people';

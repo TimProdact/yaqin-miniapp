@@ -217,7 +217,7 @@ export function createGroupScreen() {
           {
             from: 'me',
             name: profile.name || 'Вы',
-            text: 'Группа создана. Пригласите подруг из чатов.',
+            text: 'Группа создана. Можно писать здесь.',
             time: 'сейчас'
           }
         ]

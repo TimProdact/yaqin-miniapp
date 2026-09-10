@@ -111,7 +111,7 @@ export function chatsScreen() {
             : `<div class="chats-empty groups-empty-in-chats">
                 <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
                 <h2>Создайте группу</h2>
-                <p>Соберите подруг по интересам, пригласите знакомых и планируйте встречи.</p>
+                <p>Соберите людей по интересам и планируйте встречи вместе.</p>
                 <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
               </div>`}
         `}
@@ -324,7 +324,7 @@ export function chatScreen(id) {
       ${ui.menuOpen ? `
         <div class="chat-menu-pop">
           <button type="button" data-action="person" data-id="${chat.personId}">Смотреть профиль</button>
-          <button type="button" id="removeFriend">Удалить из подруг</button>
+          <button type="button" id="removeFriend">Удалить чат</button>
           <button type="button" data-action="report-flow" data-id="${chat.personId}">Пожаловаться</button>
         </div>` : ''}
 
@@ -429,7 +429,7 @@ export function chatScreen(id) {
     setChatUi(chatId, ui);
     const banner = document.createElement('div');
     banner.className = 'block-banner';
-    banner.textContent = 'Удалено из подруг';
+    banner.textContent = 'Чат удалён';
     document.body.appendChild(banner);
     setTimeout(() => banner.remove(), 1800);
     chatScreen(chatId);
@@ -622,14 +622,14 @@ export function primeChatUi(id, patch = {}) {
 
 export function beginReply(chatId, message, person) {
   const ui = getChatUi(chatId);
-  ui.reply = { name: message?.name || person?.name || 'подруга', text: (message?.text || '').split('\n').pop() };
+  ui.reply = { name: message?.name || person?.name || 'участница', text: (message?.text || '').split('\n').pop() };
   ui.attachOpen = false;
   setChatUi(chatId, ui);
   chatScreen(chatId);
 }
 
 export function showMessageMenu(person, message, chatId = 0) {
-  const first = esc((person?.name || message?.name || 'подруга').split(' ')[0]);
+  const first = esc((person?.name || message?.name || 'участница').split(' ')[0]);
   const photo = person?.photo || message?.photo || people[0].photo;
   closeMessageMenu();
   const overlay = document.createElement('div');

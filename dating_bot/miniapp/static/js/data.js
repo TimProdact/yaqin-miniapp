@@ -26,11 +26,6 @@ export const people = [
     photo: PHOTOS.malika,
     photos: [PHOTOS.malika, PHOTOS.city, PHOTOS.coffee],
     distanceKm: 4,
-    groups: [
-      { title: 'Девушки Ташкента', photo: PHOTOS.mila },
-      { title: 'Книжный клуб', photo: PHOTOS.books },
-      { title: 'Утренние пробежки', photo: PHOTOS.city }
-    ],
     basic: [
       { label: 'Работа', value: 'Дизайнер' },
       { label: 'Языки', value: 'узбекский, русский' },
@@ -48,7 +43,6 @@ export const people = [
     photo: PHOTOS.mila,
     photos: [PHOTOS.mila, PHOTOS.coffee],
     distanceKm: 12,
-    groups: [{ title: 'Юнусабад: спорт и йога', photo: PHOTOS.anya }],
     basic: [
       { label: 'Работа', value: 'Тренер по йоге' },
       { label: 'Языки', value: 'узбекский, английский' }
@@ -65,7 +59,6 @@ export const people = [
     photo: PHOTOS.anya,
     photos: [PHOTOS.anya, PHOTOS.books],
     distanceKm: 48,
-    groups: [{ title: 'Керамика по выходным', photo: PHOTOS.books }],
     basic: [
       { label: 'Работа', value: 'Керамистка' },
       { label: 'Языки', value: 'русский, английский' }
@@ -82,7 +75,6 @@ export const people = [
     photo: PHOTOS.sara,
     photos: [PHOTOS.sara, PHOTOS.city],
     distanceKm: 9,
-    groups: [{ title: 'Девушки Ташкента', photo: PHOTOS.mila }],
     basic: [
       { label: 'Работа', value: 'Фотограф' },
       { label: 'Языки', value: 'русский, английский' }
@@ -99,7 +91,6 @@ export const people = [
     photo: PHOTOS.dilnoza,
     photos: [PHOTOS.dilnoza, PHOTOS.event],
     distanceKm: 18,
-    groups: [],
     basic: [
       { label: 'Работа', value: 'Маркетолог' },
       { label: 'Языки', value: 'узбекский, русский' }
@@ -116,7 +107,6 @@ export const people = [
     photo: PHOTOS.zarina,
     photos: [PHOTOS.zarina, PHOTOS.coffee],
     distanceKm: 6,
-    groups: [{ title: 'Книжный клуб', photo: PHOTOS.books }],
     basic: [
       { label: 'Учёба', value: 'УзГУМЯ' },
       { label: 'Языки', value: 'русский, итальянский' }
@@ -133,7 +123,6 @@ export const people = [
     photo: PHOTOS.nilufar,
     photos: [PHOTOS.nilufar, PHOTOS.city],
     distanceKm: 3,
-    groups: [{ title: 'Утренние пробежки', photo: PHOTOS.city }],
     basic: [
       { label: 'Работа', value: 'Продакт' },
       { label: 'Языки', value: 'узбекский, русский, английский' }
@@ -150,7 +139,6 @@ export const people = [
     photo: PHOTOS.kamila,
     photos: [PHOTOS.kamila, PHOTOS.books],
     distanceKm: 11,
-    groups: [{ title: 'Девушки Ташкента', photo: PHOTOS.mila }],
     basic: [
       { label: 'Работа', value: 'Арт-директор' },
       { label: 'Языки', value: 'русский, английский' }
@@ -158,48 +146,6 @@ export const people = [
   }
 ];
 
-export const groups = [
-  {
-    id: 0,
-    title: 'Девушки Ташкента',
-    subtitle: 'Кофе, прогулки и новые знакомства',
-    about: 'Место, чтобы знакомиться, находить новые места и проводить время вместе.',
-    city: 'Ташкент',
-    members: 1240,
-    active: 'Сейчас онлайн',
-    photo: PHOTOS.palms,
-    joined: true,
-    online: 11,
-    joinQuestion: 'Что вам больше всего нравится в Ташкенте?',
-    arrivals: [
-      { name: 'Аня', photo: people[2].photo, time: '56 мин', answer: 'Кофейни и прогулки по Мирабаду' },
-      { name: 'Мила', photo: people[1].photo, time: '1 ч', answer: 'Йога в парке и субботние рынки' },
-      { name: 'Малика', photo: people[0].photo, time: '2 ч', answer: 'Книжные и вечерние набережные' }
-    ]
-  },
-  {
-    id: 1,
-    title: 'Юнусабад: спорт и йога',
-    subtitle: 'Встречи каждые выходные',
-    about: 'Утренние пробежки, йога в парке и совместные завтраки.',
-    city: 'Ташкент, Юнусабад',
-    members: 386,
-    active: 'Была активна 21 мин назад',
-    photo: people[1].photo,
-    joined: true
-  },
-  {
-    id: 2,
-    title: 'Книжный клуб',
-    subtitle: 'Читаем и обсуждаем по субботам',
-    about: 'Читаем одну книгу в месяц и собираемся обсудить в кафе.',
-    city: 'Ташкент',
-    members: 214,
-    active: 'Была активна 8 ч назад',
-    photo: PHOTOS.books,
-    joined: false
-  }
-];
 
 export const events = [
   {
@@ -335,73 +281,6 @@ export const chats = [
   }
 ];
 
-export const activity = [
-  {
-    id: 'evt-1',
-    kind: 'event',
-    title: 'В «Девушки Ташкента»',
-    text: 'Новое событие: «Клубный вечер у Moon»',
-    time: '8 ч',
-    unread: true,
-    photo: people[0].photo,
-    action: 'event',
-    actionId: 0,
-    month: 'Сен'
-  },
-  {
-    id: 'evt-2',
-    kind: 'event',
-    title: 'В «Девушки Ташкента»',
-    text: 'Новое событие: «Кофе-прогулка по Мирабаду»',
-    time: '8 ч',
-    unread: true,
-    photo: people[0].photo,
-    action: 'event',
-    actionId: 0
-  },
-  {
-    id: 'friend-1',
-    kind: 'friend',
-    title: 'Мила',
-    text: 'отправила заявку в подруги',
-    time: '11 ч',
-    unread: true,
-    photo: people[1].photo,
-    action: 'friends'
-  },
-  {
-    id: 'verify',
-    kind: 'verify',
-    title: 'Фото в анкете подтверждено!',
-    text: 'Можно знакомиться с новыми людьми.',
-    time: '3 д',
-    unread: false,
-    photo: people[0].photo,
-    verified: true
-  },
-  {
-    id: 'like-1',
-    kind: 'like',
-    title: 'Мила отправила симпатию',
-    text: 'Ответьте приветом, если хотите познакомиться.',
-    time: '1 ч',
-    unread: false,
-    photo: people[1].photo,
-    action: 'person',
-    actionId: 1
-  },
-  {
-    id: 'match-1',
-    kind: 'match',
-    title: 'У вас новый мэтч с Милой',
-    text: 'Напишите первой — переписка уже открыта.',
-    time: '1 ч',
-    unread: false,
-    photo: people[1].photo,
-    action: 'chat',
-    actionId: 0
-  }
-];
 
 export const defaultProfile = {
   name: 'Камила',

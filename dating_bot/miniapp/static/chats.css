@@ -1,10 +1,7 @@
-/* Чаты и лента. Метрики с 06-match-chat и 11-activity. */
+/* Чаты — личные и группы. */
 
 .chats-page,
-.activity-page,
 .search-page,
-.groups-page,
-.events-page,
 .settings-page {
   min-height: 100%;
   background: var(--yaqin-bg);
@@ -430,91 +427,6 @@
   place-items: center;
 }
 
-/* Activity */
-.activity-list {
-  display: grid;
-  gap: 4px;
-  margin-top: 12px;
-}
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 0;
-}
-.activity-avatar {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 auto;
-}
-.activity-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.activity-avatar .verified {
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  border: 2px solid var(--yaqin-bg);
-}
-.activity-copy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-.activity-copy b {
-  font-size: 15px;
-  font-weight: 600;
-}
-.activity-copy time {
-  color: var(--yaqin-text-tertiary);
-  font-weight: 400;
-}
-.activity-copy span {
-  font-size: 14px;
-  color: var(--yaqin-text-secondary);
-}
-.activity-card {
-  margin-top: 18px;
-  border-radius: 18px;
-  background: var(--yaqin-bg-subtle);
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.activity-card div {
-  display: grid;
-  gap: 4px;
-  flex: 1;
-}
-.activity-card b {
-  font-size: 15px;
-}
-.activity-card span {
-  font-size: 13px;
-  color: var(--yaqin-text-tertiary);
-}
-.activity-card button {
-  border: 0;
-  border-radius: var(--yaqin-radius-pill);
-  background: var(--yaqin-text);
-  color: var(--yaqin-ink-inverse);
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-}
 
 /* Search + new DM — 06-match-chat/chats-search--170, new-dm--148 */
 body[data-route='search'] .nav,
