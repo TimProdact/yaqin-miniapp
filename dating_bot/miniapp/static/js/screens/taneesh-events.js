@@ -201,15 +201,18 @@ export function taneeshEventDetailScreen(id) {
               <p class="person-meta">${esc(metaLine)}</p>
               <p class="event-detail-price">${esc(priceLabel(event))}</p>
             </div>
-            <button class="hero-wave" type="button" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}" aria-label="${owned ? 'Открыть QR' : buyLabel(event)}">
-              <i class="ti ${owned ? 'ti-qrcode' : 'ti-ticket'}"></i>
+            <button class="hero-wave event-want-btn ${want ? 'on' : ''}" type="button" id="toggleWant" aria-label="${want ? 'Иду' : 'Хочу пойти'}" aria-pressed="${want ? 'true' : 'false'}">
+              <i class="ti ${want ? 'ti-check' : 'ti-hand-stop'}"></i>
             </button>
           </div>
           ${event.description ? `<p class="person-bio">${esc(event.description)}</p>` : ''}
+          <p class="event-want-hint">${want ? 'Статус: идёте' : 'Отметьте «Хочу пойти» — это не билет'}</p>
         </section>
 
-        <h3 class="person-section">Детали</h3>
-        <section class="person-card">
+        <section class="me-panel event-detail-panel">
+          <div class="me-section-head">
+            <div><h3>Детали</h3></div>
+          </div>
           <ul class="taneesh-detail-meta">
             <li><i class="ti ti-calendar"></i>${esc(event.when)}</li>
             <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
@@ -225,6 +228,12 @@ export function taneeshEventDetailScreen(id) {
               </div>
             </div>
           ` : ''}
+          ${!owned ? `
+            <button type="button" class="event-ticket-link" data-action="checkout" data-id="${esc(event.id)}">
+              ${isDoorMode(event) ? 'Оформить бронь' : isFreeMode(event) ? 'Получить QR' : 'Купить билет'} · отдельно от статуса
+              <i class="ti ti-chevron-right"></i>
+            </button>
+          ` : ''}
         </section>
 
         <div class="people-going-wrap">
@@ -234,21 +243,14 @@ export function taneeshEventDetailScreen(id) {
           })}
         </div>
 
-        <div class="person-actions event-detail-actions">
-          <button type="button" class="taneesh-want ${want ? 'on' : ''}" id="toggleWant">
-            ${want ? 'Иду ✓' : 'Хочу пойти'}
-          </button>
-          <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
-            ${owned ? 'Открыть QR' : buyLabel(event)}
-          </button>
-          <p class="taneesh-detail-note">
-            ${isDoorMode(event)
-              ? 'Бронь бесплатна. На входе — оплата организатору и показ QR.'
-              : isFreeMode(event)
-                ? 'Запишитесь и покажите QR на входе.'
-                : 'Оплатите билет в Mini App — QR появится сразу.'}
-          </p>
-        </div>
+        ${owned ? `
+          <div class="person-actions event-detail-actions">
+            <button type="button" class="taneesh-buy-block" data-action="ticket" data-id="${esc(owned.id)}">
+              Открыть QR
+            </button>
+            <p class="taneesh-detail-note">Билет уже оформлен — покажите QR на входе.</p>
+          </div>
+        ` : ''}
       </article>`;
 
     bindPeopleGoingBlock(view, going, { title: 'Кто идёт' });
@@ -266,12 +268,12 @@ export function taneeshEventDetailScreen(id) {
         saveGoing(event.id, { ...meGuest(), message: '' });
         render();
         showCelebrate({
-          title: 'Вы идёте!',
-          subtitle: event.title,
-          primaryLabel: 'Купить билет',
+          title: 'Отметили интерес',
+          subtitle: `«${event.title}» — это статус, не билет`,
+          primaryLabel: 'Понятно',
           secondaryLabel: 'Пригласить подруг',
-          shareText: `Иду на «${event.title}» — присоединяйся в Yaqin`,
-          onPrimary: () => navigate(owned ? 'ticket' : 'checkout', owned ? owned.id : event.id)
+          shareText: `Хочу пойти на «${event.title}» — присоединяйся в Yaqin`,
+          onPrimary: () => {}
         });
       }
     });

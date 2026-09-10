@@ -234,11 +234,57 @@
   font-weight: 700;
   color: var(--yaqin-yellow);
 }
-.event-detail-view .person-card .taneesh-detail-meta {
+.event-want-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--yaqin-text-tertiary);
+}
+.event-want-btn.on {
+  background: var(--yaqin-ink);
+  color: var(--yaqin-ink-inverse);
+}
+.event-detail-panel {
+  margin: 0 var(--person-gutter, 20px) 12px;
+  width: auto;
+}
+.event-detail-panel .me-section-head {
+  margin-bottom: 12px;
+}
+.event-detail-panel .taneesh-detail-meta {
   margin: 0;
 }
-.event-detail-view .person-card .chip-group {
-  margin-top: 18px;
+.event-detail-panel .chip-group {
+  margin-top: 16px;
+}
+.event-detail-panel .chip {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 17px;
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  font-size: 14px;
+}
+.event-ticket-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 14px;
+  border: 0;
+  border-radius: var(--yaqin-radius-md);
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+}
+.event-ticket-link i {
+  color: var(--yaqin-text-tertiary);
 }
 .event-detail-view .taneesh-who {
   margin-bottom: 0;
