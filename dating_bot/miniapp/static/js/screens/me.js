@@ -48,21 +48,6 @@ function verificationRow(verification) {
     </button>`;
 }
 
-function openTaneeshStore(reason) {
-  const url = 'https://apps.apple.com/search?term=Taneesh';
-  try {
-    const tg = window.Telegram?.WebApp;
-    if (tg?.openLink) {
-      tg.openLink(url);
-      return;
-    }
-  } catch (_) {
-    /* ignore */
-  }
-  window.open(url, '_blank', 'noopener');
-  console.info('[yaqin] open Taneesh', reason);
-}
-
 export async function meScreen(_id, token) {
   clearHeader();
   showLoading('Загружаем профиль...');
@@ -97,13 +82,6 @@ export async function meScreen(_id, token) {
         <button class="active">Анкета</button>
         <button data-action="my-tickets">Билеты</button>
       </div>
-      <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-open-taneesh="activate">
-        <div>
-          <b>Черновик в Taneesh</b>
-          <span>Активируйте профиль в приложении, чтобы анкета была видима.</span>
-        </div>
-        <i class="ti ti-chevron-right"></i>
-      </button>
       <div class="me-profile-card">
         <div class="me-hero">
           <img src="${esc(heroPhoto)}" alt="">
@@ -145,14 +123,6 @@ export async function meScreen(_id, token) {
         </div>
       </section>` : ''}
     </div>`;
-
-  view.querySelectorAll('[data-open-taneesh]').forEach(button => {
-    button.onclick = event => {
-      event.preventDefault();
-      event.stopPropagation();
-      openTaneeshStore(button.dataset.openTaneesh);
-    };
-  });
 }
 
 export function settingsScreen() {

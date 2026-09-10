@@ -86,30 +86,6 @@ body.profile-open .view {
   font-style: normal;
 }
 
-.me-taneesh-banner {
-  margin: 0 var(--yaqin-gutter) 14px;
-  width: calc(100% - (var(--yaqin-gutter) * 2));
-  padding: 12px 14px;
-  gap: 10px;
-}
-.me-taneesh-banner b {
-  font-size: var(--yaqin-fs-secondary);
-  margin-bottom: 2px;
-}
-.me-taneesh-banner span {
-  font-size: var(--yaqin-fs-caption);
-  line-height: 1.35;
-}
-
-.my-tickets-page .my-tickets-list {
-  display: grid;
-  gap: 12px;
-  padding: 8px var(--yaqin-gutter) 120px;
-}
-.my-tickets-page .my-ticket-row {
-  background: var(--yaqin-surface-raised);
-}
-
 .me-profile-card {
   margin: 0;
   background: var(--yaqin-bg);
