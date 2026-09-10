@@ -220,15 +220,3 @@ body.sheet-view .app {
 body.full-screen .app {
   padding-top: var(--yaqin-safe-top);
 }
-
-
-/* event — sheet-view без padding у .app, шапке нужен safe inset */
-body[data-route='event'] .sheet-head {
-  padding-top: var(--yaqin-safe-top);
-  padding-left: var(--yaqin-gutter);
-  padding-right: var(--yaqin-gutter);
-  height: auto;
-  min-height: calc(var(--yaqin-header-h) + var(--yaqin-safe-top));
-  align-items: flex-end;
-  box-sizing: border-box;
-}

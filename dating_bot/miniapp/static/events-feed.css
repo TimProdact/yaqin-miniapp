@@ -216,6 +216,41 @@
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+
+/* Event detail = profile card layout */
+.event-detail-hero {
+  height: min(528px, 62dvh);
+}
+.event-detail-view .person-head .taneesh-source {
+  display: inline-block;
+  margin: 0 0 8px;
+}
+.event-detail-view .person-head h1 {
+  font-size: var(--yaqin-fs-title);
+}
+.event-detail-price {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--yaqin-yellow);
+}
+.event-detail-view .person-card .taneesh-detail-meta {
+  margin: 0;
+}
+.event-detail-view .person-card .chip-group {
+  margin-top: 18px;
+}
+.event-detail-view .taneesh-who {
+  margin-bottom: 0;
+}
+.event-detail-actions {
+  gap: 10px;
+}
+.event-detail-actions .taneesh-detail-note {
+  margin: 4px 0 0;
+  text-align: center;
+}
+
 .taneesh-detail-desc {
   margin: 0 0 12px;
   font-size: 15px;

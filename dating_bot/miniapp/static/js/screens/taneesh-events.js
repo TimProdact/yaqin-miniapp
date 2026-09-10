@@ -6,7 +6,7 @@ import { allEvents, findEvent } from './community.js';
 import { showCelebrate } from '../celebrate.js';
 import { meTopHtml, meTabsHtml } from './me.js';
 import { isLive } from '../api.js';
-import { backControlHtml } from '../telegram-ui.js';
+import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 
 const DEMO_GOING = {
   0: [
@@ -183,7 +183,7 @@ export function taneeshEventsScreen() {
     </div>`;
 }
 
-/** Карточка события: кто идёт + хочу пойти + билет. */
+/** Карточка события: layout как у анкеты человека. */
 export function taneeshEventDetailScreen(id) {
   clearHeader();
   const event = findEvent(id);
@@ -192,24 +192,38 @@ export function taneeshEventDetailScreen(id) {
     return;
   }
   const owned = ticketForEvent(event.id);
+  const sourceLabel = event.source === 'yaqin'
+    ? (event.hostId === 'me' || event.host === (getState().profile?.name) ? 'Ваше событие' : 'Yaqin')
+    : 'Афиша';
 
   const render = () => {
     const mine = (getState().eventGoing || {})[event.id];
     const want = isInterested(event.id) || mine;
+    const metaLine = [event.when, event.place].filter(Boolean).join(' · ');
     view.innerHTML = `
-      <article class="taneesh-event-detail">
-        <header class="sheet-head">
-          ${backControlHtml('back')}
-          <h1>Событие</h1>
-          <span style="width:36px"></span>
-        </header>
-        <div class="event-photo taneesh-detail-cover">
-          <img src="${esc(event.photo)}" alt="">
+      <article class="person-view event-detail-view">
+        <div class="person-hero event-detail-hero">
+          <img class="person-hero-photo" src="${esc(event.photo)}" alt="">
+          ${hasTelegramBack() ? '' : '<button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
         </div>
-        <div class="taneesh-detail-body">
-          <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${event.source === 'yaqin' ? (event.hostId === 'me' || event.host === (getState().profile?.name) ? 'Ваше событие' : 'Yaqin') : 'Афиша'}</em>
-          <h2>${esc(event.title)}</h2>
-          <p class="taneesh-detail-price">${esc(priceLabel(event))}</p>
+
+        <section class="person-head">
+          <div class="person-head-row">
+            <div class="person-head-copy">
+              <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${esc(sourceLabel)}</em>
+              <h1>${esc(event.title)}</h1>
+              <p class="person-meta">${esc(metaLine)}</p>
+              <p class="event-detail-price">${esc(priceLabel(event))}</p>
+            </div>
+            <button class="hero-wave" type="button" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}" aria-label="${owned ? 'Открыть QR' : buyLabel(event)}">
+              <i class="ti ${owned ? 'ti-qrcode' : 'ti-ticket'}"></i>
+            </button>
+          </div>
+          ${event.description ? `<p class="person-bio">${esc(event.description)}</p>` : ''}
+        </section>
+
+        <h3 class="person-section">Детали</h3>
+        <section class="person-card">
           <ul class="taneesh-detail-meta">
             <li><i class="ti ti-calendar"></i>${esc(event.when)}</li>
             <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
@@ -217,26 +231,30 @@ export function taneeshEventDetailScreen(id) {
             ${event.capacity ? `<li><i class="ti ti-users"></i>до ${esc(String(event.capacity))} мест</li>` : ''}
             ${event.host ? `<li><i class="ti ti-user"></i>Организатор · ${esc(event.host)}</li>` : ''}
           </ul>
-          ${event.description ? `<p class="taneesh-detail-desc">${esc(event.description)}</p>` : ''}
           ${Array.isArray(event.interests) && event.interests.length ? `
-            <div class="taneesh-detail-tags">
-              ${event.interests.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}
+            <div class="chip-group">
+              <h4>Интересы</h4>
+              <div class="chips-wrap">
+                ${event.interests.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}
+              </div>
             </div>
           ` : ''}
+        </section>
 
-          <h3>Кто идёт</h3>
+        <h3 class="person-section">Кто идёт</h3>
+        <section class="person-card">
           <div class="taneesh-who">
             ${renderWhoList(event.id)}
           </div>
+        </section>
 
-          <div class="event-cta-stack">
-            <button type="button" class="taneesh-want ${want ? 'on' : ''}" id="toggleWant">
-              ${want ? 'Иду ✓' : 'Хочу пойти'}
-            </button>
-            <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
-              ${owned ? 'Открыть QR' : buyLabel(event)}
-            </button>
-          </div>
+        <div class="person-actions event-detail-actions">
+          <button type="button" class="taneesh-want ${want ? 'on' : ''}" id="toggleWant">
+            ${want ? 'Иду ✓' : 'Хочу пойти'}
+          </button>
+          <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
+            ${owned ? 'Открыть QR' : buyLabel(event)}
+          </button>
           <p class="taneesh-detail-note">
             ${isDoorMode(event)
               ? 'Бронь бесплатна. На входе — оплата организатору и показ QR.'

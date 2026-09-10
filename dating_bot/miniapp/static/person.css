@@ -1,6 +1,7 @@
 /* Анкета целиком. Метрики с design/bff-ios-jan-2026/05-profile-view/*.png (393pt). */
 /* Боковой inset здесь как в макете (~20px), не глобальный --yaqin-gutter. */
-body[data-route='person'] {
+body[data-route='person'],
+body[data-route='event'] {
   --person-gutter: 20px;
 }
 
