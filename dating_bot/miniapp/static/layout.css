@@ -97,8 +97,8 @@ body.full-screen .view {
 .screen-head {
   position: sticky;
   top: 0;
-  z-index: 15;
-  background: var(--yaqin-surface);
+  z-index: 20;
+  background: transparent;
   color: var(--yaqin-text);
   flex-shrink: 0;
   box-sizing: border-box;
@@ -106,41 +106,144 @@ body.full-screen .view {
   height: var(--yaqin-header-h);
 }
 
+/* List / modal headers: floating pills, content scrolls underneath */
+.chats-head,
+.me-top,
+.filters-head,
+.modal-head,
 .sheet-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 var(--yaqin-gutter);
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 calc(var(--yaqin-gutter) * -1) calc(-1 * var(--yaqin-header-h));
+  padding: 6px var(--yaqin-gutter);
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  pointer-events: none;
 }
+.chats-head > *,
+.me-top > *,
+.filters-head > *,
+.modal-head > *,
+.sheet-head > * {
+  pointer-events: auto;
+}
+
+.chats-head h1,
+.me-top h1,
+.filters-head h1,
+.modal-head h1,
 .sheet-head h1 {
-  flex: 1;
-  min-width: 0;
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: min(72vw, 260px);
   margin: 0;
-  text-align: left;
-  font-size: var(--yaqin-fs-modal);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  font-size: var(--yaqin-fs-title);
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+.filters-head h1,
+.modal-head h1,
+.sheet-head h1 {
+  font-size: var(--yaqin-fs-modal);
 }
 
-.gchat-top {
-  border-bottom: 1px solid var(--yaqin-sep-soft);
-}
-
-/* Shared header icon tap targets */
 .chats-head button,
+.me-top button,
 .filters-head button,
 .modal-head > button:not(.head-action),
 .sheet-head button,
-.picker-head button,
-.chat-top > button:not(.chat-peer-btn),
-.screen-head button,
-.me-top button,
-.account-row > button {
+.events-head-actions button {
   width: 40px;
   height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
   font-size: 22px;
   display: grid;
   place-items: center;
+  flex: 0 0 40px;
+}
+.modal-head .head-action {
+  height: 40px;
+  min-width: 56px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--yaqin-link);
+  display: grid;
+  place-items: center;
+}
+.modal-head > span.head-spacer,
+.sheet-head > span {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.events-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+/* Space under floating head so first content peeks below pills, then scrolls under */
+.events-feed-page,
+.chats-page,
+.groups-tab-page,
+.me-overview-page,
+.me-page,
+.settings-page,
+.filters-page,
+.create-event-page,
+.create-group-page,
+.search-page,
+.new-dm-page,
+.ticket-checkout-page,
+.ticket-page {
+  --float-head-clearance: calc(var(--yaqin-header-h) + 10px);
+}
+.events-feed-page > .chats-head + *,
+.chats-page > .chats-head + *,
+.groups-tab-page > .chats-head + *,
+.me-overview-page > .me-top + *,
+.me-page > .me-top + *,
+.settings-page > .filters-head + *,
+.filters-page > .filters-head + *,
+.create-event-page > .modal-head + *,
+.create-group-page > .modal-head + *,
+.search-page > .modal-head + *,
+.new-dm-page > .modal-head + *,
+.ticket-checkout-page > .sheet-head + *,
+.ticket-page > .sheet-head + * {
+  margin-top: var(--float-head-clearance, calc(var(--yaqin-header-h) + 10px)) !important;
 }
 
 /* Shared primary pill CTA */

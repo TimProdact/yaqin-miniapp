@@ -22,33 +22,13 @@ body.profile-open .view {
 }
 
 .me-top {
-  height: var(--yaqin-header-h);
-  min-height: var(--yaqin-header-h);
-  padding: 0 var(--yaqin-gutter);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--yaqin-bg);
-  position: sticky;
-  top: 0;
-  z-index: 15;
+  /* floating pills — see layout.css */
 }
 .me-top h1 {
-  margin: 0;
-  font-size: var(--yaqin-fs-title);
-  font-weight: 700;
-  letter-spacing: -0.02em;
   color: var(--yaqin-text);
 }
 .me-top button {
-  border: 0;
-  background: none;
-  width: 40px;
-  height: 40px;
-  font-size: 22px;
   color: var(--yaqin-text);
-  display: grid;
-  place-items: center;
 }
 
 .me-tabs {
@@ -104,9 +84,10 @@ body.profile-open .view {
   box-sizing: border-box;
 }
 .me-overview-page > .me-top {
-  margin: 0 calc(var(--yaqin-gutter) * -1);
-  width: calc(100% + 2 * var(--yaqin-gutter));
-  box-sizing: border-box;
+  /* floating — layout.css handles margin/width */
+}
+.settings-page .filters-head {
+  /* floating — layout.css */
 }
 .me-panel {
   width: 100%;

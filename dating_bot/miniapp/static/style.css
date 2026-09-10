@@ -13,14 +13,9 @@ html[data-theme='dark'] body,
 html[data-theme='dark'] .app,
 html[data-theme='dark'] .view,
 html[data-theme='dark'] .app-header,
-html[data-theme='dark'] .chats-head,
-html[data-theme='dark'] .modal-head,
-html[data-theme='dark'] .filters-head,
-html[data-theme='dark'] .me-top,
 html[data-theme='dark'] .me-tabs,
 html[data-theme='dark'] .gchat-top,
 html[data-theme='dark'] .picker-head,
-html[data-theme='dark'] .sheet-head,
 html[data-theme='dark'] .nav {
   background: var(--yaqin-bg) !important;
   color: var(--yaqin-text);
@@ -103,11 +98,11 @@ html[data-theme='dark'] .nav button.active {
 }
 
 html[data-theme='dark'] .chats-head,
-html[data-theme='dark'] .chats-head button,
 html[data-theme='dark'] .modal-head,
-html[data-theme='dark'] .modal-head button {
-  background: var(--yaqin-bg) !important;
-  color: var(--yaqin-text) !important;
+html[data-theme='dark'] .filters-head,
+html[data-theme='dark'] .me-top,
+html[data-theme='dark'] .sheet-head {
+  background: transparent !important;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -115,10 +110,12 @@ html[data-theme='dark'] .modal-head button {
   html[data-theme='system'] .app,
   html[data-theme='system'] .view,
   html[data-theme='system'] .nav,
-  html[data-theme='system'] .chats-page,
-  html[data-theme='system'] .chats-head,
-  html[data-theme='system'] .modal-head {
+  html[data-theme='system'] .chats-page {
     background: var(--yaqin-bg) !important;
     color: var(--yaqin-text);
+  }
+  html[data-theme='system'] .chats-head,
+  html[data-theme='system'] .modal-head {
+    background: transparent !important;
   }
 }

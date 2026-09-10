@@ -11,31 +11,13 @@
 }
 
 .chats-head {
-  height: var(--yaqin-header-h);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--yaqin-space-3);
-  margin: 0 calc(var(--yaqin-gutter) * -1);
-  padding: 0 var(--yaqin-gutter);
-  background: var(--yaqin-surface);
+  /* floating pills — see layout.css */
 }
 .chats-head h1 {
-  margin: 0;
-  font-size: var(--yaqin-fs-title);
-  font-weight: 700;
-  letter-spacing: -0.02em;
   color: var(--yaqin-text);
 }
 .chats-head button {
-  border: 0;
-  background: none;
-  color: var(--yaqin-text);
-  font-size: 22px;
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
+  /* floating pill — layout.css */
 }
 
 .chats-section {
@@ -510,48 +492,17 @@ body[data-route='new-dm'] .view {
 }
 
 .modal-head {
-  height: var(--yaqin-header-h);
-  min-height: var(--yaqin-header-h);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 var(--yaqin-gutter);
-  box-sizing: border-box;
+  /* floating pills — see layout.css */
 }
 .modal-head h1 {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  text-align: left;
-  font-size: var(--yaqin-fs-modal);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  color: var(--yaqin-text);
 }
 .modal-head > button:not(.head-action),
 .modal-head > span {
-  flex: 0 0 40px;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  background: none;
-  color: var(--yaqin-text);
-  font-size: 22px;
-  display: grid;
-  place-items: center;
+  /* size/pill from layout.css */
 }
 .modal-head .head-action {
-  flex: 0 0 auto;
-  width: auto;
-  min-width: 56px;
-  height: 44px;
-  border: 0;
-  background: none;
-  padding: 0 4px;
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--yaqin-text-tertiary);
-  display: grid;
-  place-items: center;
+  color: var(--yaqin-link);
 }
 .modal-head .head-action.on {
   color: var(--yaqin-link);

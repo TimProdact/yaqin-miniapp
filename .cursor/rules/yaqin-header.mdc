@@ -8,22 +8,26 @@ alwaysApply: false
 
 Контракт из `design/DESIGN-SYSTEM.md` + Telegram BackButton.
 
-## Page / list header (`.chats-head`, `.me-top`, `.filters-head`)
+## Page / list header (`.chats-head`, `.me-top`, `.filters-head`, `.modal-head`, `.sheet-head`)
 
-- Высота `--yaqin-header-h` (52). Sticky, фон `--yaqin-bg` / `--yaqin-surface`.
-- **Title слева**, actions справа.
-- Title: `--yaqin-fs-title` / 700 (вкладки) или `--yaqin-fs-modal` / 700 (модальные/чат).
+- Sticky сверху, **бар без заливки** (`background: transparent`).
+- **Плавающие элементы** с фоном: title-pill слева, action-кнопки справа (круг / pill).
+- Между ними — прозрачно; контент **скроллится под** хедером (negative margin + clearance у первого sibling).
+- Title: `--yaqin-fs-title` / 700 (вкладки) или `--yaqin-fs-modal` / 700 (модальные).
 - Горизонтальный padding = `--yaqin-gutter`.
 - Не дублировать «✕ Закрыть» в UI, если есть системный Telegram Close/Back.
+- Не делать сплошную sticky-полосу на всю ширину.
+
+Реализация: `layout.css` (float-head). Не возвращать `background: var(--yaqin-bg) !important` на эти классы в `style.css`.
 
 ## Conversation header (`.chat-top`)
 
 - Та же высота и gutter.
-- Layout: `[назад?] · title+subtitle слева (flex:1) · action`.
+- Layout: `[назад?] · peer (фото+имя+статус) слева (flex:1) · ⋯`.
 - В Telegram Mini App: системный `BackButton`, **без** пустого spacer слева — title сразу от gutter.
 - Вне Telegram: chevron `data-action` назад.
 - Имя собеседника / группы — tap → профиль / хаб группы.
-- Title **не** по центру экрана (не Telegram Web-кэтч с центрированием).
+- Title **не** по центру экрана.
 
 ## Safe area
 
