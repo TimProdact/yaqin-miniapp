@@ -51,8 +51,6 @@ html[data-theme='dark'] .verify-intro,
 html[data-theme='dark'] .verify-identity,
 html[data-theme='dark'] .verify-capture,
 html[data-theme='dark'] .verify-submitted,
-html[data-theme='dark'] .settings-row,
-html[data-theme='dark'] .settings-block,
 html[data-theme='dark'] .report-flow,
 html[data-theme='dark'] .report-overlay {
   background: var(--yaqin-bg) !important;
@@ -60,7 +58,6 @@ html[data-theme='dark'] .report-overlay {
 }
 
 /* Raised cards / list rows */
-html[data-theme='dark'] .settings-row,
 html[data-theme='dark'] .chat-row,
 html[data-theme='dark'] .pick-row,
 html[data-theme='dark'] .message-bar,
@@ -68,6 +65,17 @@ html[data-theme='dark'] .edit-sheet {
   border-color: var(--yaqin-sep) !important;
   color: var(--yaqin-text) !important;
   background: var(--yaqin-surface-raised) !important;
+}
+
+html[data-theme='dark'] .settings-block {
+  background: var(--yaqin-surface-raised) !important;
+  border-color: var(--yaqin-sep) !important;
+}
+html[data-theme='dark'] .settings-row,
+html[data-theme='dark'] .account-row {
+  background: transparent !important;
+  border-color: var(--yaqin-sep-soft) !important;
+  color: var(--yaqin-text) !important;
 }
 
 html[data-theme='dark'] .chat-copy strong,
