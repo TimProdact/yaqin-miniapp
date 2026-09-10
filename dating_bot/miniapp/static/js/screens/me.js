@@ -4,6 +4,7 @@ import { view, esc, clearHeader, chipList, showLoading, showError, showPlacehold
 import { isCurrentRender, navigate } from '../router.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
+import { getUserEvents, getUserGroups, isGroupPublic } from './community.js';
 import {
   WORK_OPTIONS,
   CHIP_SHEETS,
@@ -15,6 +16,33 @@ import {
 } from '../profile-fields.js';
 
 let closeOverlay = null;
+
+export const ME_TABS = [
+  { id: 'me', label: 'Анкета' },
+  { id: 'my-events', label: 'События' },
+  { id: 'my-tickets', label: 'Билеты' },
+  { id: 'my-groups', label: 'Группы' }
+];
+
+export function meTopHtml() {
+  return `
+    <div class="me-top">
+      <h1>Профиль</h1>
+      <div>
+        <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+      </div>
+    </div>`;
+}
+
+export function meTabsHtml(active) {
+  return `
+    <div class="me-tabs" role="tablist">
+      ${ME_TABS.map(tab => `
+        <button type="button" class="${tab.id === active ? 'active' : ''}" data-action="${tab.id}" role="tab" aria-selected="${tab.id === active}">
+          ${tab.label}
+        </button>`).join('')}
+    </div>`;
+}
 
 export function closeSettingsOverlay() {
   closeOverlay?.();
@@ -72,16 +100,8 @@ export async function meScreen(_id, token) {
 
   view.innerHTML = `
     <div class="me-page">
-      <div class="me-top">
-        <h1>Профиль</h1>
-        <div>
-          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
-        </div>
-      </div>
-      <div class="me-tabs">
-        <button class="active">Анкета</button>
-        <button data-action="my-tickets">Билеты</button>
-      </div>
+      ${meTopHtml()}
+      ${meTabsHtml('me')}
       <div class="me-profile-card">
         <div class="me-hero">
           <img src="${esc(heroPhoto)}" alt="">
@@ -117,11 +137,95 @@ export async function meScreen(_id, token) {
       <section class="me-section">
         <h3>Ссылки</h3>
         <div class="me-box">
-          ${profile.instagram ? `<h4>Instagram</h4><div class="big-chips"><span>${esc(profile.instagram)}</span></div>` : ''}
-          ${profile.tiktok ? `<h4>TikTok</h4><div class="big-chips"><span>${esc(profile.tiktok)}</span></div>` : ''}
+          ${profile.instagram ? `<h4>Instagram</h4><div class="big-chips"><span>@${esc(profile.instagram)}</span></div>` : ''}
+          ${profile.tiktok ? `<h4>TikTok</h4><div class="big-chips"><span>@${esc(profile.tiktok)}</span></div>` : ''}
           ${profile.website ? `<h4>Сайт</h4><div class="big-chips"><span>${esc(profile.website)}</span></div>` : ''}
         </div>
-      </section>` : ''}
+      </section>` : `
+      <section class="me-section">
+        <h3>Ссылки</h3>
+        <div class="me-box">
+          <p class="muted">Instagram, TikTok или сайт — добавьте в редактировании</p>
+        </div>
+      </section>`}
+      <section class="me-section me-quick">
+        <h3>Быстрые действия</h3>
+        <div class="me-quick-list">
+          <button type="button" class="me-quick-row" data-action="edit"><i class="ti ti-user-edit"></i><span>Редактировать анкету</span><i class="ti ti-chevron-right"></i></button>
+          <button type="button" class="me-quick-row" data-action="edit-photos"><i class="ti ti-photo"></i><span>Фото</span><i class="ti ti-chevron-right"></i></button>
+          <button type="button" class="me-quick-row" data-action="verify"><i class="ti ti-shield-check"></i><span>Проверка анкеты</span><i class="ti ti-chevron-right"></i></button>
+          <button type="button" class="me-quick-row" data-action="settings"><i class="ti ti-settings"></i><span>Настройки</span><i class="ti ti-chevron-right"></i></button>
+        </div>
+      </section>
+    </div>`;
+}
+
+/** Вкладка «События» — созданные вами. */
+export function myEventsScreen() {
+  clearHeader();
+  const events = getUserEvents();
+
+  view.innerHTML = `
+    <div class="me-page my-hub-page">
+      ${meTopHtml()}
+      ${meTabsHtml('my-events')}
+      ${events.length ? `
+        <div class="my-hub-list">
+          ${events.map(event => `
+            <button type="button" class="my-hub-row" data-action="event" data-id="${esc(event.id)}">
+              <img src="${esc(event.photo)}" alt="">
+              <div>
+                <strong>${esc(event.title)}</strong>
+                <span>${esc(event.when)} · ${esc(event.place)}</span>
+                <span class="my-hub-tag">${event.ticketMode === 'door' || event.ticketMode === 'at_door' ? 'на входе' : event.isFree === false && event.ticketMode === 'paid' ? 'платно' : 'бесплатно'}</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`).join('')}
+        </div>
+        <div class="me-tab-cta">
+          <button type="button" class="empty-primary" data-action="create-event">Создать событие</button>
+        </div>` : `
+        <div class="chats-empty me-tab-empty">
+          <div class="empty-badge"><i class="ti ti-calendar-event"></i></div>
+          <h2>Пока нет своих событий</h2>
+          <p>Создайте встречу — бесплатную или с оплатой на входе. Гости получат QR.</p>
+          <button class="empty-primary" type="button" data-action="create-event">Создать событие</button>
+          <button class="empty-outline" type="button" data-action="events">Смотреть афишу</button>
+        </div>`}
+    </div>`;
+}
+
+/** Вкладка «Группы» — ваши группы. */
+export function myGroupsScreen() {
+  clearHeader();
+  const groups = getUserGroups();
+
+  view.innerHTML = `
+    <div class="me-page my-hub-page">
+      ${meTopHtml()}
+      ${meTabsHtml('my-groups')}
+      ${groups.length ? `
+        <div class="my-hub-list">
+          ${groups.map(group => `
+            <button type="button" class="my-hub-row" data-action="group" data-id="${esc(group.id)}">
+              <img src="${esc(group.photo)}" alt="">
+              <div>
+                <strong>${esc(group.title)}${isGroupPublic(group) ? '' : ' <em class="group-privacy">закрытая</em>'}</strong>
+                <span>${group.members || 1} участниц · ${esc(group.city || 'Ташкент')}</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`).join('')}
+        </div>
+        <div class="me-tab-cta">
+          <button type="button" class="empty-primary" data-action="create-group">Создать группу</button>
+        </div>` : `
+        <div class="chats-empty me-tab-empty">
+          <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
+          <h2>Пока нет групп</h2>
+          <p>Создайте открытую или закрытую группу либо вступите из вкладки «Группы».</p>
+          <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
+          <button class="empty-outline" type="button" data-action="groups">Найти группы</button>
+        </div>`}
     </div>`;
 }
 

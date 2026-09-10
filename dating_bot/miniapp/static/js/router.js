@@ -30,7 +30,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'group'
 ]);
 const SHEET_ROUTES = new Set(['person', 'event']);
-const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets']);
+const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets', 'my-events', 'my-groups']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'groups', 'me']);
 
 /** Старые BFF-роуты → живые экраны MVP. */

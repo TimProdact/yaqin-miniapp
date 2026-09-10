@@ -4,6 +4,7 @@ import { getState, saveState } from '../state.js';
 import { navigate } from '../router.js';
 import { allEvents, findEvent } from './community.js';
 import { showCelebrate } from '../celebrate.js';
+import { meTopHtml, meTabsHtml } from './me.js';
 
 const DEMO_GOING = {
   0: [
@@ -421,37 +422,32 @@ export function myTicketsScreen() {
   const tickets = [...getTickets()].reverse();
 
   view.innerHTML = `
-    <div class="me-page my-tickets-page">
-      <div class="me-top">
-        <h1>Профиль</h1>
-        <div>
-          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
-        </div>
-      </div>
-      <div class="me-tabs">
-        <button data-action="me">Анкета</button>
-        <button class="active">Билеты</button>
-      </div>
+    <div class="me-page my-tickets-page my-hub-page">
+      ${meTopHtml()}
+      ${meTabsHtml('my-tickets')}
 
       ${tickets.length ? `
-        <div class="my-tickets-list">
+        <div class="my-tickets-list my-hub-list">
           ${tickets.map(ticket => `
-            <button type="button" class="my-ticket-row" data-action="ticket" data-id="${esc(ticket.id)}">
+            <button type="button" class="my-ticket-row my-hub-row" data-action="ticket" data-id="${esc(ticket.id)}">
               <div class="event-photo">
                 <img src="${esc(ticket.photo)}" alt="">
               </div>
               <div>
-                <strong>${esc(ticket.title)}</strong>
+                <strong>${esc(ticket.title)}${ticket.role === 'host' ? ' <em class="group-privacy">организатор</em>' : ''}</strong>
                 <span>${esc(ticket.when)}</span>
                 <span class="ticket-code-inline">${esc(ticket.code)}</span>
               </div>
               <i class="ti ti-chevron-right"></i>
             </button>`).join('')}
+        </div>
+        <div class="me-tab-cta">
+          <button type="button" class="empty-primary" data-action="events">К афише</button>
         </div>` : `
-        <div class="chats-empty" style="padding:48px 20px">
+        <div class="chats-empty me-tab-empty">
           <div class="empty-badge"><i class="ti ti-ticket"></i></div>
           <h2>Пока нет билетов</h2>
-          <p>Купите билет на событие — он появится здесь с QR.</p>
+          <p>Запишитесь или забронируйте событие — QR появится здесь.</p>
           <button class="empty-primary" type="button" data-action="events">К событиям</button>
         </div>`}
     </div>`;

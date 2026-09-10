@@ -17,6 +17,8 @@ import { createGroupScreen, createEventScreen, groupChatScreen, groupHubScreen, 
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
+  myEventsScreen,
+  myGroupsScreen,
   settingsScreen,
   editScreen,
   editPhotosScreen,
@@ -92,6 +94,8 @@ registerScreens({
   checkout: ticketCheckoutScreen,
   ticket: ticketScreen,
   'my-tickets': myTicketsScreen,
+  'my-events': myEventsScreen,
+  'my-groups': myGroupsScreen,
   'create-event': createEventScreen,
   chats: chatsScreen,
   chat: chatScreen,
