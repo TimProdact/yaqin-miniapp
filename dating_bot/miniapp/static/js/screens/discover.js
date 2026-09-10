@@ -7,6 +7,12 @@ import { people as demoPeople } from '../data.js';
 import { getState } from '../state.js';
 import { closeSafetyOverlay } from './safety.js';
 import { chatIdForPerson } from './chats.js';
+import {
+  INTEREST_OPTIONS,
+  interestsOf,
+  purposeLabel,
+  basicRowsFromProfile
+} from '../profile-fields.js';
 
 let lastShown = [];
 
@@ -51,7 +57,7 @@ function cardMarkup(person) {
       </button>
       <div class="card-bottom">
         <p class="card-bio">${esc(person.bio)}</p>
-        <div class="chips">${(person.tags || []).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
+        <div class="chips">${interestsOf(person).slice(0, 6).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
       </div>
     </div>`;
 }
@@ -119,7 +125,12 @@ export function personScreen(id) {
   if (!person) return showPlaceholder('✿', 'Анкета недоступна');
 
   const photos = person.photos?.length ? person.photos : [person.photo];
-  const about = chipGroup('Чем увлекается', person.tags) + chipGroup('Хочет', person.looking);
+  const interests = interestsOf(person);
+  const purpose = purposeLabel(person.purposeType);
+  const about =
+    chipGroup('Интересы', interests) +
+    (purpose ? chipGroup('Я ищу', [purpose]) : '');
+  const basic = person.basic?.length ? person.basic : basicRowsFromProfile(person);
 
   view.innerHTML = `
     <article class="person-view">
@@ -141,10 +152,10 @@ export function personScreen(id) {
 
       ${about ? `<h3 class="person-section">Обо мне</h3><section class="person-card">${about}</section>` : ''}
 
-      ${person.basic?.length ? `
+      ${basic.length ? `
         <h3 class="person-section">Основное</h3>
         <section class="person-card info-list">
-          ${person.basic.map(item => `
+          ${basic.map(item => `
             <div class="info-row">
               <h4>${esc(item.label)}</h4>
               <span class="chip">${esc(item.value)}</span>
@@ -202,20 +213,7 @@ function distanceLabel(km) {
   return 'В городе';
 }
 
-const FILTER_INTERESTS = [
-  'кофе',
-  'прогулки',
-  'йога',
-  'книги',
-  'кино',
-  'спорт',
-  'еда',
-  'фото',
-  'музыка',
-  'путешествия',
-  'арт',
-  'бег'
-];
+const FILTER_INTERESTS = INTEREST_OPTIONS;
 
 export function filtersScreen() {
   clearHeader();

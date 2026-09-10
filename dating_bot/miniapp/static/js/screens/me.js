@@ -4,6 +4,19 @@ import { view, esc, clearHeader, chipList, showLoading, showError, showPlacehold
 import { isCurrentRender, navigate } from '../router.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
+import {
+  PURPOSE_TYPES,
+  WORLD_VIEWS,
+  ZODIAC_SIGNS,
+  EDUCATION_LEVELS,
+  CHILDREN_STATUS,
+  ATTITUDES,
+  INTEREST_OPTIONS,
+  LANGUAGE_OPTIONS,
+  interestsOf,
+  purposeLabel,
+  basicRowsFromProfile
+} from '../profile-fields.js';
 
 let closeOverlay = null;
 
@@ -104,20 +117,20 @@ export async function meScreen(_id, token) {
         <p class="me-bio">${esc(profile.bio)}</p>
       </section>
       <section class="me-section">${verificationRow(verification)}</section>
-      ${profile.tags?.length || profile.looking?.length ? `
+      ${interestsOf(profile).length || purposeLabel(profile.purposeType) ? `
       <section class="me-section">
         <h3>О себе</h3>
         <div class="me-box">
-          ${profile.tags?.length ? `<h4>Чем увлекаюсь</h4><div class="big-chips">${chipList(profile.tags)}</div>` : ''}
-          ${profile.looking?.length ? `<h4>Чего хочу</h4><div class="big-chips">${chipList(profile.looking)}</div>` : ''}
+          ${purposeLabel(profile.purposeType) ? `<h4>Я ищу</h4><div class="big-chips"><span>${esc(purposeLabel(profile.purposeType))}</span></div>` : ''}
+          ${interestsOf(profile).length ? `<h4>Интересы</h4><div class="big-chips">${chipList(interestsOf(profile))}</div>` : ''}
         </div>
       </section>` : ''}
       <section class="me-section">
         <h3>Основное</h3>
         <div class="me-box" data-action="basic">
-          <h4>Пол</h4><div class="big-chips"><span>${esc(profile.gender || 'Женщина')}</span></div>
-          ${profile.work ? `<h4>Работа</h4><div class="big-chips"><span>${esc(profile.work)}</span></div>` : ''}
-          ${profile.relationship ? `<h4>Отношения</h4><div class="big-chips"><span>${esc(profile.relationship)}</span></div>` : ''}
+          ${basicRowsFromProfile(profile).map(row => `
+            <h4>${esc(row.label)}</h4><div class="big-chips"><span>${esc(row.value)}</span></div>
+          `).join('') || '<p class="muted">Добавьте данные в редактировании</p>'}
         </div>
       </section>
     </div>`;
@@ -461,27 +474,28 @@ export async function editScreen(_id, token) {
     age: profile.age || 25,
     city: profile.city || '',
     bio: profile.bio || '',
-    tags: [...(profile.tags || ['кофе', 'кино'])],
-    media: [...(profile.media || ['Sabrina Carpenter', 'Бриджертоны'])],
-    looking: [...(profile.looking || ['книжный клуб'])],
+    purposeType: Number(profile.purposeType) || 3,
+    interests: [...interestsOf(profile)],
+    height: profile.height || '',
+    worldView: profile.worldView || '',
+    zodiacSign: profile.zodiacSign || '',
     education: profile.education || '',
-    work: profile.work || '',
-    pronouns: profile.pronouns || '',
-    gender: profile.gender || 'Женщина',
-    sexuality: profile.sexuality || '',
-    relationship: profile.relationship || '',
-    instagram: profile.instagram || '',
-    tiktok: profile.tiktok || '',
-    website: profile.website || ''
+    hasChildren: profile.hasChildren || '',
+    alcoholAttitude: profile.alcoholAttitude || '',
+    smokingAttitude: profile.smokingAttitude || '',
+    languages: [...(profile.languages || [])]
   };
-  let sheet = null; // tags | media | looking | relationship | gender
-  const tagPool = ['кофе', 'кино', 'йога', 'книги', 'бег', 'еда', 'фото', 'прогулки', 'музыка'];
-  const mediaPool = ['Sabrina Carpenter', 'Бриджертоны', 'подкасты', 'артхаус', 'плейлисты'];
-  const lookingPool = ['книжный клуб', 'кофе', 'прогулки', 'спорт', 'путешествия'];
-  const relationships = ['Не в отношениях', 'В отношениях', 'Помолвлена', 'Замужем', 'Всё сложно'];
-  const genders = ['Женщина', 'Небинарная', 'Предпочитаю не указывать'];
+  let sheet = null; // interests | purpose | worldView | zodiacSign | education | hasChildren | alcoholAttitude | smokingAttitude | languages
+
+  const enumLabel = (list, id, fallback = 'Добавить') =>
+    list.find(item => item.id === Number(id))?.label || fallback;
 
   const render = () => {
+    const purposeText = PURPOSE_TYPES.find(item => item.id === draft.purposeType);
+    const purposeDisplay = purposeText
+      ? `${purposeText.emoji} ${purposeText.label}`
+      : 'Добавить';
+
     view.innerHTML = `
       <div class="edit-profile-page">
         <div class="edit-hero">
@@ -505,42 +519,27 @@ export async function editScreen(_id, token) {
 
           <h3 class="settings-label">О себе</h3>
           <div class="me-box">
-            <button type="button" class="edit-block-head" data-sheet="tags">
-              <h4>Чем увлекаюсь</h4><i class="ti ti-pencil"></i>
+            <button type="button" class="edit-block-head" data-sheet="purpose">
+              <h4>Я ищу</h4><i class="ti ti-pencil"></i>
             </button>
-            <div class="big-chips">${chipList(draft.tags)}</div>
-            <button type="button" class="edit-block-head" data-sheet="media">
-              <h4>Сейчас смотрю / читаю / слушаю</h4><i class="ti ti-pencil"></i>
+            <div class="big-chips"><span>${esc(purposeDisplay)}</span></div>
+            <button type="button" class="edit-block-head" data-sheet="interests">
+              <h4>Интересы</h4><i class="ti ti-pencil"></i>
             </button>
-            <div class="big-chips">${chipList(draft.media)}</div>
-            <button type="button" class="edit-block-head" data-sheet="looking">
-              <h4>Чего хочу</h4><i class="ti ti-pencil"></i>
-            </button>
-            <div class="big-chips">${chipList(draft.looking)}</div>
+            <div class="big-chips">${chipList(draft.interests)}</div>
           </div>
 
           <h3 class="settings-label">Основное</h3>
           <div class="edit-basic-list">
             ${[
-              ['education', 'Образование', draft.education || 'Добавить'],
-              ['work', 'Работа', draft.work || 'Добавить'],
-              ['pronouns', 'Местоимения', draft.pronouns || 'Добавить'],
-              ['gender', 'Пол', draft.gender || 'Добавить'],
-              ['sexuality', 'Ориентация', draft.sexuality || 'Добавить'],
-              ['relationship', 'Отношения', draft.relationship || 'Добавить']
-            ].map(([key, label, value]) => `
-              <button type="button" class="edit-basic-row" data-field="${key}">
-                <span>${label}</span>
-                <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
-              </button>`).join('')}
-          </div>
-
-          <h3 class="settings-label">Ссылки</h3>
-          <div class="edit-basic-list">
-            ${[
-              ['instagram', 'Instagram', draft.instagram || 'Добавить'],
-              ['tiktok', 'TikTok', draft.tiktok || 'Добавить'],
-              ['website', 'Сайт', draft.website || 'Добавить']
+              ['height', 'Рост', draft.height ? `${draft.height} см` : 'Добавить'],
+              ['worldView', 'Мировоззрение', enumLabel(WORLD_VIEWS, draft.worldView)],
+              ['zodiacSign', 'Знак зодиака', enumLabel(ZODIAC_SIGNS, draft.zodiacSign)],
+              ['education', 'Образование', enumLabel(EDUCATION_LEVELS, draft.education)],
+              ['hasChildren', 'Дети', enumLabel(CHILDREN_STATUS, draft.hasChildren)],
+              ['alcoholAttitude', 'Алкоголь', enumLabel(ATTITUDES, draft.alcoholAttitude)],
+              ['smokingAttitude', 'Курение', enumLabel(ATTITUDES, draft.smokingAttitude)],
+              ['languages', 'Языки', draft.languages.length ? draft.languages.join(', ') : 'Добавить']
             ].map(([key, label, value]) => `
               <button type="button" class="edit-basic-row" data-field="${key}">
                 <span>${label}</span>
@@ -549,32 +548,73 @@ export async function editScreen(_id, token) {
           </div>
         </section>
 
-        ${sheet === 'tags' || sheet === 'media' || sheet === 'looking' ? `
+        ${sheet === 'interests' ? `
           <div class="edit-sheet">
             <header>
-              <h2>${sheet === 'tags' ? 'Увлечения' : sheet === 'media' ? 'Сейчас в медиа' : 'Чего хочу'}</h2>
+              <h2>Интересы</h2>
               <button type="button" id="closeSheet">Готово</button>
             </header>
             <div class="edit-chip-picker">
-              ${(sheet === 'tags' ? tagPool : sheet === 'media' ? mediaPool : lookingPool).map(item => {
-                const list = draft[sheet === 'looking' ? 'looking' : sheet];
-                const on = list.includes(item);
+              ${INTEREST_OPTIONS.map(item => {
+                const on = draft.interests.includes(item);
                 return `<button type="button" class="${on ? 'on' : ''}" data-chip="${esc(item)}">${esc(item)}</button>`;
               }).join('')}
             </div>
           </div>` : ''}
 
-        ${sheet === 'relationship' || sheet === 'gender' ? `
+        ${sheet === 'languages' ? `
           <div class="edit-sheet">
             <header>
-              <h2>${sheet === 'relationship' ? 'Отношения' : 'Пол'}</h2>
+              <h2>Языки</h2>
+              <button type="button" id="closeSheet">Готово</button>
+            </header>
+            <div class="edit-chip-picker">
+              ${LANGUAGE_OPTIONS.map(item => {
+                const on = draft.languages.includes(item);
+                return `<button type="button" class="${on ? 'on' : ''}" data-lang="${esc(item)}">${esc(item)}</button>`;
+              }).join('')}
+            </div>
+          </div>` : ''}
+
+        ${sheet === 'purpose' ? `
+          <div class="edit-sheet">
+            <header>
+              <h2>Я ищу</h2>
               <button type="button" id="closeSheet">Сохранить</button>
             </header>
             <div class="edit-radio-list">
-              ${(sheet === 'relationship' ? relationships : genders).map(item => `
-                <button type="button" class="${draft[sheet] === item ? 'on' : ''}" data-pick="${esc(item)}">
-                  <span>${esc(item)}</span>
-                  ${draft[sheet] === item ? '<i class="ti ti-check"></i>' : ''}
+              ${PURPOSE_TYPES.map(item => `
+                <button type="button" class="${draft.purposeType === item.id ? 'on' : ''}" data-purpose="${item.id}">
+                  <span>${item.emoji} ${esc(item.label)}</span>
+                  ${draft.purposeType === item.id ? '<i class="ti ti-check"></i>' : ''}
+                </button>`).join('')}
+            </div>
+          </div>` : ''}
+
+        ${['worldView', 'zodiacSign', 'education', 'hasChildren', 'alcoholAttitude', 'smokingAttitude'].includes(sheet) ? `
+          <div class="edit-sheet">
+            <header>
+              <h2>${{
+                worldView: 'Мировоззрение',
+                zodiacSign: 'Знак зодиака',
+                education: 'Образование',
+                hasChildren: 'Дети',
+                alcoholAttitude: 'Алкоголь',
+                smokingAttitude: 'Курение'
+              }[sheet]}</h2>
+              <button type="button" id="closeSheet">Сохранить</button>
+            </header>
+            <div class="edit-radio-list">
+              ${(
+                sheet === 'worldView' ? WORLD_VIEWS
+                : sheet === 'zodiacSign' ? ZODIAC_SIGNS
+                : sheet === 'education' ? EDUCATION_LEVELS
+                : sheet === 'hasChildren' ? CHILDREN_STATUS
+                : ATTITUDES
+              ).map(item => `
+                <button type="button" class="${Number(draft[sheet]) === item.id ? 'on' : ''}" data-enum="${item.id}">
+                  <span>${esc(item.label)}</span>
+                  ${Number(draft[sheet]) === item.id ? '<i class="ti ti-check"></i>' : ''}
                 </button>`).join('')}
             </div>
           </div>` : ''}
@@ -600,18 +640,31 @@ export async function editScreen(_id, token) {
     });
     view.querySelectorAll('[data-chip]').forEach(button => {
       button.onclick = () => {
-        const key = sheet === 'looking' ? 'looking' : sheet;
         const value = button.dataset.chip;
-        const list = draft[key];
-        const index = list.indexOf(value);
-        if (index >= 0) list.splice(index, 1);
-        else list.push(value);
+        const index = draft.interests.indexOf(value);
+        if (index >= 0) draft.interests.splice(index, 1);
+        else draft.interests.push(value);
         render();
       };
     });
-    view.querySelectorAll('[data-pick]').forEach(button => {
+    view.querySelectorAll('[data-lang]').forEach(button => {
       button.onclick = () => {
-        draft[sheet] = button.dataset.pick;
+        const value = button.dataset.lang;
+        const index = draft.languages.indexOf(value);
+        if (index >= 0) draft.languages.splice(index, 1);
+        else draft.languages.push(value);
+        render();
+      };
+    });
+    view.querySelectorAll('[data-purpose]').forEach(button => {
+      button.onclick = () => {
+        draft.purposeType = Number(button.dataset.purpose);
+        render();
+      };
+    });
+    view.querySelectorAll('[data-enum]').forEach(button => {
+      button.onclick = () => {
+        draft[sheet] = Number(button.dataset.enum);
         render();
       };
     });
@@ -619,25 +672,22 @@ export async function editScreen(_id, token) {
       button.onclick = () => {
         syncDraft();
         const key = button.dataset.field;
-        if (key === 'relationship' || key === 'gender') {
-          sheet = key;
+        if (key === 'height') {
+          const next = window.prompt('Рост (см)', draft.height || '');
+          if (next !== null) {
+            const num = Number(String(next).replace(/\D/g, ''));
+            draft.height = num || '';
+            render();
+          }
+          return;
+        }
+        if (key === 'languages') {
+          sheet = 'languages';
           render();
           return;
         }
-        const labels = {
-          education: 'Образование',
-          work: 'Работа',
-          pronouns: 'Местоимения',
-          sexuality: 'Ориентация',
-          instagram: 'Instagram',
-          tiktok: 'TikTok',
-          website: 'Сайт'
-        };
-        const next = window.prompt(labels[key] || key, draft[key] || '');
-        if (next !== null) {
-          draft[key] = next.trim();
-          render();
-        }
+        sheet = key;
+        render();
       };
     });
     view.querySelector('#saveEdit').onclick = async () => {
@@ -652,18 +702,16 @@ export async function editScreen(_id, token) {
           age: draft.age,
           city: draft.city.trim(),
           about: draft.bio.trim(),
-          tags: draft.tags,
-          looking: draft.looking,
-          media: draft.media,
-          education: draft.education,
-          work: draft.work,
-          pronouns: draft.pronouns,
-          gender: draft.gender,
-          sexuality: draft.sexuality,
-          relationship: draft.relationship,
-          instagram: draft.instagram,
-          tiktok: draft.tiktok,
-          website: draft.website
+          purposeType: draft.purposeType,
+          interests: draft.interests,
+          height: draft.height || null,
+          worldView: draft.worldView || null,
+          zodiacSign: draft.zodiacSign || null,
+          education: draft.education || null,
+          hasChildren: draft.hasChildren || null,
+          alcoholAttitude: draft.alcoholAttitude || null,
+          smokingAttitude: draft.smokingAttitude || null,
+          languages: draft.languages
         });
         navigate('me');
       } catch {
@@ -763,6 +811,7 @@ export async function editPhotosScreen(_id, token) {
 export function basicInfoScreen() {
   clearHeader();
   const profile = { ...defaultProfile, ...(getState().profile || {}) };
+  const rows = basicRowsFromProfile(profile);
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
@@ -771,17 +820,10 @@ export function basicInfoScreen() {
         <button class="head-action on" data-action="edit">Изменить</button>
       </header>
       <div class="edit-basic-list padded">
-        ${[
-          ['Пол', profile.gender || 'Женщина'],
-          ['Образование', profile.education || '—'],
-          ['Работа', profile.work || '—'],
-          ['Местоимения', profile.pronouns || '—'],
-          ['Ориентация', profile.sexuality || '—'],
-          ['Отношения', profile.relationship || '—']
-        ].map(([label, value]) => `
+        ${(rows.length ? rows : [{ label: 'Пока пусто', value: 'Заполните в редактировании' }]).map(row => `
           <div class="edit-basic-row static">
-            <span>${label}</span>
-            <b>${esc(value)}</b>
+            <span>${esc(row.label)}</span>
+            <b>${esc(row.value)}</b>
           </div>`).join('')}
       </div>
     </div>`;

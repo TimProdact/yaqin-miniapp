@@ -91,7 +91,8 @@ function finishOnboarding(data) {
       photo: photos[0] || defaultProfile.photo,
       photos: photos.length ? photos : defaultProfile.photos,
       bio: data.answers.filter(Boolean).join(' · ') || defaultProfile.bio,
-      tags: data.answers.flatMap((answer, index) => (answer ? [QUESTIONS[index].chips[0].replace(' +', '')] : [])).slice(0, 6)
+      interests: data.answers.flatMap((answer, index) => (answer ? [QUESTIONS[index].chips[0].replace(' +', '')] : [])).slice(0, 6),
+      purposeType: defaultProfile.purposeType || 3
     }
   });
 }
@@ -657,7 +658,7 @@ function renderProcessing(data) {
 function renderReady(data) {
   const name = data.firstName.trim() || getState().profile?.name || 'Камила';
   const photo = data.photos.find(Boolean) || getState().profile?.photo || defaultProfile.photo;
-  const tags = (getState().profile?.tags || ['кофе', 'прогулки', 'книги']).slice(0, 3);
+  const tags = (getState().profile?.interests || getState().profile?.tags || ['кофе', 'прогулки', 'книги']).slice(0, 3);
   view.innerHTML = `
     <div class="ob-form ready">
       <button class="ob-back" type="button" data-back="processing"><i class="ti ti-chevron-left"></i></button>

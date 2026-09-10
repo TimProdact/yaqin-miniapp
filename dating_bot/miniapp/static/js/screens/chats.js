@@ -1,6 +1,7 @@
 import { chats, people } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { getUserGroups } from './community.js';
+import { interestsOf } from '../profile-fields.js';
 
 export function chatIdForPerson(personId) {
   const index = chats.findIndex(chat => chat.personId === Number(personId));
@@ -177,7 +178,8 @@ export function chatScreen(id) {
   const chat = chats[chatId];
   const messages = chat.messages || [];
   const person = people.find(item => item.id === chat.personId);
-  const pills = person?.looking?.slice(0, 3) || ['кофе'];
+  const pills = interestsOf(person).slice(0, 3);
+  const emptyPills = pills.length ? pills : ['кофе'];
   const empty = messages.length === 0;
   const ui = getChatUi(chatId);
 
@@ -254,7 +256,7 @@ export function chatScreen(id) {
           <p class="chat-meta">${empty
             ? `Это начало вашей переписки · ${esc(chat.name)}`
             : `Вы познакомились · ${esc(chat.name)}`}</p>
-          <div class="chat-pills">${pills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
+          <div class="chat-pills">${emptyPills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
         ` : ''}
         ${messages.map(renderMessage).join('')}
       </main>

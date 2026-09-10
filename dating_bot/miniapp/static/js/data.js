@@ -14,39 +14,47 @@ export const PHOTOS = {
   event: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=85'
 };
 
+/** Анкеты в модели Taneesh B2C (`UpdateUserProfile`). */
 export const people = [
   {
     id: 1,
     name: 'Малика',
     age: 26,
-    city: 'Ташкент, Мирабад',
+    city: 'Ташкент',
     bio: 'Ищу компанию для прогулок по городу и вечернего кофе 💕',
-    tags: ['фото', 'книги', 'кофе', 'бег', 'йога', 'еда', 'рынок', 'прогулки', 'спорт', 'путешествия'],
-    looking: ['кофе', 'прогулки', 'книжный клуб', 'бег', 'кафе'],
+    purposeType: 4,
+    interests: ['фотография', 'книги', 'кофе', 'бег', 'йога', 'еда', 'прогулки', 'спорт', 'путешествия'],
+    height: 168,
+    worldView: 10,
+    zodiacSign: 7,
+    education: 2,
+    hasChildren: 1,
+    alcoholAttitude: 2,
+    smokingAttitude: 1,
+    languages: ['узбекский', 'русский'],
     photo: PHOTOS.malika,
     photos: [PHOTOS.malika, PHOTOS.city, PHOTOS.coffee],
-    distanceKm: 4,
-    basic: [
-      { label: 'Работа', value: 'Дизайнер' },
-      { label: 'Языки', value: 'узбекский, русский' },
-      { label: 'Учёба', value: 'ТУИТ' }
-    ]
+    distanceKm: 4
   },
   {
     id: 2,
     name: 'Мила',
     age: 27,
-    city: 'Ташкент, Юнусабад',
+    city: 'Ташкент',
     bio: 'Йога, матча и новые места в городе.',
-    tags: ['йога', 'матча', 'кино'],
-    looking: ['йога вдвоём', 'завтраки'],
+    purposeType: 3,
+    interests: ['йога', 'кофе', 'кино', 'фитнес'],
+    height: 165,
+    worldView: 9,
+    zodiacSign: 5,
+    education: 2,
+    hasChildren: 1,
+    alcoholAttitude: 2,
+    smokingAttitude: 1,
+    languages: ['узбекский', 'английский'],
     photo: PHOTOS.mila,
     photos: [PHOTOS.mila, PHOTOS.coffee],
-    distanceKm: 12,
-    basic: [
-      { label: 'Работа', value: 'Тренер по йоге' },
-      { label: 'Языки', value: 'узбекский, английский' }
-    ]
+    distanceKm: 12
   },
   {
     id: 3,
@@ -54,95 +62,119 @@ export const people = [
     age: 24,
     city: 'Самарканд',
     bio: 'Люблю вино, керамику и спокойные разговоры.',
-    tags: ['керамика', 'вино', 'музыка'],
-    looking: ['мастер-классы', 'вечерние прогулки'],
+    purposeType: 5,
+    interests: ['искусство', 'музыка', 'кофе', 'прогулки'],
+    height: 170,
+    worldView: 10,
+    zodiacSign: 11,
+    education: 2,
+    hasChildren: 1,
+    alcoholAttitude: 3,
+    smokingAttitude: 1,
+    languages: ['русский', 'английский'],
     photo: PHOTOS.anya,
     photos: [PHOTOS.anya, PHOTOS.books],
-    distanceKm: 48,
-    basic: [
-      { label: 'Работа', value: 'Керамистка' },
-      { label: 'Языки', value: 'русский, английский' }
-    ]
+    distanceKm: 48
   },
   {
     id: 4,
     name: 'Сара',
     age: 25,
-    city: 'Ташкент, Чиланзар',
+    city: 'Ташкент',
     bio: 'Фотопрогулки и винтажные барахолки по выходным.',
-    tags: ['фото', 'винтаж', 'кофе', 'дизайн'],
-    looking: ['совместные съёмки', 'кофе'],
+    purposeType: 3,
+    interests: ['фотография', 'дизайн', 'кофе', 'искусство'],
+    height: 172,
+    worldView: 9,
+    zodiacSign: 3,
+    education: 2,
+    hasChildren: 1,
+    alcoholAttitude: 2,
+    smokingAttitude: 1,
+    languages: ['русский', 'английский'],
     photo: PHOTOS.sara,
     photos: [PHOTOS.sara, PHOTOS.city],
-    distanceKm: 9,
-    basic: [
-      { label: 'Работа', value: 'Фотограф' },
-      { label: 'Языки', value: 'русский, английский' }
-    ]
+    distanceKm: 9
   },
   {
     id: 5,
     name: 'Дилноза',
     age: 28,
-    city: 'Ташкент, Сергели',
+    city: 'Ташкент',
     bio: 'Готовлю плов для подруг и ищу компанию на концерты.',
-    tags: ['еда', 'музыка', 'концерты', 'кухня'],
-    looking: ['ужины', 'живые концерты'],
+    purposeType: 4,
+    interests: ['еда', 'музыка', 'кино', 'путешествия'],
+    height: 164,
+    worldView: 4,
+    zodiacSign: 6,
+    education: 2,
+    hasChildren: 2,
+    alcoholAttitude: 2,
+    smokingAttitude: 1,
+    languages: ['узбекский', 'русский'],
     photo: PHOTOS.dilnoza,
     photos: [PHOTOS.dilnoza, PHOTOS.event],
-    distanceKm: 18,
-    basic: [
-      { label: 'Работа', value: 'Маркетолог' },
-      { label: 'Языки', value: 'узбекский, русский' }
-    ]
+    distanceKm: 18
   },
   {
     id: 6,
     name: 'Зарина',
     age: 23,
-    city: 'Ташкент, Яккасарай',
-    bio: 'Учу итальянский и обожаю долгие разговоры за эспрессо.',
-    tags: ['языки', 'кофе', 'кино', 'путешествия'],
-    looking: ['языковой обмен', 'кино'],
+    city: 'Ташкент',
+    bio: 'Учу языки и обожаю долгие разговоры за эспрессо.',
+    purposeType: 5,
+    interests: ['книги', 'кофе', 'кино', 'путешествия'],
+    height: 166,
+    worldView: 10,
+    zodiacSign: 2,
+    education: 2,
+    hasChildren: 1,
+    alcoholAttitude: 2,
+    smokingAttitude: 1,
+    languages: ['русский', 'английский', 'турецкий'],
     photo: PHOTOS.zarina,
     photos: [PHOTOS.zarina, PHOTOS.coffee],
-    distanceKm: 6,
-    basic: [
-      { label: 'Учёба', value: 'УзГУМЯ' },
-      { label: 'Языки', value: 'русский, итальянский' }
-    ]
+    distanceKm: 6
   },
   {
     id: 7,
     name: 'Нилуфар',
     age: 29,
-    city: 'Ташкент, Мирабад',
+    city: 'Ташкент',
     bio: 'Бегаю по набережной и собираю мини-группы на parkrun.',
-    tags: ['бег', 'спорт', 'утро', 'здоровье'],
-    looking: ['утренние пробежки'],
+    purposeType: 4,
+    interests: ['бег', 'спорт', 'фитнес', 'йога'],
+    height: 169,
+    worldView: 10,
+    zodiacSign: 9,
+    education: 2,
+    hasChildren: 1,
+    alcoholAttitude: 1,
+    smokingAttitude: 1,
+    languages: ['узбекский', 'русский', 'английский'],
     photo: PHOTOS.nilufar,
     photos: [PHOTOS.nilufar, PHOTOS.city],
-    distanceKm: 3,
-    basic: [
-      { label: 'Работа', value: 'Продакт' },
-      { label: 'Языки', value: 'узбекский, русский, английский' }
-    ]
+    distanceKm: 3
   },
   {
     id: 8,
     name: 'Камила',
     age: 26,
-    city: 'Ташкент, Юнусабад',
+    city: 'Ташкент',
     bio: 'Ищу подруг для выставок и тихих воскресных бранчей.',
-    tags: ['арт', 'бранч', 'дизайн', 'прогулки'],
-    looking: ['музеи', 'бранчи'],
+    purposeType: 3,
+    interests: ['искусство', 'дизайн', 'прогулки', 'еда'],
+    height: 167,
+    worldView: 9,
+    zodiacSign: 12,
+    education: 2,
+    hasChildren: 1,
+    alcoholAttitude: 3,
+    smokingAttitude: 1,
+    languages: ['русский', 'английский'],
     photo: PHOTOS.kamila,
     photos: [PHOTOS.kamila, PHOTOS.books],
-    distanceKm: 11,
-    basic: [
-      { label: 'Работа', value: 'Арт-директор' },
-      { label: 'Языки', value: 'русский, английский' }
-    ]
+    distanceKm: 11
   }
 ];
 
@@ -285,10 +317,18 @@ export const chats = [
 export const defaultProfile = {
   name: 'Камила',
   age: 25,
-  city: 'Ташкент, Мирабад',
+  city: 'Ташкент',
   bio: 'Ищу подруг для прогулок и кофе в городе 💕',
-  tags: ['фото', 'книги', 'кофе', 'бег', 'йога', 'еда'],
-  looking: ['кофе', 'прогулки', 'книжный клуб'],
+  purposeType: 3,
+  interests: ['фотография', 'книги', 'кофе', 'бег', 'йога', 'еда'],
+  height: 167,
+  worldView: 9,
+  zodiacSign: 7,
+  education: 2,
+  hasChildren: 1,
+  alcoholAttitude: 2,
+  smokingAttitude: 1,
+  languages: ['русский', 'узбекский'],
   photo: people[0].photo,
   photos: [people[0].photo, PHOTOS.city, PHOTOS.coffee, PHOTOS.books]
 };
