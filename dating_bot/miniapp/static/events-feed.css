@@ -196,8 +196,8 @@
 }
 .taneesh-detail-cover {
   width: 100%;
-  max-width: 360px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   aspect-ratio: 4 / 5;
   border-radius: 0;
 }
@@ -208,7 +208,7 @@
   display: block;
 }
 .taneesh-detail-body {
-  padding: 20px var(--yaqin-gutter) 28px;
+  padding: 16px var(--yaqin-gutter) 28px;
 }
 .taneesh-detail-body h2 {
   margin: 0 0 14px;

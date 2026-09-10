@@ -44,7 +44,7 @@
 }
 
 body[data-route='people'] .view {
-  padding: 0 8px !important;
+  padding: 0 var(--yaqin-gutter) !important;
   overflow: hidden !important;
   position: relative;
 }

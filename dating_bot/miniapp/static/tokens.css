@@ -43,11 +43,11 @@
   --yaqin-space-2: 8px;
   --yaqin-space-3: 12px;
   --yaqin-space-4: 16px;
-  --yaqin-space-5: 20px; /* page gutter */
+  --yaqin-space-5: 20px;
   --yaqin-space-6: 24px;
   --yaqin-space-7: 32px;
   --yaqin-space-8: 40px;
-  --yaqin-gutter: var(--yaqin-space-5);
+  --yaqin-gutter: 10px; /* боковой inset Mini App */
   --yaqin-header-h: 52px;
   --yaqin-row-h: 72px;
   --yaqin-nav-h: 76px;

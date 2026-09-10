@@ -1,5 +1,6 @@
 import { view, esc, setDiscoverHeader, clearHeader, showDiscoverLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
+import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
@@ -166,7 +167,7 @@ export function personScreen(id) {
     <article class="person-view">
       <div class="person-hero" data-photos="${photos.length}">
         <img class="person-hero-photo" src="${esc(photos[0])}">
-        <button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${hasTelegramBack() ? '' : '<button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
         <button class="hero-icon more" data-action="person-menu" data-id="${person.id}" aria-label="Ещё"><i class="ti ti-dots"></i></button>
         <div class="hero-dots">${photos.map((_, index) => `<span class="${index ? '' : 'on'}" data-index="${index}"></span>`).join('')}</div>
       </div>
@@ -262,7 +263,7 @@ export function filtersScreen() {
     view.innerHTML = `
       <div class="filters-page">
         <header class="filters-head">
-          <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          ${backControlHtml('back')}
           <h1>Фильтры</h1>
           <span></span>
         </header>
@@ -364,7 +365,7 @@ export function cityScreen() {
   view.innerHTML = `
     <div class="filters-page city-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        ${backControlHtml('back')}
         <h1>Город</h1>
         <span></span>
       </header>
@@ -397,7 +398,7 @@ export function connectedScreen(id) {
 
   view.innerHTML = `
     <div class="connected-page">
-      <button class="connected-back" data-action="people" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+      ${hasTelegramBack() ? '' : '<button class="connected-back" data-action="people" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
       <div class="connected-burst" aria-hidden="true"></div>
       <h1>Вы познакомились<br>с ${esc(withName)}</h1>
       <div class="connected-photo" data-action="chat" data-id="${chatIndex}">

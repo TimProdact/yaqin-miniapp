@@ -3,6 +3,7 @@ import { view, esc, clearHeader } from '../dom.js';
 import { listAllGroups, allEvents } from './community.js';
 import { interestsOf } from '../profile-fields.js';
 import { navigate } from '../router.js';
+import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { getState } from '../state.js';
 import {
   listVisibleChats,
@@ -201,7 +202,7 @@ export function searchChatsScreen(queryOrId = '') {
     view.innerHTML = `
       <div class="search-page">
         <header class="modal-head">
-          <button data-action="chats" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          ${backControlHtml('chats')}
           <h1>Поиск чатов</h1>
           <span></span>
         </header>
@@ -260,7 +261,7 @@ export function newDmScreen() {
     view.innerHTML = `
       <div class="new-dm-page">
         <header class="modal-head">
-          <button data-action="chats" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          ${backControlHtml('chats')}
           <h1>Написать</h1>
           <span></span>
         </header>
@@ -355,9 +356,9 @@ export function chatScreen(id) {
   view.innerHTML = `
     <div class="chat-page">
       <header class="chat-top">
-        <button class="chat-back" data-action="chats" aria-label="Назад">
-          <i class="ti ti-chevron-left"></i>
-        </button>
+        ${hasTelegramBack()
+          ? '<span class="head-spacer" aria-hidden="true"></span>'
+          : '<button class="chat-back" data-action="chats" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
         <div class="chat-peer">
           <h1>${esc(chat.name)}</h1>
           ${chat.team ? '' : '<p>Чат</p>'}

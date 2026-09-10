@@ -6,6 +6,7 @@ import { allEvents, findEvent } from './community.js';
 import { showCelebrate } from '../celebrate.js';
 import { meTopHtml, meTabsHtml } from './me.js';
 import { isLive } from '../api.js';
+import { backControlHtml } from '../telegram-ui.js';
 
 const DEMO_GOING = {
   0: [
@@ -229,7 +230,7 @@ export function taneeshEventDetailScreen(id) {
     view.innerHTML = `
       <article class="taneesh-event-detail">
         <header class="sheet-head">
-          <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          ${backControlHtml('back')}
           <h1>Событие</h1>
           <span style="width:36px"></span>
         </header>
@@ -333,7 +334,7 @@ export function ticketCheckoutScreen(eventId) {
   view.innerHTML = `
     <div class="ticket-checkout-page">
       <header class="sheet-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>${free ? 'Запись' : door ? 'Бронь' : 'Оплата'}</h1>
         <span style="width:36px"></span>
       </header>
@@ -414,7 +415,7 @@ export function ticketScreen(ticketId) {
   view.innerHTML = `
     <div class="ticket-page">
       <header class="sheet-head">
-        <button data-action="events" aria-label="К событиям"><i class="ti ti-x"></i></button>
+        ${backControlHtml('events', 'К событиям')}
         <h1>Билет</h1>
         <span style="width:36px"></span>
       </header>

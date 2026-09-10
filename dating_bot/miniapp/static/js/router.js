@@ -1,5 +1,6 @@
 import { unreadChatCount } from './match.js';
 import { esc } from './dom.js';
+import { syncTelegramBackButton } from './telegram-ui.js';
 
 const screens = new Map();
 
@@ -66,6 +67,10 @@ export function getSelectedId() {
   return selectedId;
 }
 
+export function canGoBack() {
+  return history.length > 0;
+}
+
 export function navigate(route, id) {
   if (LEGACY_REDIRECT[route]) route = LEGACY_REDIRECT[route];
   if (route !== currentRoute) {
@@ -90,6 +95,12 @@ export function render() {
     document.body.classList.toggle('sheet-view', SHEET_ROUTES.has(currentRoute));
     if (currentRoute !== 'edit') document.body.classList.remove('edit-sheet-open');
     syncNav();
+    const isTab = TAB_ROUTES.has(currentRoute);
+    syncTelegramBackButton({
+      route: currentRoute,
+      isTab,
+      canGoBack: !isTab
+    });
     const screen = screens.get(currentRoute);
     if (screen) screen(selectedId, ++renderToken);
     else {

@@ -205,3 +205,30 @@ body.full-screen .view {
   border-radius: 12px;
   font-size: 12px;
 }
+
+
+.head-spacer {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+}
+
+/* Sheet/full screens: контент под шапкой Telegram */
+body.sheet-view .app {
+  padding-top: 0;
+}
+body.full-screen .app {
+  padding-top: var(--yaqin-safe-top);
+}
+
+
+/* event — sheet-view без padding у .app, шапке нужен safe inset */
+body[data-route='event'] .sheet-head {
+  padding-top: var(--yaqin-safe-top);
+  padding-left: var(--yaqin-gutter);
+  padding-right: var(--yaqin-gutter);
+  height: auto;
+  min-height: calc(var(--yaqin-header-h) + var(--yaqin-safe-top));
+  align-items: flex-end;
+  box-sizing: border-box;
+}

@@ -4,6 +4,7 @@ import { navigate } from '../router.js';
 import { getState, saveState } from '../state.js';
 import { showCelebrate } from '../celebrate.js';
 import { INTEREST_OPTIONS, filterOptions } from '../profile-fields.js';
+import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 
 const COVER_POOL = [PHOTOS.palms, PHOTOS.coffee, PHOTOS.city, PHOTOS.books, PHOTOS.event, PHOTOS.mila].filter(Boolean);
 
@@ -288,7 +289,7 @@ export function createGroupScreen() {
     view.innerHTML = `
       <div class="create-group-page">
         <header class="modal-head">
-          <button data-action="groups" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          ${backControlHtml('groups')}
           <h1>Создать группу</h1>
           <span></span>
         </header>
@@ -414,7 +415,7 @@ export function groupHubScreen(id) {
   view.innerHTML = `
     <div class="group-hub-page">
       <header class="group-hub-top">
-        <button type="button" data-action="groups" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('groups')}
         <button type="button" id="shareGroup" aria-label="Поделиться"><i class="ti ti-share"></i></button>
       </header>
 
@@ -536,9 +537,9 @@ export function groupChatScreen(id) {
     view.innerHTML = `
       <div class="chat-page group-chat-lite">
         <header class="chat-top">
-          <button class="chat-back" data-action="group" data-id="${esc(group.id)}" aria-label="Назад">
-            <i class="ti ti-chevron-left"></i>
-          </button>
+          ${hasTelegramBack()
+            ? '<span class="head-spacer" aria-hidden="true"></span>'
+            : `<button class="chat-back" data-action="group" data-id="${esc(group.id)}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
           <button type="button" class="chat-peer chat-peer-btn" data-action="group" data-id="${esc(group.id)}">
             <h1>${esc(group.title)}</h1>
             <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
@@ -804,7 +805,7 @@ export function createEventScreen() {
     view.innerHTML = `
       <div class="create-event-page">
         <header class="modal-head">
-          <button data-action="events" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          ${backControlHtml('events')}
           <h1>Новое событие</h1>
           <span></span>
         </header>

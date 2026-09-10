@@ -54,7 +54,9 @@ function applyTelegramSafeArea() {
     let top = cappedSafe + cappedContent;
 
     const inTelegram = Boolean(telegram?.initDataUnsafe || telegram?.initData || telegram?.platform);
-    if (inTelegram && top === 0) top = 12;
+    // В Telegram без insets всё равно нужен небольшой верхний отступ под шапку WebView
+    if (inTelegram && top < 8) top = 12;
+    if (!inTelegram && top === 0) top = 0;
     if (top > 100) top = 100;
 
     const bottom = Math.min(
@@ -83,6 +85,8 @@ try {
   /* ignore */
 }
 applyStoredTheme();
+
+window.addEventListener('yaqin:tg-back', () => goBack());
 
 registerScreens({
   people: peopleScreen,

@@ -1,5 +1,6 @@
 import { view, esc, clearHeader, showLoading, showError } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
+import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadVerification, saveDemoVerification } from '../repository.js';
 import { isLive } from '../api.js';
 import { getState, saveState } from '../state.js';
@@ -96,7 +97,7 @@ export async function verifyScreen(_id, token) {
 
   view.innerHTML = `
     <div class="verify-intro">
-      <button class="verify-close" data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+      ${hasTelegramBack() ? '' : '<button class="verify-close" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
       <div class="verify-pair">
         <span class="verify-logo yaqin"><i class="ti ti-flower"></i></span>
         <span class="verify-dots"></span>

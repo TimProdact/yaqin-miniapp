@@ -2,6 +2,7 @@ import { defaultProfile, promptPhoto, people, PHOTOS } from '../data.js';
 import { getState, saveState, clearPersistedState } from '../state.js';
 import { view, esc, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
+import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
 import { getUserEvents, getUserGroups, isGroupPublic } from './community.js';
@@ -329,7 +330,7 @@ export function settingsScreen() {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>Настройки</h1>
         <span></span>
       </header>
@@ -435,7 +436,7 @@ export function blockedScreen() {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>Заблокированные</h1>
         <span></span>
       </header>
@@ -479,7 +480,7 @@ export function privacyScreen() {
     view.innerHTML = `
       <div class="settings-page">
         <header class="filters-head">
-          <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          ${backControlHtml('back')}
           <h1>Приватность</h1>
           <span></span>
         </header>
@@ -525,7 +526,7 @@ export function helpScreen() {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>Справка</h1>
         <span></span>
       </header>
@@ -571,7 +572,7 @@ export function legalScreen() {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>Правовая информация</h1>
         <span></span>
       </header>
@@ -613,7 +614,7 @@ export function darkModeScreen() {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>Тёмная тема</h1>
         <span></span>
       </header>
@@ -819,7 +820,7 @@ export async function editScreen(_id, token) {
       <div class="edit-profile-page">
         <div class="edit-hero">
           <img src="${esc(profile.photo || profile.photos?.[0] || promptPhoto)}" alt="">
-          <button class="edit-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+          ${hasTelegramBack() ? '<span class="head-spacer"></span>' : '<button class="edit-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
           <button type="button" class="edit-done" id="saveEdit">Готово</button>
           <div class="me-dots"><span class="on"></span><span></span></div>
           <button type="button" class="edit-photos-fab" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
@@ -1124,7 +1125,7 @@ export async function editPhotosScreen(_id, token) {
     view.innerHTML = `
       <div class="edit-photos-page">
         <header class="filters-head">
-          <button data-action="edit" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          ${backControlHtml('edit')}
           <span></span>
           <button class="head-action ${filled >= 2 ? 'on' : ''}" id="savePhotos" ${filled >= 2 ? '' : 'disabled'}>Сохранить</button>
         </header>
@@ -1195,7 +1196,7 @@ export function basicInfoScreen() {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="me" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('me')}
         <h1>Основное</h1>
         <button class="head-action on" data-action="edit">Изменить</button>
       </header>
@@ -1216,7 +1217,7 @@ export function notificationsScreen() {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>Уведомления</h1>
         <span></span>
       </header>
@@ -1291,7 +1292,7 @@ export async function accountScreen(_id, token) {
   view.innerHTML = `
     <div class="settings-page">
       <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
+        ${backControlHtml('back')}
         <h1>Мой аккаунт</h1>
         <span></span>
       </header>
