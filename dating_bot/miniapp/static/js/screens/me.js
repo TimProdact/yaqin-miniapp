@@ -70,9 +70,15 @@ export async function meScreen(_id, token) {
       </div>
       <div class="me-tabs">
         <button class="active">Анкета</button>
-        <button data-action="my-events">События</button>
-        <button data-action="friends">Подруги</button>
+        <button data-action="events">События</button>
       </div>
+      <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-action="events">
+        <div>
+          <b>Черновик в Taneesh</b>
+          <span>Активируйте профиль в приложении, чтобы покупать билеты.</span>
+        </div>
+        <i class="ti ti-chevron-right"></i>
+      </button>
       <div class="me-hero">
         <img src="${esc(profile.photo)}">
         <button class="edit-profile" data-action="edit">Редактировать</button>
@@ -98,18 +104,6 @@ export async function meScreen(_id, token) {
         <div class="prompt-card" data-action="prompts">
           <img src="${esc(promptPhoto)}">
           <p>Недавние кадры из вашей галереи</p>
-        </div>
-      </section>
-      <section class="me-section">
-        <div class="me-section-head">
-          <h3>Мои группы</h3>
-          <button type="button" class="me-link" data-action="profile-groups">На профиле</button>
-        </div>
-        <div class="groups-row">
-          ${groups.filter(group => group.joined !== false).slice(0, 2).map(group => `
-            <button type="button" data-action="group-hub" data-id="${group.id}">
-              <img src="${esc(group.photo)}" alt=""><span>${esc(group.title)}</span>
-            </button>`).join('')}
         </div>
       </section>
       <section class="me-section">

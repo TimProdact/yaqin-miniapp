@@ -47,7 +47,7 @@ const FULL_SCREEN_ROUTES = new Set([
 const SHEET_ROUTES = new Set(['person', 'group', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me', 'events', 'friends', 'my-events']);
 
-const TAB_ROUTES = new Set(['people', 'groups', 'chats', 'activity', 'me']);
+const TAB_ROUTES = new Set(['people', 'events', 'chats', 'me']);
 
 let currentRoute = 'people';
 let selectedId = null;
@@ -67,6 +67,9 @@ export function getSelectedId() {
 }
 
 export function navigate(route, id) {
+  // MVP shell: old BFF tabs fold into the funnel IA
+  if (route === 'groups' || route === 'activity') route = route === 'activity' ? 'people' : 'events';
+  if (route === 'my-events' || route === 'friends') route = route === 'my-events' ? 'events' : 'me';
   if (route !== currentRoute) {
     history = TAB_ROUTES.has(route) ? [] : [...history, currentRoute];
   }

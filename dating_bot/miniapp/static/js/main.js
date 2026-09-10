@@ -35,6 +35,7 @@ import {
   createEventScreen,
   leaveGroupConfirm
 } from './screens/groups.js';
+import { taneeshEventsScreen, taneeshEventDetailScreen } from './screens/taneesh-events.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
@@ -121,8 +122,10 @@ registerScreens({
   connected: connectedScreen,
   groups: groupsScreen,
   group: groupScreen,
-  events: eventsScreen,
-  event: eventScreen,
+  events: taneeshEventsScreen,
+  event: taneeshEventDetailScreen,
+  'events-legacy': eventsScreen,
+  'event-legacy': eventScreen,
   chats: chatsScreen,
   chat: chatScreen,
   search: searchChatsScreen,
