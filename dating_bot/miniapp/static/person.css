@@ -228,6 +228,15 @@ body.sheet-view .view {
   gap: 10px;
   padding: 8px var(--person-gutter, 20px) 28px;
 }
+.person-safety {
+  border-radius: var(--yaqin-radius-pill);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 12px;
+  border: 1.5px solid color-mix(in srgb, var(--yaqin-danger) 55%, transparent);
+  background: var(--yaqin-bg);
+  color: var(--yaqin-danger);
+}
 .person-skip {
   border-radius: var(--yaqin-radius-pill);
   font-size: 15px;

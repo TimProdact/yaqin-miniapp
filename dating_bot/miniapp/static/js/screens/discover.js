@@ -168,7 +168,6 @@ export function personScreen(id) {
       <div class="person-hero" data-photos="${photos.length}">
         <img class="person-hero-photo" src="${esc(photos[0])}">
         ${hasTelegramBack() ? '' : '<button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
-        <button class="hero-icon more" data-action="person-menu" data-id="${person.id}" aria-label="Ещё"><i class="ti ti-dots"></i></button>
         <div class="hero-dots">${photos.map((_, index) => `<span class="${index ? '' : 'on'}" data-index="${index}"></span>`).join('')}</div>
       </div>
 
@@ -199,7 +198,8 @@ export function personScreen(id) {
         </section>` : ''}
 
       <div class="person-actions">
-        <button class="person-skip" type="button" data-action="skip" data-id="${person.id}">Пропустить</button>
+        <button class="person-safety" type="button" data-action="report-flow" data-id="${person.id}">Пожаловаться · ${esc(person.name.split(' ')[0])}</button>
+        <button class="person-safety" type="button" data-action="block-confirm" data-id="${person.id}">Заблокировать · ${esc(person.name.split(' ')[0])}</button>
       </div>
     </article>`;
 
