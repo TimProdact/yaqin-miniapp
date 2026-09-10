@@ -10,8 +10,7 @@ import { chatIdForPerson } from './chats.js';
 import {
   INTEREST_OPTIONS,
   interestsOf,
-  purposeLabel,
-  basicRowsFromProfile
+  purposeLabel
 } from '../profile-fields.js';
 
 let lastShown = [];
@@ -33,10 +32,11 @@ function renderEmptyState(kind = 'exhausted') {
         <div class="empty-badge"><i class="ti ti-users"></i></div>
         <h2>${isFilters ? 'Никого не нашлось' : 'Вы посмотрели всех новых'}</h2>
         <p>${isFilters
-          ? 'По этим фильтрам анкет нет. Расширьте возраст или расстояние.'
-          : 'Посмотрите анкеты, которые пропустили, или измените фильтры.'}</p>
-        ${isFilters ? '' : '<button class="empty-primary" data-action="show-skipped">Показать пропущенных</button>'}
-        <button class="${isFilters ? 'empty-primary' : 'empty-outline'}" data-action="filters">Изменить фильтры</button>
+          ? 'Расширьте возраст, расстояние или интересы.'
+          : 'Посмотрите пропущенных или измените фильтры.'}</p>
+        <button class="empty-primary" data-action="${isFilters ? 'filters' : 'show-skipped'}">
+          ${isFilters ? 'Изменить фильтры' : 'Показать пропущенных'}
+        </button>
       </div>
     </div>`;
 }
@@ -125,7 +125,6 @@ export async function peopleScreen(_id, token) {
             <h2>Анкеты закончились</h2>
             <p>Вы долистали до конца. Посмотрите пропущенных или измените фильтры.</p>
             <button class="empty-primary" data-action="show-skipped">Показать пропущенных</button>
-            <button class="empty-outline" data-action="filters">Изменить фильтры</button>
           </div>
         </div>
       </article>
@@ -155,7 +154,6 @@ export function personScreen(id) {
   const about =
     chipGroup('Интересы', interests) +
     (purpose ? chipGroup('Я ищу', [purpose]) : '');
-  const basic = person.basic?.length ? person.basic : basicRowsFromProfile(person);
 
   view.innerHTML = `
     <article class="person-view">
@@ -170,22 +168,9 @@ export function personScreen(id) {
         <h1>${esc(person.name)}</h1>
         <p class="person-meta">${person.age} • ${esc(person.city)}</p>
         <p class="person-bio">${esc(person.bio)}</p>
-        <button class="hero-wave" data-action="like" data-id="${person.id}" aria-label="Передать привет">
-          <i class="ti ti-hand-stop"></i>
-        </button>
       </section>
 
       ${about ? `<h3 class="person-section">Обо мне</h3><section class="person-card">${about}</section>` : ''}
-
-      ${basic.length ? `
-        <h3 class="person-section">Основное</h3>
-        <section class="person-card info-list">
-          ${basic.map(item => `
-            <div class="info-row">
-              <h4>${esc(item.label)}</h4>
-              <span class="chip">${esc(item.value)}</span>
-            </div>`).join('')}
-        </section>` : ''}
 
       <div class="person-actions">
         <button class="person-skip" type="button" data-action="skip" data-id="${person.id}">Пропустить</button>

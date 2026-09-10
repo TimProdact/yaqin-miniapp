@@ -182,44 +182,20 @@ export function settingsScreen() {
           <span>Уведомления</span>
           <i class="ti ti-chevron-right"></i>
         </button>
-        <button class="settings-row" data-action="privacy" type="button">
-          <span class="settings-icon pink"><i class="ti ti-lock"></i></span>
-          <span>Приватность</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
         <button class="settings-row" data-action="blocked" type="button">
           <span class="settings-icon red"><i class="ti ti-eye-off"></i></span>
           <span>Заблокированные</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" data-action="dark-mode" type="button">
-          <span class="settings-icon blue"><i class="ti ti-bulb"></i></span>
-          <span>Тёмная тема</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-      </section>
-
-      <h3 class="settings-label">Помощь</h3>
-      <section class="settings-block">
-        <button class="settings-row" data-action="help" type="button">
-          <span class="settings-icon purple"><i class="ti ti-help-circle"></i></span>
-          <span>Справка</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" data-action="feedback" type="button">
-          <span class="settings-icon orange"><i class="ti ti-message"></i></span>
-          <span>Отправить отзыв</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" data-action="legal" type="button">
-          <span class="settings-icon pink"><i class="ti ti-file-text"></i></span>
-          <span>Правовая информация</span>
           <i class="ti ti-chevron-right"></i>
         </button>
       </section>
 
       <h3 class="settings-label">Аккаунт</h3>
       <section class="settings-block">
+        <button class="settings-row" data-action="legal" type="button">
+          <span class="settings-icon pink"><i class="ti ti-file-text"></i></span>
+          <span>Правовая информация</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
         <button class="settings-row danger" type="button" id="logoutBtn">
           <span class="settings-icon red"><i class="ti ti-logout"></i></span>
           <span>Выйти</span>
@@ -241,7 +217,7 @@ export function settingsScreen() {
     });
   };
   view.querySelector('#logoutBtn').onclick = () => {
-    saveState({ ...getState(), onboarded: false, onboardingStep: 'start' });
+    saveState({ ...getState(), onboarded: false, onboardingStep: 'welcome' });
     navigate('onboarding');
   };
 }

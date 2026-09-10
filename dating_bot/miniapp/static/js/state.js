@@ -12,7 +12,7 @@ const initialState = {
   notifications: { dm: true, reactions: true },
   announcements: true,
   shakeFeedback: true,
-  onboardingStep: 'start',
+  onboardingStep: 'welcome',
   onboardingDraft: null
 };
 

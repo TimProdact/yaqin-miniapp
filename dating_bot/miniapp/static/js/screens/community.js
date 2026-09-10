@@ -5,15 +5,6 @@ import { getState, saveState } from '../state.js';
 
 const COVER_POOL = [PHOTOS.palms, PHOTOS.coffee, PHOTOS.city, PHOTOS.books, PHOTOS.event, PHOTOS.mila].filter(Boolean);
 
-const THEMES = [
-  { name: 'Синий', color: '#3b6ef5' },
-  { name: 'Коралл', color: '#ff5a5f' },
-  { name: 'Фиолетовый', color: '#8b5cf6' },
-  { name: 'Зелёный', color: '#34c759' }
-];
-
-const TAG_CHOICES = ['кофе', 'прогулки', 'книги', 'йога', 'музыка', 'кино', 'спорт', 'еда', 'искусство', 'путешествия'];
-
 export function getUserGroups() {
   return getState().userGroups || [];
 }
@@ -77,102 +68,15 @@ export function groupsScreen() {
     </div>`;
 }
 
-/** Создание группы — BFF `07-groups/create-group--071`. Закрытие → группы. */
+/** Создание группы — только название + фото. */
 export function createGroupScreen() {
   clearHeader();
   let name = '';
-  let about = '';
-  let city = '';
-  let isPublic = true;
   let cover = null;
   let coverIndex = 0;
-  let tags = new Set();
-  let theme = THEMES[0];
-  let locOpen = false;
-  let themeOpen = false;
-  let tagsOpen = false;
 
   const render = () => {
     const canCreate = name.trim().length > 1;
-
-    if (locOpen) {
-      view.innerHTML = `
-        <div class="group-location-page">
-          <header class="modal-head">
-            <span></span>
-            <h1>Локация</h1>
-            <button class="head-action on" id="locDone">Готово</button>
-          </header>
-          <p class="loc-sub">Добавьте город для группы</p>
-          <div class="loc-map">
-            <span class="loc-pin">${esc(city || 'Ташкент')}</span>
-          </div>
-          <button class="loc-current" id="locCurrent"><i class="ti ti-current-location"></i> Текущее местоположение</button>
-          <button class="loc-everywhere" id="locEverywhere">Установить «Везде»</button>
-        </div>`;
-      view.querySelector('#locCurrent').onclick = () => { city = 'Ташкент'; locOpen = false; render(); };
-      view.querySelector('#locEverywhere').onclick = () => { city = 'Везде'; locOpen = false; render(); };
-      view.querySelector('#locDone').onclick = () => { locOpen = false; render(); };
-      return;
-    }
-
-    if (themeOpen) {
-      view.innerHTML = `
-        <div class="group-theme-page">
-          <header class="modal-head">
-            <button id="themeBack" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-            <h1>Цвет темы</h1>
-            <span></span>
-          </header>
-          <div class="theme-grid">
-            ${THEMES.map(item => `
-              <button type="button" class="theme-swatch ${theme.name === item.name ? 'on' : ''}" data-theme="${esc(item.name)}" style="--swatch:${item.color}">
-                <i></i><span>${esc(item.name)}</span>
-              </button>`).join('')}
-          </div>
-        </div>`;
-      view.querySelector('#themeBack').onclick = () => { themeOpen = false; render(); };
-      view.querySelectorAll('[data-theme]').forEach(button => {
-        button.onclick = () => {
-          theme = THEMES.find(item => item.name === button.dataset.theme) || theme;
-          themeOpen = false;
-          render();
-        };
-      });
-      return;
-    }
-
-    if (tagsOpen) {
-      view.innerHTML = `
-        <div class="group-tags-page">
-          <header class="modal-head">
-            <button id="tagsBack" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-            <h1>Теги</h1>
-            <button class="head-action on" id="tagsDone">Готово</button>
-          </header>
-          <p class="loc-sub">Выберите до 5 интересов группы</p>
-          <div class="tags-cloud">
-            ${TAG_CHOICES.map(item => `
-              <button type="button" class="tag-chip ${tags.has(item) ? 'on' : ''}" data-tag="${esc(item)}">${esc(item)}</button>`).join('')}
-          </div>
-        </div>`;
-      view.querySelectorAll('[data-tag]').forEach(button => {
-        button.onclick = () => {
-          const value = button.dataset.tag;
-          if (tags.has(value)) tags.delete(value);
-          else if (tags.size < 5) tags.add(value);
-          render();
-        };
-      });
-      view.querySelector('#tagsBack').onclick = () => { tagsOpen = false; render(); };
-      view.querySelector('#tagsDone').onclick = () => { tagsOpen = false; render(); };
-      return;
-    }
-
-    const tagLabel = tags.size
-      ? `${[...tags][0]}${tags.size > 1 ? ` +${tags.size - 1}` : ''}`
-      : 'Теги';
-
     view.innerHTML = `
       <div class="create-group-page">
         <header class="modal-head">
@@ -187,28 +91,7 @@ export function createGroupScreen() {
         </div>
 
         <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}">
-        <button class="create-desc" type="button" id="groupAboutToggle">${about ? esc(about) : 'Добавить описание'}</button>
-        <textarea class="create-about ${about ? 'show' : ''}" id="groupAbout" placeholder="О группе">${esc(about)}</textarea>
-
-        <div class="create-chips">
-          <button type="button" id="setCity"><i class="ti ti-map-pin"></i>${city ? esc(city) : 'Добавить локацию'}</button>
-          <button type="button" id="setTag"><i class="ti ti-tag"></i>${esc(tagLabel)}</button>
-        </div>
-
-        <h3 class="settings-label">Параметры</h3>
-        <div class="settings-block">
-          <button class="settings-row" type="button" id="openTheme">
-            <span class="settings-icon" style="background:${theme.color}"></span>
-            <span>Цвет темы<br><small>${esc(theme.name)}</small></span>
-            <i class="ti ti-chevron-right"></i>
-          </button>
-          <label class="settings-row toggle">
-            <span class="settings-icon"><i class="ti ti-eye"></i></span>
-            <span>Публичная группа<br><small>Вступить может каждая</small></span>
-            <input type="checkbox" id="groupPublic" ${isPublic ? 'checked' : ''}>
-          </label>
-        </div>
-        <p class="create-legal">Нажимая «Создать», вы соглашаетесь с <button type="button" class="legal-inline" data-action="legal">правилами общения Yaqin</button>.</p>
+        <p class="create-legal">Название и фото — остальное можно добавить позже в чате.</p>
       </div>`;
 
     view.querySelector('#groupName').oninput = event => {
@@ -219,31 +102,20 @@ export function createGroupScreen() {
       btn.classList.toggle('on', ready);
       btn.classList.toggle('coral', ready);
     };
-    view.querySelector('#groupAboutToggle').onclick = () => {
-      view.querySelector('#groupAbout').classList.add('show');
-      view.querySelector('#groupAbout').focus();
-    };
-    view.querySelector('#groupAbout').oninput = event => { about = event.target.value; };
-    view.querySelector('#groupPublic').onchange = event => { isPublic = event.target.checked; };
     view.querySelector('#setCover').onclick = () => {
       cover = nextCover(coverIndex++);
       render();
     };
-    view.querySelector('#setCity').onclick = () => { locOpen = true; render(); };
-    view.querySelector('#openTheme').onclick = () => { themeOpen = true; render(); };
-    view.querySelector('#setTag').onclick = () => { tagsOpen = true; render(); };
     view.querySelector('#createGroupBtn').onclick = () => {
       if (!name.trim()) return;
       const profile = getState().profile || defaultProfile;
       const group = {
         id: `g-${Date.now()}`,
         title: name.trim(),
-        about: about.trim() || 'Группа в Yaqin',
-        city: city || 'Ташкент',
+        about: 'Группа в Yaqin',
+        city: 'Ташкент',
         photo: cover || nextCover(0),
-        isPublic,
-        theme,
-        tags: [...tags],
+        isPublic: true,
         members: 1,
         online: 1,
         createdAt: new Date().toISOString(),

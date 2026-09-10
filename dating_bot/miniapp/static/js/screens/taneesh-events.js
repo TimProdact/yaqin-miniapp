@@ -34,10 +34,6 @@ function ticketForEvent(eventId) {
   return getTickets().find(ticket => Number(ticket.eventId) === Number(eventId));
 }
 
-function activationStatus() {
-  return getState().taneeshStatus || 'draft_in_taneesh';
-}
-
 function openTaneesh(reason) {
   try {
     const tg = window.Telegram?.WebApp;
@@ -100,6 +96,24 @@ function removeGoing(eventId) {
   saveState({ ...state, eventGoing: next });
 }
 
+function toggleInterest(eventId) {
+  const state = getState();
+  const interested = { ...(state.eventInterest || {}) };
+  const key = String(eventId);
+  if (interested[key] || interested[eventId]) {
+    delete interested[key];
+    delete interested[eventId];
+  } else {
+    interested[eventId] = true;
+  }
+  saveState({ ...state, eventInterest: interested });
+}
+
+function isInterested(eventId) {
+  const interested = getState().eventInterest || {};
+  return Boolean(interested[eventId] || interested[String(eventId)] || (getState().eventGoing || {})[eventId]);
+}
+
 function renderWhoList(eventId) {
   const going = goingForEvent(eventId);
   return going.map(person => {
@@ -119,9 +133,6 @@ function renderWhoList(eventId) {
 /** Лента событий + покупка билета в Mini App. */
 export function taneeshEventsScreen() {
   clearHeader();
-  const status = activationStatus();
-  const interested = getState().eventInterest || {};
-  const tickets = getTickets();
   const feed = allEvents();
 
   view.innerHTML = `
@@ -129,30 +140,17 @@ export function taneeshEventsScreen() {
       <header class="chats-head">
         <h1>События</h1>
         <div class="events-head-actions">
-          <button data-action="my-tickets" aria-label="Билеты">
-            <i class="ti ti-ticket"></i>
-            ${tickets.length ? `<b class="ticket-count">${tickets.length}</b>` : ''}
-          </button>
           <button data-action="create-event" aria-label="Создать"><i class="ti ti-plus"></i></button>
         </div>
       </header>
 
       <p class="events-feed-lead">
-        Афиша Taneesh и ваши события. Можно отметить «хочу пойти» и купить билет здесь.
+        Афиша Taneesh. Отметьте «хочу пойти» или купите билет.
       </p>
-
-      ${status !== 'active' ? `
-        <button type="button" class="taneesh-activate-banner" data-open-taneesh="activate">
-          <div>
-            <b>Активируйте профиль в Taneesh</b>
-            <span>Билеты и «хочу пойти» уже здесь. Активация — чтобы анкета была видима в приложении.</span>
-          </div>
-          <i class="ti ti-chevron-right"></i>
-        </button>` : ''}
 
       <div class="events-feed">
         ${feed.map(event => {
-          const want = interested[event.id] || (getState().eventGoing || {})[event.id];
+          const want = isInterested(event.id);
           const owned = ticketForEvent(event.id);
           const goingPreview = goingForEvent(event.id).slice(0, 3);
           const source = event.source === 'yaqin' ? 'Yaqin' : 'Taneesh';
@@ -174,7 +172,7 @@ export function taneeshEventsScreen() {
                   <span>${goingForEvent(event.id).length} хотят пойти</span>
                 </div>
                 <div class="taneesh-event-actions">
-                  <button type="button" class="taneesh-chip ${want ? 'on' : ''}" data-action="event" data-id="${esc(event.id)}">
+                  <button type="button" class="taneesh-chip ${want ? 'on' : ''}" data-toggle-want="${esc(event.id)}">
                     ${want ? 'Иду' : 'Хочу пойти'}
                   </button>
                   <button type="button" class="taneesh-buy ${owned ? 'owned' : ''}" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
@@ -187,11 +185,12 @@ export function taneeshEventsScreen() {
       </div>
     </div>`;
 
-  view.querySelectorAll('[data-open-taneesh]').forEach(button => {
+  view.querySelectorAll('[data-toggle-want]').forEach(button => {
     button.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
-      openTaneesh(button.dataset.openTaneesh);
+      toggleInterest(button.dataset.toggleWant);
+      taneeshEventsScreen();
     };
   });
 }
@@ -201,11 +200,10 @@ export function taneeshEventDetailScreen(id) {
   clearHeader();
   const event = findEvent(id);
   const owned = ticketForEvent(event.id);
-  let composerOpen = false;
-  let draft = ((getState().eventGoing || {})[event.id]?.message) || '';
 
   const render = () => {
     const mine = (getState().eventGoing || {})[event.id];
+    const want = isInterested(event.id) || mine;
     view.innerHTML = `
       <article class="taneesh-event-detail">
         <header class="sheet-head">
@@ -229,48 +227,31 @@ export function taneeshEventDetailScreen(id) {
             ${renderWhoList(event.id)}
           </div>
 
-          ${composerOpen ? `
-            <div class="want-go-composer">
-              <label for="wantGoMsg">Сообщение для других</label>
-              <textarea id="wantGoMsg" maxlength="140" rows="3" placeholder="Например: я новая в городе, давайте сходим вместе">${esc(draft)}</textarea>
-              <div class="want-go-actions">
-                <button type="button" class="taneesh-chip" id="cancelWant">Отмена</button>
-                <button type="button" class="taneesh-buy" id="saveWant">Опубликовать</button>
-              </div>
-            </div>` : `
-            <div class="event-cta-stack">
-              <button type="button" class="taneesh-want ${mine ? 'on' : ''}" id="toggleWant">
-                ${mine ? 'Вы идёте · изменить' : 'Хочу пойти'}
-              </button>
-              ${mine ? `<button type="button" class="taneesh-chip block" id="leaveWant">Не иду</button>` : ''}
-              <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
-                ${owned ? 'Открыть билет' : buyLabel(event)}
-              </button>
-            </div>
-            <p class="taneesh-detail-note">
-              «Хочу пойти» — бесплатно, чтобы найти компанию. Билет с QR — отдельно, тоже здесь.
-            </p>`}
+          <div class="event-cta-stack">
+            <button type="button" class="taneesh-want ${want ? 'on' : ''}" id="toggleWant">
+              ${want ? 'Иду ✓' : 'Хочу пойти'}
+            </button>
+            <button type="button" class="taneesh-buy-block" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
+              ${owned ? 'Открыть билет' : buyLabel(event)}
+            </button>
+          </div>
+          <p class="taneesh-detail-note">
+            Сначала отметьте интерес — билет с QR покупается отдельно.
+          </p>
         </div>
       </article>`;
 
     view.querySelector('#toggleWant')?.addEventListener('click', () => {
-      composerOpen = true;
-      draft = mine?.message || '';
-      render();
-    });
-    view.querySelector('#leaveWant')?.addEventListener('click', () => {
-      removeGoing(event.id);
-      composerOpen = false;
-      render();
-    });
-    view.querySelector('#cancelWant')?.addEventListener('click', () => {
-      composerOpen = false;
-      render();
-    });
-    view.querySelector('#saveWant')?.addEventListener('click', () => {
-      const message = view.querySelector('#wantGoMsg')?.value.trim() || '';
-      saveGoing(event.id, { ...meGuest(), message });
-      composerOpen = false;
+      if (want) {
+        removeGoing(event.id);
+        const state = getState();
+        const interested = { ...(state.eventInterest || {}) };
+        delete interested[event.id];
+        delete interested[String(event.id)];
+        saveState({ ...state, eventInterest: interested });
+      } else {
+        saveGoing(event.id, { ...meGuest(), message: '' });
+      }
       render();
     });
   };
