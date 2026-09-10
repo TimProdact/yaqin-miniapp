@@ -26,8 +26,39 @@ export function findUserGroup(id) {
     || null;
 }
 
-/** Открыть группу: каталожные копируются в userGroups при первом входе. */
+/** Открыть группу: публичные вступают сразу; закрытые — только просмотр, пока не приняты. */
 export function openGroup(id) {
+  const existing = getUserGroups().find(group => String(group.id) === String(id));
+  if (existing) return existing;
+  const catalog = demoGroups.find(group => String(group.id) === String(id));
+  if (!catalog) return null;
+  if (catalog.isPublic === false) {
+    return { ...catalog, membership: 'none' };
+  }
+  const joined = {
+    ...catalog,
+    catalog: false,
+    membership: 'member',
+    joinedAt: new Date().toISOString(),
+    messages: [...(catalog.messages || [])]
+  };
+  const state = getState();
+  saveState({ ...state, userGroups: [joined, ...(state.userGroups || [])] });
+  return joined;
+}
+
+export function isGroupPublic(group) {
+  return group?.isPublic !== false;
+}
+
+export function isGroupMember(group) {
+  if (!group) return false;
+  if (group.membership === 'none' || group.membership === 'pending') return false;
+  return getUserGroups().some(item => String(item.id) === String(group.id));
+}
+
+/** Демо: заявка в закрытую группу → принимаем сразу. */
+export function requestJoinGroup(id) {
   const existing = getUserGroups().find(group => String(group.id) === String(id));
   if (existing) return existing;
   const catalog = demoGroups.find(group => String(group.id) === String(id));
@@ -35,8 +66,17 @@ export function openGroup(id) {
   const joined = {
     ...catalog,
     catalog: false,
+    membership: 'member',
     joinedAt: new Date().toISOString(),
-    messages: [...(catalog.messages || [])]
+    messages: [
+      ...(catalog.messages || []),
+      {
+        from: 'them',
+        name: 'Модератор',
+        text: 'Заявка принята. Добро пожаловать в группу!',
+        time: 'сейчас'
+      }
+    ]
   };
   const state = getState();
   saveState({ ...state, userGroups: [joined, ...(state.userGroups || [])] });
@@ -69,58 +109,82 @@ function groupMatchesQuery(group, term) {
   return hay.includes(term);
 }
 
-/** Вкладка «Группы» — список + поиск как в Telegram. */
+function groupMatchesFilter(group, filter) {
+  if (filter === 'open') return isGroupPublic(group);
+  if (filter === 'closed') return !isGroupPublic(group);
+  return true;
+}
+
+/** Вкладка «Группы» — список + поиск + фильтр открытые/закрытые. */
 export function groupsScreen() {
   clearHeader();
   let query = '';
+  let filter = 'all'; // all | open | closed
 
   const render = () => {
     const term = query.trim().toLowerCase();
-    const groups = listAllGroups().filter(group => groupMatchesQuery(group, term));
+    const groups = listAllGroups()
+      .filter(group => groupMatchesFilter(group, filter))
+      .filter(group => groupMatchesQuery(group, term));
     const mineCount = getUserGroups().length;
+    const pills = [
+      ['all', 'Все'],
+      ['open', 'Открытые'],
+      ['closed', 'Закрытые']
+    ];
 
     view.innerHTML = `
       <div class="groups-tab-page">
         <header class="chats-head">
           <h1>Группы</h1>
-          <span></span>
+          <div class="events-head-actions">
+            <button data-action="create-group" aria-label="Создать группу"><i class="ti ti-plus"></i></button>
+          </div>
         </header>
 
         <div class="search-box groups-search">
           <i class="ti ti-search"></i>
-          <input id="groupSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
+          <input id="groupSearch" type="search" placeholder="Поиск групп" value="${esc(query)}" enterkeyhint="search">
           ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
+        </div>
+
+        <div class="chats-pills groups-pills" role="tablist">
+          ${pills.map(([id, label]) => `
+            <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
+          `).join('')}
         </div>
 
         ${groups.length
           ? `<div class="groups-tab-list">${groups.map(group => {
+              const open = isGroupPublic(group);
               const last = group.messages?.[group.messages.length - 1];
               const meta = last?.text
                 || (group.members ? `${group.members} участниц` : group.about)
                 || 'Группа';
               return `
                 <button class="group-tab-row" type="button" data-open-group="${esc(group.id)}">
-                  <img src="${esc(group.photo)}" alt="">
+                  <div class="group-tab-avatar">
+                    <img src="${esc(group.photo)}" alt="">
+                    ${open ? '' : '<i class="ti ti-lock group-tab-lock" aria-hidden="true"></i>'}
+                  </div>
                   <div>
-                    <strong>${esc(group.title)}</strong>
+                    <strong>${esc(group.title)}${open ? '' : ' <em class="group-privacy">закрытая</em>'}</strong>
                     <span>${esc(meta)}${last?.time ? ` · ${esc(last.time)}` : ''}</span>
                   </div>
                 </button>`;
             }).join('')}</div>`
-          : term
-            ? `<p class="search-none">Ничего не найдено</p>`
+          : term || filter !== 'all'
+            ? `<p class="search-none">${term ? 'Ничего не найдено' : filter === 'closed' ? 'Пока нет закрытых групп' : 'Пока нет открытых групп'}</p>`
             : `<div class="groups-tab-empty">
                 <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
                 <h2>Создайте группу</h2>
-                <p>Соберите людей по интересам и планируйте встречи вместе.</p>
+                <p>Соберите людей по интересам — открытую или закрытую.</p>
                 <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
               </div>`}
 
-        ${!term && groups.length && !mineCount ? `
-          <p class="groups-tab-hint">Публичные группы рядом. Нажмите, чтобы открыть.</p>
+        ${!term && filter === 'all' && groups.length && !mineCount ? `
+          <p class="groups-tab-hint">Открытые — вход сразу. Закрытые — по заявке.</p>
         ` : ''}
-
-        <button class="compose" data-action="create-group" aria-label="Создать"><i class="ti ti-plus"></i></button>
       </div>`;
 
     const input = view.querySelector('#groupSearch');
@@ -139,6 +203,12 @@ export function groupsScreen() {
       render();
       view.querySelector('#groupSearch')?.focus();
     });
+    view.querySelectorAll('[data-filter]').forEach(button => {
+      button.onclick = () => {
+        filter = button.dataset.filter;
+        render();
+      };
+    });
     view.querySelectorAll('[data-open-group]').forEach(button => {
       button.onclick = () => {
         const group = openGroup(button.dataset.openGroup);
@@ -150,12 +220,13 @@ export function groupsScreen() {
   render();
 }
 
-/** Создание группы — только название + фото. */
+/** Создание группы — название, фото, открытая/закрытая. */
 export function createGroupScreen() {
   clearHeader();
   let name = '';
   let cover = null;
   let coverIndex = 0;
+  let isPublic = true;
 
   const render = () => {
     const canCreate = name.trim().length > 1;
@@ -172,8 +243,22 @@ export function createGroupScreen() {
           <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
         </div>
 
-        <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}">
-        <p class="create-legal">Название и фото — остальное можно добавить позже в чате.</p>
+        <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}" maxlength="60" autocomplete="off">
+
+        <h3 class="settings-label">Тип группы</h3>
+        <div class="create-chips" id="groupPrivacyChips">
+          <button type="button" class="${isPublic ? 'on' : ''}" data-privacy="open">
+            <i class="ti ti-world"></i> Открытая
+          </button>
+          <button type="button" class="${!isPublic ? 'on' : ''}" data-privacy="closed">
+            <i class="ti ti-lock"></i> Закрытая
+          </button>
+        </div>
+        <p class="create-legal">
+          ${isPublic
+            ? 'Любая может вступить сразу и писать в чат.'
+            : 'Вход только по заявке. Вы принимаете участниц вручную.'}
+        </p>
       </div>`;
 
     view.querySelector('#groupName').oninput = event => {
@@ -188,18 +273,25 @@ export function createGroupScreen() {
       cover = nextCover(coverIndex++);
       render();
     };
+    view.querySelectorAll('[data-privacy]').forEach(button => {
+      button.onclick = () => {
+        isPublic = button.dataset.privacy === 'open';
+        render();
+      };
+    });
     view.querySelector('#createGroupBtn').onclick = () => {
       if (!name.trim()) return;
       const profile = getState().profile || defaultProfile;
       const group = {
         id: `g-${Date.now()}`,
         title: name.trim(),
-        about: 'Группа в Yaqin',
+        about: isPublic ? 'Открытая группа в Yaqin' : 'Закрытая группа в Yaqin',
         city: 'Ташкент',
         photo: cover || nextCover(0),
-        isPublic: true,
+        isPublic,
         members: 1,
         online: 1,
+        membership: 'member',
         createdAt: new Date().toISOString(),
         ownerName: profile.name || 'Вы',
         messages: [
@@ -215,7 +307,7 @@ export function createGroupScreen() {
       saveState({ ...state, userGroups: [group, ...(state.userGroups || [])] });
       showCelebrate({
         title: 'Группа создана!',
-        subtitle: group.title,
+        subtitle: `${group.title} · ${isPublic ? 'открытая' : 'закрытая'}`,
         primaryLabel: 'Открыть группу',
         secondaryLabel: 'Пригласить подруг',
         shareText: `Присоединяйся к группе «${group.title}» в Yaqin`,
@@ -238,7 +330,7 @@ function groupMembers(group) {
   }));
 }
 
-/** Хаб группы: обложка, участницы, чат / пригласить. */
+/** Хаб группы: обложка, участницы, чат / заявка / пригласить. */
 export function groupHubScreen(id) {
   clearHeader();
   const group = openGroup(id);
@@ -248,6 +340,8 @@ export function groupHubScreen(id) {
   }
   const members = groupMembers(group);
   const memberCount = group.members || members.length;
+  const member = isGroupMember(group);
+  const open = isGroupPublic(group);
 
   view.innerHTML = `
     <div class="group-hub-page">
@@ -261,8 +355,8 @@ export function groupHubScreen(id) {
       </div>
 
       <section class="group-hub-body">
-        <em class="group-hub-city">${esc(group.city || 'Ташкент')}</em>
-        <h1>${esc(group.title)}</h1>
+        <em class="group-hub-city">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'}</em>
+        <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
         <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
         <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
 
@@ -277,8 +371,13 @@ export function groupHubScreen(id) {
       </section>
 
       <div class="group-hub-cta">
-        <button type="button" class="group-hub-chat" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
-        <button type="button" class="group-hub-invite" id="inviteGroup">Пригласить</button>
+        ${member
+          ? `
+            <button type="button" class="group-hub-chat" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
+            <button type="button" class="group-hub-invite" id="inviteGroup">Пригласить</button>`
+          : open
+            ? `<button type="button" class="group-hub-chat" id="joinOpenGroup">Вступить</button>`
+            : `<button type="button" class="group-hub-chat" id="requestJoin">Подать заявку</button>`}
       </div>
     </div>`;
 
@@ -294,7 +393,22 @@ export function groupHubScreen(id) {
     navigator.share?.({ text }).catch(() => {});
   };
   view.querySelector('#shareGroup').onclick = share;
-  view.querySelector('#inviteGroup').onclick = share;
+  view.querySelector('#inviteGroup')?.addEventListener('click', share);
+  view.querySelector('#requestJoin')?.addEventListener('click', () => {
+    const joined = requestJoinGroup(group.id);
+    if (!joined) return;
+    showCelebrate({
+      title: 'Вы в группе!',
+      subtitle: 'Заявка принята (демо). Можно писать в чат.',
+      primaryLabel: 'Открыть чат',
+      onPrimary: () => navigate('group-chat', joined.id)
+    });
+    navigate('group', joined.id);
+  });
+  view.querySelector('#joinOpenGroup')?.addEventListener('click', () => {
+    const joined = requestJoinGroup(group.id);
+    if (joined) navigate('group-chat', joined.id);
+  });
 }
 
 /** Простой чат группы (без комнат/постов). */
@@ -303,6 +417,10 @@ export function groupChatScreen(id) {
   const group = openGroup(id);
   if (!group) {
     navigate('groups');
+    return;
+  }
+  if (!isGroupMember(group)) {
+    navigate('group', id);
     return;
   }
 

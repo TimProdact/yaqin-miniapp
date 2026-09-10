@@ -1391,7 +1391,10 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   color: var(--yaqin-text);
 }
 .groups-tab-page .groups-search {
-  margin: 4px 0 12px;
+  margin: 4px 0 10px;
+}
+.groups-pills {
+  margin: 0 0 12px;
 }
 .groups-tab-list {
   display: grid;
@@ -1415,16 +1418,42 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
 .group-tab-row:last-child {
   border-bottom: 0;
 }
-.group-tab-row img {
+.group-tab-avatar {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+.group-tab-avatar img {
   width: 52px;
   height: 52px;
   border-radius: 14px;
   object-fit: cover;
+  display: block;
+}
+.group-tab-lock {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--yaqin-surface-raised);
+  color: var(--yaqin-text);
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2px var(--yaqin-bg);
 }
 .group-tab-row strong {
   display: block;
   font-size: 16px;
   font-weight: 600;
+}
+.group-privacy {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--yaqin-text-tertiary);
 }
 .group-tab-row span {
   display: block;

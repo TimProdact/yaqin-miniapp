@@ -274,7 +274,7 @@ export const chats = [
 ];
 
 
-/** Публичные демо-группы для вкладки «Группы». */
+/** Публичные демо-группы для вкладки «Группы». isPublic: false = закрытая (по заявке). */
 export const demoGroups = [
   {
     id: 'demo-girls-tashkent',
@@ -310,7 +310,7 @@ export const demoGroups = [
     about: 'Читаем и обсуждаем раз в две недели',
     city: 'Ташкент',
     photo: PHOTOS.books,
-    isPublic: true,
+    isPublic: false,
     members: 64,
     online: 3,
     catalog: true,
@@ -338,7 +338,7 @@ export const demoGroups = [
     about: 'Встречи и выходные в Самарканде',
     city: 'Самарканд',
     photo: PHOTOS.event,
-    isPublic: true,
+    isPublic: false,
     members: 41,
     online: 2,
     catalog: true,
@@ -352,7 +352,7 @@ export const demoGroups = [
     about: 'Съёмки на улице и обмен кадрами',
     city: 'Ташкент',
     photo: PHOTOS.mila,
-    isPublic: true,
+    isPublic: false,
     members: 78,
     online: 4,
     catalog: true,

@@ -139,8 +139,15 @@ body[data-route='create-event'] .view {
 .create-event-page .settings-label {
   margin: 16px 20px 8px;
 }
-.create-group-page .settings-block {
-  margin: 0 8px;
+.create-group-page .create-chips {
+  margin: 0 16px 8px;
+  justify-content: stretch;
+}
+.create-group-page .create-chips button {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+  font-weight: 600;
 }
 .create-event-page .settings-row {
   margin: 0 8px;
