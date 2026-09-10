@@ -11,14 +11,12 @@ import {
   showReportFlow,
   closeSafetyOverlay
 } from './screens/safety.js';
-import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen, myTicketsScreen } from './screens/taneesh-events.js';
+import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen } from './screens/taneesh-events.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, showMessageMenu, closeMessageMenu } from './screens/chats.js';
 import { createGroupScreen, createEventScreen, groupChatScreen, groupHubScreen, groupsScreen } from './screens/community.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
-  myEventsScreen,
-  myGroupsScreen,
   settingsScreen,
   editScreen,
   editPhotosScreen,
@@ -98,9 +96,6 @@ registerScreens({
   event: taneeshEventDetailScreen,
   checkout: ticketCheckoutScreen,
   ticket: ticketScreen,
-  'my-tickets': myTicketsScreen,
-  'my-events': myEventsScreen,
-  'my-groups': myGroupsScreen,
   'create-event': createEventScreen,
   chats: chatsScreen,
   chat: chatScreen,
@@ -184,7 +179,7 @@ async function handleAction(target) {
   if (action === 'feedback') return showFeedbackSheet();
   if (action === 'add-email') return showAddEmailSheet();
   if (action === 'delete-account') return showDeleteAccountDialog();
-  if (action === 'checkout' || action === 'ticket' || action === 'my-tickets') {
+  if (action === 'checkout' || action === 'ticket') {
     closeSettingsOverlay();
     closeSafetyOverlay();
     closeMessageMenu();

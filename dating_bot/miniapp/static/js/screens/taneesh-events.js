@@ -4,7 +4,6 @@ import { getState, saveState } from '../state.js';
 import { navigate } from '../router.js';
 import { allEvents, findEvent } from './community.js';
 import { showCelebrate } from '../celebrate.js';
-import { meTopHtml, meTabsHtml } from './me.js';
 import { isLive } from '../api.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
@@ -382,7 +381,7 @@ export function ticketScreen(ticketId) {
     getTickets().find(item => String(item.id) === String(ticketId)) ||
     getTickets()[getTickets().length - 1];
   if (!ticket) {
-    navigate('my-tickets');
+    navigate('me');
     return;
   }
 
@@ -391,7 +390,7 @@ export function ticketScreen(ticketId) {
   view.innerHTML = `
     <div class="ticket-page">
       <header class="sheet-head">
-        ${backControlHtml('events', 'К событиям')}
+        ${backControlHtml('me', 'К профилю')}
         <h1>Билет</h1>
         <span style="width:36px"></span>
       </header>
@@ -414,43 +413,6 @@ export function ticketScreen(ticketId) {
         </div>
       </div>
 
-      <button type="button" class="taneesh-chip block" data-action="my-tickets">Все билеты</button>
-    </div>`;
-}
-
-/** Список купленных билетов — вкладка профиля. */
-export function myTicketsScreen() {
-  clearHeader();
-  const tickets = [...getTickets()].reverse();
-
-  view.innerHTML = `
-    <div class="me-page my-tickets-page my-hub-page">
-      ${meTopHtml()}
-      ${meTabsHtml('my-tickets')}
-
-      ${tickets.length ? `
-        <div class="my-tickets-list my-hub-list">
-          ${tickets.map(ticket => `
-            <button type="button" class="my-ticket-row my-hub-row" data-action="ticket" data-id="${esc(ticket.id)}">
-              <div class="event-photo">
-                <img src="${esc(ticket.photo)}" alt="">
-              </div>
-              <div>
-                <strong>${esc(ticket.title)}${ticket.role === 'host' ? ' <em class="group-privacy">организатор</em>' : ''}</strong>
-                <span>${esc(ticket.when)}</span>
-                <span class="ticket-code-inline">${esc(ticket.code)}</span>
-              </div>
-              <i class="ti ti-chevron-right"></i>
-            </button>`).join('')}
-        </div>
-        <div class="me-tab-cta">
-          <button type="button" class="empty-primary" data-action="events">К афише</button>
-        </div>` : `
-        <div class="chats-empty me-tab-empty">
-          <div class="empty-badge"><i class="ti ti-ticket"></i></div>
-          <h2>Пока нет билетов</h2>
-          <p>Запишитесь или забронируйте событие — QR появится здесь.</p>
-          <button class="empty-primary" type="button" data-action="events">К событиям</button>
-        </div>`}
+      <button type="button" class="taneesh-chip block" data-action="me">В профиль</button>
     </div>`;
 }

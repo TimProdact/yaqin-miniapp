@@ -25,17 +25,16 @@ const FULL_SCREEN_ROUTES = new Set([
   'edit',
   'checkout',
   'ticket',
-  'my-tickets',
   'create-group',
   'create-event',
   'group-chat',
   'group'
 ]);
 const SHEET_ROUTES = new Set(['person', 'event']);
-const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets', 'my-events', 'my-groups']);
+const PROFILE_OPEN_ROUTES = new Set(['me']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'groups', 'me']);
 
-/** Старые BFF-роуты → живые экраны MVP. Не трогать живые group / my-events. */
+/** Старые роуты → живые экраны. Хабы my-tickets / my-events / my-groups удалены — контент в обзоре профиля и вкладках. */
 const LEGACY_REDIRECT = {
   activity: 'people',
   friends: 'me',
@@ -47,7 +46,10 @@ const LEGACY_REDIRECT = {
   'profile-groups': 'me',
   prompts: 'me',
   'share-profile': 'me',
-  announcements: 'settings'
+  announcements: 'settings',
+  'my-tickets': 'me',
+  'my-events': 'events',
+  'my-groups': 'groups'
 };
 
 let currentRoute = 'people';

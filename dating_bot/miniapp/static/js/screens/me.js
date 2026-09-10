@@ -5,7 +5,7 @@ import { isCurrentRender, navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
-import { getUserEvents, getUserGroups, isGroupPublic } from './community.js';
+import { getUserEvents, getUserGroups } from './community.js';
 import {
   WORK_OPTIONS,
   CHIP_SHEETS,
@@ -17,13 +17,6 @@ import {
 } from '../profile-fields.js';
 
 let closeOverlay = null;
-
-export const ME_TABS = [
-  { id: 'me', label: 'Профиль' },
-  { id: 'my-events', label: 'События' },
-  { id: 'my-tickets', label: 'Билеты' },
-  { id: 'my-groups', label: 'Группы' }
-];
 
 function profileFillPercent(profile) {
   const checks = [
@@ -51,16 +44,6 @@ export function meTopHtml() {
       <div>
         <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
       </div>
-    </div>`;
-}
-
-export function meTabsHtml(active) {
-  return `
-    <div class="me-tabs" role="tablist">
-      ${ME_TABS.map(tab => `
-        <button type="button" class="${tab.id === active ? 'active' : ''}" data-action="${tab.id}" role="tab" aria-selected="${tab.id === active}">
-          ${tab.label}
-        </button>`).join('')}
     </div>`;
 }
 
@@ -150,7 +133,7 @@ export async function meScreen(_id, token) {
       </section>
 
       <section class="me-panel">
-        ${sectionHead('Мои билеты', 'my-tickets')}
+        ${sectionHead('Мои билеты')}
         ${nextTicket ? `<p class="me-block-lead">Ближайший · ${esc(nextTicket.when || '')}</p>` : ''}
         ${tickets.length ? `
           <div class="me-rail" role="list">
@@ -171,7 +154,7 @@ export async function meScreen(_id, token) {
       </section>
 
       <section class="me-panel">
-        ${sectionHead('Мои события', 'my-events')}
+        ${sectionHead('Мои события', 'events')}
         ${events.length ? `
           <div class="me-mini-list">
             ${events.map(event => `
@@ -191,7 +174,7 @@ export async function meScreen(_id, token) {
       </section>
 
       <section class="me-panel">
-        ${sectionHead('Группы', 'my-groups')}
+        ${sectionHead('Группы', 'groups')}
         ${groups.length ? `
           <div class="me-mini-list">
             ${groups.map(group => `
@@ -248,75 +231,6 @@ export async function meScreen(_id, token) {
     } catch (_) { /* ignore */ }
     navigator.share?.({ text }).catch(() => {});
   });
-}
-
-/** Вкладка «События» — созданные вами. */
-export function myEventsScreen() {
-  clearHeader();
-  const events = getUserEvents();
-
-  view.innerHTML = `
-    <div class="me-page my-hub-page">
-      ${meTopHtml()}
-      ${meTabsHtml('my-events')}
-      ${events.length ? `
-        <div class="my-hub-list">
-          ${events.map(event => `
-            <button type="button" class="my-hub-row" data-action="event" data-id="${esc(event.id)}">
-              <img src="${esc(event.photo)}" alt="">
-              <div>
-                <strong>${esc(event.title)}</strong>
-                <span>${esc(event.when)} · ${esc(event.place)}</span>
-                <span class="my-hub-tag">${event.ticketMode === 'door' || event.ticketMode === 'at_door' ? 'на входе' : event.isFree === false && event.ticketMode === 'paid' ? 'платно' : 'бесплатно'}</span>
-              </div>
-              <i class="ti ti-chevron-right"></i>
-            </button>`).join('')}
-        </div>
-        <div class="me-tab-cta">
-          <button type="button" class="empty-primary" data-action="create-event">Создать событие</button>
-        </div>` : `
-        <div class="chats-empty me-tab-empty">
-          <div class="empty-badge"><i class="ti ti-calendar-event"></i></div>
-          <h2>Пока нет своих событий</h2>
-          <p>Создайте встречу — бесплатную или с оплатой на входе. Гости получат QR.</p>
-          <button class="empty-primary" type="button" data-action="create-event">Создать событие</button>
-          <button class="empty-outline" type="button" data-action="events">Смотреть афишу</button>
-        </div>`}
-    </div>`;
-}
-
-/** Вкладка «Группы» — ваши группы. */
-export function myGroupsScreen() {
-  clearHeader();
-  const groups = getUserGroups();
-
-  view.innerHTML = `
-    <div class="me-page my-hub-page">
-      ${meTopHtml()}
-      ${meTabsHtml('my-groups')}
-      ${groups.length ? `
-        <div class="my-hub-list">
-          ${groups.map(group => `
-            <button type="button" class="my-hub-row" data-action="group" data-id="${esc(group.id)}">
-              <img src="${esc(group.photo)}" alt="">
-              <div>
-                <strong>${esc(group.title)}${isGroupPublic(group) ? '' : ' <em class="group-privacy">закрытая</em>'}${group.membership === 'pending' ? ' <em class="group-privacy">заявка</em>' : ''}</strong>
-                <span>${group.members || 1} участниц · ${esc(group.city || 'Ташкент')}</span>
-              </div>
-              <i class="ti ti-chevron-right"></i>
-            </button>`).join('')}
-        </div>
-        <div class="me-tab-cta">
-          <button type="button" class="empty-primary" data-action="create-group">Создать группу</button>
-        </div>` : `
-        <div class="chats-empty me-tab-empty">
-          <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
-          <h2>Пока нет групп</h2>
-          <p>Создайте открытую или закрытую группу либо вступите из вкладки «Группы».</p>
-          <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
-          <button class="empty-outline" type="button" data-action="groups">Найти группы</button>
-        </div>`}
-    </div>`;
 }
 
 export function settingsScreen() {
