@@ -18,7 +18,7 @@ const QUESTIONS = [
   },
   {
     title: 'С кем тебе комфортнее знакомиться?',
-    sub: 'Это поможет подобрать подруг рядом.',
+    sub: 'Это поможет подобрать людей рядом.',
     placeholder: 'Мне близки люди, которые...',
     chips: ['спокойные +', 'активные +', 'творческие +', 'спортивные +']
   },
@@ -131,7 +131,7 @@ function renderStart(data) {
         <h1>Начнём</h1>
         <button class="ob-perm ${data.location ? 'on' : ''}" type="button" id="permLoc">
           <span class="ob-perm-icon"><i class="ti ti-map-pin"></i></span>
-          <span><b>Геолокация</b><small>Чтобы видеть людей и группы рядом</small></span>
+          <span><b>Геолокация</b><small>Чтобы видеть людей рядом</small></span>
           <span class="ob-check ${data.location ? 'on' : ''}">${data.location ? '<i class="ti ti-check"></i>' : ''}</span>
         </button>
         <button class="ob-perm ${data.notifications ? 'on' : ''}" type="button" id="permNotif">
@@ -670,7 +670,7 @@ function renderReady(data) {
         <span class="ob-loc"><i class="ti ti-map-pin"></i> Ташкент, Мирабад</span>
       </div>
       <h1>Всё готово — посмотрим,<br>кто рядом.</h1>
-      <p class="ob-sub">Теперь можно знакомиться с новыми подругами.</p>
+      <p class="ob-sub">Теперь можно знакомиться и ходить на события.</p>
       <button class="ob-next on" id="enterApp">Далее</button>
     </div>`;
   view.querySelector('#enterApp').onclick = () => navigate('people');

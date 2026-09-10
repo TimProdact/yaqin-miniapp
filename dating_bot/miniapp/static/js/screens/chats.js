@@ -1,4 +1,4 @@
-import { chats, people, activity, PHOTOS } from '../data.js';
+import { chats, people, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 
 export function chatIdForPerson(personId) {
@@ -108,7 +108,6 @@ export function searchChatsScreen(queryOrId = '') {
 export function newDmScreen() {
   clearHeader();
   const friends = people.slice(0, 3);
-  const members = people.slice(1, 3);
   let selected = new Set();
   let query = '';
 
@@ -122,14 +121,11 @@ export function newDmScreen() {
           <h1>Новое сообщение</h1>
           <button class="head-action ${selected.size ? 'on' : ''}" data-action="chat" data-id="0" ${selected.size ? '' : 'disabled'}>Чат</button>
         </header>
-        <h2 class="invite-title">Пригласите в чат</h2>
+        <h2 class="invite-title">Кому написать</h2>
         <input class="plain-search" id="dmSearch" placeholder="Поиск..." value="${esc(query)}">
 
-        <h3 class="list-label">Подруги</h3>
+        <h3 class="list-label">Знакомства</h3>
         ${filter(friends).map(person => row(person)).join('') || '<p class="search-none">Никого не нашли</p>'}
-
-        <h3 class="list-label">Из общих групп</h3>
-        ${filter(members).map(person => row(person)).join('')}
       </div>`;
 
     view.querySelector('#dmSearch').oninput = event => {
@@ -610,116 +606,3 @@ export function closeMessageMenu() {
   messageMenuCloser?.();
 }
 
-export function groupNotificationsScreen(id) {
-  clearHeader();
-  const group = groups[Number(id) || 0] || groups[0];
-  let mode = 'you';
-  const toggles = { joins: false, replies: true, updates: true, reactions: true };
-
-  const render = () => {
-    view.innerHTML = `
-      <div class="settings-page">
-        <header class="filters-head">
-          <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-          <h1>Уведомления</h1>
-          <span></span>
-        </header>
-        <p class="settings-hint group-title">${esc(group.title)}</p>
-        <h3 class="settings-label">Уведомления</h3>
-        <section class="settings-block">
-          ${[
-            ['all', 'Все', 'Уведомления о всех новых сообщениях и активности (рекомендуется)'],
-            ['you', 'Только для вас', 'Только упоминания и ответы вам'],
-            ['none', 'Ничего', 'Не получать уведомления об этой группе']
-          ].map(([value, title, text]) => `
-            <button class="settings-row stacked-btn radio-row" type="button" data-mode="${value}">
-              <span>${title}<br><small>${text}</small></span>
-              <span class="radio ${mode === value ? 'on' : ''}">${mode === value ? '<i class="ti ti-check"></i>' : ''}</span>
-            </button>`).join('')}
-        </section>
-        <section class="settings-block">
-          <label class="settings-row toggle stacked"><span>Новые участницы</span><input type="checkbox" data-key="joins" ${toggles.joins ? 'checked' : ''}></label>
-          <label class="settings-row toggle stacked"><span>Ответы в ваших тредах</span><input type="checkbox" data-key="replies" ${toggles.replies ? 'checked' : ''}></label>
-          <label class="settings-row toggle stacked"><span>Обновления группы</span><input type="checkbox" data-key="updates" ${toggles.updates ? 'checked' : ''}></label>
-          <label class="settings-row toggle stacked"><span>Реакции на ваши сообщения</span><input type="checkbox" data-key="reactions" ${toggles.reactions ? 'checked' : ''}></label>
-        </section>
-      </div>`;
-
-    view.querySelectorAll('[data-mode]').forEach(button => {
-      button.onclick = () => {
-        mode = button.dataset.mode;
-        render();
-      };
-    });
-    view.querySelectorAll('[data-key]').forEach(input => {
-      input.onchange = () => {
-        toggles[input.dataset.key] = input.checked;
-      };
-    });
-  };
-
-  render();
-}
-
-export function activityScreen() {
-  clearHeader();
-  let emailHidden = false;
-  let dismissed = new Set();
-  let accepted = new Set();
-
-  const render = () => {
-    const items = activity.filter(item => !dismissed.has(item.id));
-    view.innerHTML = `
-      <div class="activity-page">
-        <header class="chats-head">
-          <h1>Лента</h1>
-          <span></span>
-        </header>
-        ${!emailHidden ? `
-          <div class="activity-card">
-            <div>
-              <b>Добавьте email 💌</b>
-              <span>Чтобы не потерять доступ к аккаунту</span>
-            </div>
-            <button type="button" data-action="add-email">Добавить</button>
-            <button type="button" class="activity-card-x" id="hideEmail" aria-label="Скрыть"><i class="ti ti-x"></i></button>
-          </div>` : ''}
-        <div class="activity-list">
-          ${items.map(item => `
-            <div class="activity-item ${item.unread ? 'unread' : ''}">
-              <button class="activity-main" type="button"
-                ${item.action ? `data-action="${item.action}" data-id="${item.actionId ?? ''}"` : ''}>
-                <div class="activity-avatar">
-                  <img src="${esc(item.photo)}" alt="">
-                  ${item.verified ? '<span class="verified"><i class="ti ti-check"></i></span>' : ''}
-                  ${item.kind === 'event' ? '<span class="kind-badge"><i class="ti ti-calendar-event"></i></span>' : ''}
-                </div>
-                <div class="activity-copy">
-                  ${item.month ? `<small class="activity-month">${esc(item.month)}</small>` : ''}
-                  <b>${esc(item.title)} <time>${esc(item.time)}</time></b>
-                  <span>${esc(item.text)}</span>
-                </div>
-                ${item.unread && item.kind !== 'friend' ? '<i class="unread-dot"></i>' : ''}
-              </button>
-              ${item.kind === 'friend' && !accepted.has(item.id) ? `
-                <button type="button" class="friend-add" data-accept="${esc(item.id)}">Добавить</button>` : ''}
-              ${item.kind === 'friend' && accepted.has(item.id) ? '<em class="added-pill">Добавлено</em>' : ''}
-            </div>`).join('') || '<p class="muted activity-empty">Пока тихо — зайдите позже</p>'}
-        </div>
-      </div>`;
-
-    view.querySelector('#hideEmail')?.addEventListener('click', event => {
-      event.stopPropagation();
-      emailHidden = true;
-      render();
-    });
-    view.querySelectorAll('[data-accept]').forEach(button => {
-      button.onclick = event => {
-        event.stopPropagation();
-        accepted.add(button.dataset.accept);
-        render();
-      };
-    });
-  };
-  render();
-}

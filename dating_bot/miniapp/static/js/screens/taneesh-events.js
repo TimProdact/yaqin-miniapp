@@ -397,7 +397,6 @@ export function myTicketsScreen() {
       <div class="me-top">
         <h1>Профиль</h1>
         <div>
-          <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
           <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
         </div>
       </div>

@@ -11,62 +11,29 @@ import {
   showReportFlow,
   closeSafetyOverlay
 } from './screens/safety.js';
-import {
-  groupsScreen,
-  groupScreen,
-  eventsScreen,
-  eventScreen,
-  createGroupScreen,
-  joinGroupScreen,
-  groupChatScreen,
-  groupThreadScreen,
-  groupHubScreen,
-  groupPostsScreen,
-  createPostScreen,
-  groupSearchScreen,
-  groupSettingsScreen,
-  organizeRoomsScreen,
-  postCommentsScreen,
-  inviteFriendsScreen,
-  inviteSheetScreen,
-  inviteDmScreen,
-  groupPinsScreen,
-  groupMediaScreen,
-  createEventScreen,
-  leaveGroupConfirm
-} from './screens/groups.js';
 import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen, myTicketsScreen } from './screens/taneesh-events.js';
-import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, activityScreen, showMessageMenu, closeMessageMenu, groupNotificationsScreen } from './screens/chats.js';
+import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, showMessageMenu, closeMessageMenu } from './screens/chats.js';
 import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
   settingsScreen,
   editScreen,
   editPhotosScreen,
-  friendsScreen,
-  myEventsScreen,
-  profileGroupsScreen,
-  promptsScreen,
-  promptPickerScreen,
-  cameraRollScreen,
   basicInfoScreen,
   blockedScreen,
   darkModeScreen,
   notificationsScreen,
   accountScreen,
-  announcementsScreen,
-  shareProfileScreen,
   showFeedbackSheet,
   showAddEmailSheet,
   showDeleteAccountDialog,
-  showAnnouncementLatest,
   closeSettingsOverlay,
   applyStoredTheme,
   privacyScreen,
   helpScreen,
   legalScreen
 } from './screens/me.js';
-import { onboardingScreen, startOnboardingFlow } from './screens/onboarding.js';
+import { onboardingScreen } from './screens/onboarding.js';
 
 const telegram = window.Telegram?.WebApp;
 
@@ -78,12 +45,10 @@ function applyTelegramSafeArea() {
     const safeBottom = Number(telegram?.safeAreaInset?.bottom || 0);
     const contentBottom = Number(telegram?.contentSafeAreaInset?.bottom || 0);
 
-    // Sum device + Telegram chrome, but never invent a huge empty band.
     const cappedSafe = Math.min(Math.max(safeTop, 0), 59);
     const cappedContent = Math.min(Math.max(contentTop, 0), 72);
     let top = cappedSafe + cappedContent;
 
-    // Soft fallback only when Telegram reports nothing at all.
     const inTelegram = Boolean(telegram?.initDataUnsafe || telegram?.initData || telegram?.platform);
     if (inTelegram && top === 0) top = 12;
     if (top > 100) top = 100;
@@ -120,57 +85,26 @@ registerScreens({
   person: personScreen,
   filters: filtersScreen,
   connected: connectedScreen,
-  groups: groupsScreen,
-  group: groupScreen,
   events: taneeshEventsScreen,
   event: taneeshEventDetailScreen,
   checkout: ticketCheckoutScreen,
   ticket: ticketScreen,
   'my-tickets': myTicketsScreen,
-  'events-legacy': eventsScreen,
-  'event-legacy': eventScreen,
   chats: chatsScreen,
   chat: chatScreen,
   search: searchChatsScreen,
   'new-dm': newDmScreen,
-  'create-group': createGroupScreen,
-  'join-group': joinGroupScreen,
-  'group-chat': groupChatScreen,
-  'group-thread': groupThreadScreen,
-  'group-hub': groupHubScreen,
-  'group-posts': groupPostsScreen,
-  'create-post': createPostScreen,
-  'group-search': groupSearchScreen,
-  'group-settings': groupSettingsScreen,
-  'organize-rooms': organizeRoomsScreen,
-  'post-comments': postCommentsScreen,
-  'invite-friends': inviteFriendsScreen,
-  'invite-sheet': inviteSheetScreen,
-  'invite-dm': inviteDmScreen,
-  'group-pins': groupPinsScreen,
-  'group-media': groupMediaScreen,
-  'create-event': createEventScreen,
-  activity: activityScreen,
   me: meScreen,
   settings: settingsScreen,
   blocked: blockedScreen,
   'dark-mode': darkModeScreen,
   notifications: notificationsScreen,
   account: accountScreen,
-  announcements: announcementsScreen,
   privacy: privacyScreen,
   help: helpScreen,
   legal: legalScreen,
-  'share-profile': shareProfileScreen,
   'edit-photos': editPhotosScreen,
-  'group-notifications': groupNotificationsScreen,
   edit: editScreen,
-  friends: friendsScreen,
-  'my-events': myEventsScreen,
-  'profile-groups': profileGroupsScreen,
-  prompts: promptsScreen,
-  'prompt-picker': promptPickerScreen,
-  'camera-roll': cameraRollScreen,
   basic: basicInfoScreen,
   onboarding: onboardingScreen,
   verify: verifyScreen
@@ -228,8 +162,6 @@ async function handleAction(target) {
   if (action === 'feedback') return showFeedbackSheet();
   if (action === 'add-email') return showAddEmailSheet();
   if (action === 'delete-account') return showDeleteAccountDialog();
-  if (action === 'leave-group') return leaveGroupConfirm(id);
-  if (action === 'announcement-latest') return showAnnouncementLatest();
   if (action === 'checkout' || action === 'ticket' || action === 'my-tickets') {
     closeSettingsOverlay();
     closeSafetyOverlay();

@@ -3,7 +3,7 @@ import { isCurrentRender, navigate } from '../router.js';
 import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
-import { people as demoPeople, groups as demoGroups } from '../data.js';
+import { people as demoPeople } from '../data.js';
 import { getState } from '../state.js';
 import { closeSafetyOverlay } from './safety.js';
 import { chatIdForPerson } from './chats.js';
@@ -136,20 +136,6 @@ export function personScreen(id) {
       </section>
 
       ${about ? `<h3 class="person-section">Обо мне</h3><section class="person-card">${about}</section>` : ''}
-
-      ${person.groups?.length ? `
-        <h3 class="person-section">Группы</h3>
-        <div class="group-rail">
-          ${person.groups.map(group => {
-            const match = demoGroups.find(item => item.title === group.title);
-            const attrs = match ? `data-action="group" data-id="${match.id}"` : '';
-            return `
-            <button type="button" class="group-tile" ${attrs}>
-              <img src="${esc(group.photo)}">
-              <span>${esc(group.title)}</span>
-            </button>`;
-          }).join('')}
-        </div>` : ''}
 
       ${person.basic?.length ? `
         <h3 class="person-section">Основное</h3>

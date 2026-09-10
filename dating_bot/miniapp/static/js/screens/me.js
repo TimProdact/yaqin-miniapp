@@ -1,10 +1,9 @@
-import { defaultProfile, groups, promptPhoto, people, events, PHOTOS } from '../data.js';
+import { defaultProfile, promptPhoto, people, PHOTOS } from '../data.js';
 import { getState, saveState } from '../state.js';
-import { view, esc, setBackTitle, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
+import { view, esc, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
-import { loadMatches, loadProfile, loadVerification, saveProfile } from '../repository.js';
+import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
-import { chatIdForPerson } from './chats.js';
 
 let closeOverlay = null;
 
@@ -40,6 +39,21 @@ function verificationRow(verification) {
     </button>`;
 }
 
+function openTaneeshStore(reason) {
+  const url = 'https://apps.apple.com/search?term=Taneesh';
+  try {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.openLink) {
+      tg.openLink(url);
+      return;
+    }
+  } catch (_) {
+    /* ignore */
+  }
+  window.open(url, '_blank', 'noopener');
+  console.info('[yaqin] open Taneesh', reason);
+}
+
 export async function meScreen(_id, token) {
   clearHeader();
   showLoading('Загружаем профиль...');
@@ -64,7 +78,6 @@ export async function meScreen(_id, token) {
       <div class="me-top">
         <h1>Профиль</h1>
         <div>
-          <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
           <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
         </div>
       </div>
@@ -72,7 +85,7 @@ export async function meScreen(_id, token) {
         <button class="active">Анкета</button>
         <button data-action="my-tickets">Билеты</button>
       </div>
-      <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-action="my-tickets">
+      <button type="button" class="taneesh-activate-banner me-taneesh-banner" data-open-taneesh="activate">
         <div>
           <b>Черновик в Taneesh</b>
           <span>Билеты можно купить здесь. Активируйте профиль в приложении, чтобы анкета была видима.</span>
@@ -100,13 +113,6 @@ export async function meScreen(_id, token) {
         </div>
       </section>` : ''}
       <section class="me-section">
-        <h3>Фотоответы</h3>
-        <div class="prompt-card" data-action="prompts">
-          <img src="${esc(promptPhoto)}">
-          <p>Недавние кадры из вашей галереи</p>
-        </div>
-      </section>
-      <section class="me-section">
         <h3>Основное</h3>
         <div class="me-box" data-action="basic">
           <h4>Пол</h4><div class="big-chips"><span>${esc(profile.gender || 'Женщина')}</span></div>
@@ -115,6 +121,14 @@ export async function meScreen(_id, token) {
         </div>
       </section>
     </div>`;
+
+  view.querySelectorAll('[data-open-taneesh]').forEach(button => {
+    button.onclick = event => {
+      event.preventDefault();
+      event.stopPropagation();
+      openTaneeshStore(button.dataset.openTaneesh);
+    };
+  });
 }
 
 export function settingsScreen() {
@@ -163,11 +177,6 @@ export function settingsScreen() {
         <button class="settings-row" data-action="blocked" type="button">
           <span class="settings-icon red"><i class="ti ti-eye-off"></i></span>
           <span>Заблокированные</span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" data-action="announcements" type="button">
-          <span class="settings-icon green"><i class="ti ti-info-circle"></i></span>
-          <span>Новости функций</span>
           <i class="ti ti-chevron-right"></i>
         </button>
         <button class="settings-row" data-action="dark-mode" type="button">
@@ -269,7 +278,6 @@ export function privacyScreen() {
     showOnline: true,
     showInDiscover: true,
     readReceipts: true,
-    allowInvites: true,
     ...(getState().privacy || {})
   };
 
@@ -298,10 +306,6 @@ export function privacyScreen() {
             <span>Отчёты о прочтении<br><small>Показывать, когда вы прочитали сообщение</small></span>
             <input type="checkbox" data-key="readReceipts" ${privacy.readReceipts ? 'checked' : ''}>
           </label>
-          <label class="settings-row toggle stacked">
-            <span>Приглашения в группы<br><small>Разрешить приглашать вас в группы</small></span>
-            <input type="checkbox" data-key="allowInvites" ${privacy.allowInvites ? 'checked' : ''}>
-          </label>
         </section>
       </div>`;
 
@@ -319,7 +323,7 @@ export function helpScreen() {
   clearHeader();
   const topics = [
     ['verify', 'Как пройти проверку анкеты', 'Запишите короткое видео с кодом — команда проверит вручную.'],
-    ['groups', 'Как работают группы', 'Вступайте по вопросам или по приглашению, пишите в комнатах и на событиях.'],
+    ['events', 'События и билеты', 'Смотрите афишу, отмечайте «хочу пойти» и покупайте билет с QR прямо в Mini App.'],
     ['safety', 'Безопасность и жалобы', 'Можно пожаловаться или заблокировать прямо из профиля или чата.'],
     ['account', 'Почта и доступ', 'Добавьте email в аккаунте, чтобы не потерять доступ.']
   ];
@@ -367,7 +371,7 @@ export function legalScreen() {
   const docs = [
     ['terms', 'Условия использования', 'Демо-текст: пользуясь Yaqin, вы соглашаетесь общаться уважительно и не нарушать законы Узбекистана.'],
     ['privacy', 'Политика конфиденциальности', 'Демо-текст: мы обрабатываем данные профиля и чатов только для работы сервиса. В Telegram Mini App часть данных приходит из Telegram.'],
-    ['community', 'Правила сообществ', 'Демо-текст: без травли, спама, фейков и непристойного контента. Жалобы рассматривает модерация.']
+    ['community', 'Правила общения', 'Демо-текст: без травли, спама, фейков и непристойного контента. Жалобы рассматривает модерация.']
   ];
 
   view.innerHTML = `
@@ -513,25 +517,6 @@ export async function editScreen(_id, token) {
               <h4>Чего хочу</h4><i class="ti ti-pencil"></i>
             </button>
             <div class="big-chips">${chipList(draft.looking)}</div>
-          </div>
-
-          <h3 class="settings-label">Фотоответы</h3>
-          <button class="edit-prompt-card" type="button" data-action="prompts">
-            <img src="${esc(promptPhoto)}" alt="">
-            <div>
-              <b>Недавние кадры из галереи</b>
-              <span>Добавить фотоответ</span>
-            </div>
-            <i class="ti ti-chevron-right"></i>
-          </button>
-
-          <h3 class="settings-label">Ваши группы</h3>
-          <div class="edit-groups">
-            ${groups.filter(group => group.joined !== false).slice(0, 2).map(group => `
-              <button type="button" data-action="profile-groups">
-                <img src="${esc(group.photo)}" alt="">
-                <span>${esc(group.title)}</span>
-              </button>`).join('')}
           </div>
 
           <h3 class="settings-label">Основное</h3>
@@ -775,324 +760,6 @@ export async function editPhotosScreen(_id, token) {
   render();
 }
 
-export async function friendsScreen(_id, token) {
-  clearHeader();
-  showLoading('Загружаем подруг...');
-
-  let matches;
-  try {
-    matches = await loadMatches();
-  } catch {
-    if (isCurrentRender(token)) showError('Не удалось загрузить список.');
-    return;
-  }
-  if (!isCurrentRender(token)) return;
-
-  let requests = people.filter(person => !matches.some(match => match.id === person.id)).slice(0, 2);
-  let friends = matches.length ? [...matches] : people.slice(0, 3);
-  let toast = '';
-
-  const render = () => {
-    view.innerHTML = `
-      <div class="me-page friends-page">
-        ${toast ? `<div class="friend-toast">${esc(toast)}</div>` : ''}
-        <div class="me-top">
-          <h1>Профиль</h1>
-          <div>
-            <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
-            <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
-          </div>
-        </div>
-        <div class="me-tabs">
-          <button data-action="me">Анкета</button>
-          <button data-action="my-events">События</button>
-          <button class="active">Подруги${requests.length ? ` <b class="tab-dot">${requests.length}</b>` : ''}</button>
-        </div>
-
-        ${requests.length ? `
-          <h2 class="friends-label">Заявки · ${requests.length}</h2>
-          ${requests.map(person => `
-            <div class="friend-row">
-              <img src="${esc(person.photo)}" alt="">
-              <div>
-                <strong>${esc(person.name)}</strong>
-                <span>${person.age} · ${esc(person.city)}</span>
-              </div>
-              <button class="friend-decline" type="button" data-decline="${person.id}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
-              <button class="friend-add" type="button" data-accept="${person.id}">Добавить</button>
-            </div>`).join('')}
-        ` : ''}
-
-        <h2 class="friends-label">Все подруги · ${friends.length}</h2>
-        ${friends.map(person => `
-          <div class="friend-row">
-            <img src="${esc(person.photo)}" alt="">
-            <div>
-              <strong>${esc(person.name)}</strong>
-              <span>${person.age} · ${esc(person.city)}</span>
-            </div>
-            <button class="friend-msg" data-action="chat" data-id="${chatIdForPerson(person.id)}" aria-label="Написать"><i class="ti ti-send"></i></button>
-          </div>`).join('')}
-        <button class="add-friends" type="button" data-action="people">
-          <span class="add-box"><i class="ti ti-plus"></i></span>
-          Добавить подруг
-        </button>
-      </div>`;
-
-    view.querySelectorAll('[data-accept]').forEach(button => {
-      button.onclick = () => {
-        const id = Number(button.dataset.accept);
-        const person = requests.find(item => item.id === id);
-        requests = requests.filter(item => item.id !== id);
-        if (person && !friends.some(item => item.id === id)) friends = [person, ...friends];
-        toast = 'Подруга добавлена';
-        render();
-        setTimeout(() => {
-          toast = '';
-          render();
-        }, 1600);
-      };
-    });
-    view.querySelectorAll('[data-decline]').forEach(button => {
-      button.onclick = () => {
-        requests = requests.filter(item => item.id !== Number(button.dataset.decline));
-        render();
-      };
-    });
-    view.querySelectorAll('.friend-row img, .friend-row strong').forEach(node => {
-      const row = node.closest('.friend-row');
-      const person = friends.find(item => item.name === row?.querySelector('strong')?.textContent)
-        || requests.find(item => item.name === row?.querySelector('strong')?.textContent);
-      if (!person) return;
-      node.style.cursor = 'pointer';
-      node.onclick = () => navigate('person', person.id);
-    });
-  };
-  render();
-}
-
-export function myEventsScreen() {
-  clearHeader();
-  let month = 'Сентябрь 2026';
-  const emptyMonths = ['Июль 2026', 'Август 2026', 'Октябрь 2026', 'Ноябрь 2026'];
-  const rsvpMap = getState().rsvp || {};
-
-  const render = () => {
-    const empty = month !== 'Сентябрь 2026';
-    view.innerHTML = `
-      <div class="me-page my-events-page">
-        <div class="me-top">
-          <h1>Профиль</h1>
-          <div>
-            <button data-action="share-profile" aria-label="Поделиться"><i class="ti ti-share-2"></i></button>
-            <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
-          </div>
-        </div>
-        <div class="me-tabs">
-          <button data-action="me">Анкета</button>
-          <button class="active">События</button>
-          <button data-action="friends">Подруги</button>
-        </div>
-        <button class="events-month" type="button" id="cycleMyMonth">${esc(month)} <i class="ti ti-chevron-down"></i></button>
-        ${empty ? `
-          <div class="events-empty-month">
-            <i class="ti ti-calendar-off"></i>
-            <p>В этом месяце пока нет событий</p>
-          </div>` : `
-          <div class="my-events-list">
-            ${events.map(event => {
-              const mine = rsvpMap[event.id];
-              const badge = mine === 'going' ? 'Иду' : mine === 'maybe' ? 'Интересно' : mine === 'later' ? 'Позже' : 'RSVP';
-              return `
-              <article class="my-event-card" data-action="event" data-id="${event.id}">
-                <div class="event-date"><span>${esc(event.month)}</span><b>${esc(event.day)}</b></div>
-                <div>
-                  <strong>${esc(event.title)}</strong>
-                  <span>${esc(event.when)}</span>
-                  <span>${esc(event.place)}</span>
-                  <div class="event-foot">
-                    <span>${event.going} идут</span>
-                    <em>${badge}</em>
-                  </div>
-                </div>
-              </article>`;
-            }).join('')}
-          </div>`}
-      </div>`;
-    view.querySelector('#cycleMyMonth').onclick = () => {
-      const all = ['Сентябрь 2026', ...emptyMonths];
-      month = all[(all.indexOf(month) + 1) % all.length];
-      render();
-    };
-  };
-  render();
-}
-
-export function profileGroupsScreen() {
-  clearHeader();
-  let selected = new Set(groups.filter(group => group.joined !== false).slice(0, 2).map(group => group.id));
-
-  const render = () => {
-    view.innerHTML = `
-      <div class="profile-groups-page">
-        <header class="modal-head">
-          <button data-action="me" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-          <h1>Группы в профиле</h1>
-          <button class="head-action on" data-action="me">Сохранить</button>
-        </header>
-        <p class="loc-sub">Выберите, какие группы видят другие в вашей анкете.</p>
-        <div class="profile-groups-list">
-          ${groups.map(group => `
-            <button type="button" class="profile-group-row ${selected.has(group.id) ? 'on' : ''}" data-toggle="${group.id}">
-              <img src="${esc(group.photo)}" alt="">
-              <b>${esc(group.title)}</b>
-              <span class="check">${selected.has(group.id) ? '<i class="ti ti-check"></i>' : ''}</span>
-            </button>`).join('')}
-        </div>
-      </div>`;
-    view.querySelectorAll('[data-toggle]').forEach(button => {
-      button.onclick = () => {
-        const id = Number(button.dataset.toggle);
-        if (selected.has(id)) selected.delete(id);
-        else selected.add(id);
-        render();
-      };
-    });
-  };
-  render();
-}
-
-export function promptsScreen(idOrForce = '') {
-  clearHeader();
-  const saved = getState().profile?.prompts || {};
-  let prompts = [
-    { id: 'concert', title: 'Мой последний концерт<br>(или мечта о нём)', photo: saved.concert || null },
-    { id: 'hyper', title: 'Недавняя гиперфиксация', photo: saved.hyper || null },
-    { id: 'place', title: 'Любимое место в городе', photo: saved.place || null }
-  ];
-  if (String(idOrForce) === 'filled' || String(idOrForce) === '1') {
-    prompts[0].photo = prompts[0].photo || promptPhoto;
-  }
-
-  const render = () => {
-    view.innerHTML = `
-      <div class="prompts-page">
-        <header class="filters-head">
-          <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-          <h1>Фото из жизни</h1>
-          <span></span>
-        </header>
-        <p class="prompts-lead">Добавьте кадры, которые расскажут о вас — селфи не обязательны.</p>
-
-        ${prompts.map(item => item.photo
-          ? `<article class="prompt-filled-card" data-id="${item.id}">
-              <img src="${esc(item.photo)}" alt="">
-              <button class="prompt-edit" type="button" data-pick="${item.id}" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
-            </article>`
-          : `<article class="prompt-life-card" data-prompt="${item.id}">
-              <button class="prompt-dismiss" type="button" data-dismiss="${item.id}" aria-label="Скрыть"><i class="ti ti-x"></i></button>
-              <h2>${item.title}</h2>
-              <button class="prompt-add" type="button" data-pick="${item.id}"><i class="ti ti-camera"></i>Добавить фото</button>
-            </article>`
-        ).join('')}
-
-        <button class="photos-save" type="button" id="savePrompts">Сохранить</button>
-      </div>`;
-
-    view.querySelectorAll('[data-dismiss]').forEach(button => {
-      button.onclick = () => {
-        prompts = prompts.filter(item => item.id !== button.dataset.dismiss);
-        render();
-      };
-    });
-    view.querySelectorAll('[data-pick]').forEach(button => {
-      button.onclick = () => navigate('prompt-picker', button.dataset.pick);
-    });
-    view.querySelector('#savePrompts').onclick = async () => {
-      const map = Object.fromEntries(prompts.filter(item => item.photo).map(item => [item.id, item.photo]));
-      await saveProfile({ prompts: map });
-      navigate('me');
-    };
-  };
-  render();
-}
-
-export function promptPickerScreen(id = 'food') {
-  clearHeader();
-  const labels = {
-    concert: 'Мой последний концерт (или мечта о нём)',
-    hyper: 'Недавняя гиперфиксация',
-    place: 'Любимое место в городе',
-    food: 'Недавние фото еды из вашей галереи'
-  };
-  const title = labels[id] || labels.food;
-  const pool = [promptPhoto, PHOTOS.city, PHOTOS.coffee, PHOTOS.books, PHOTOS.palms, PHOTOS.event];
-  let slots = [...(getState().profile?.promptSlots?.[id] || Array(6).fill(null))];
-  while (slots.length < 6) slots.push(null);
-
-  const render = () => {
-    view.innerHTML = `
-      <div class="prompt-picker-page">
-        <header class="picker-head">
-          <button data-action="prompts" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        </header>
-        <div class="prompt-title-pill">
-          <span>${esc(title)}</span>
-          <i class="ti ti-pencil"></i>
-        </div>
-        <div class="prompt-pick-grid">
-          ${slots.map((photo, index) => photo
-            ? `<button type="button" class="pick-slot filled" data-clear="${index}">
-                <img src="${esc(photo)}" alt="">
-                ${index === 0 ? '<span class="pick-main">Главное</span>' : ''}
-                <i class="ti ti-x clear"></i>
-              </button>`
-            : `<button type="button" class="pick-slot empty" data-add="${index}"><i class="ti ti-plus"></i></button>`
-          ).join('')}
-        </div>
-        <button class="photos-save" type="button" id="savePicker">Сохранить</button>
-      </div>`;
-
-    view.querySelectorAll('[data-add]').forEach(button => {
-      button.onclick = () => {
-        const index = Number(button.dataset.add);
-        slots[index] = pool[index % pool.length];
-        render();
-      };
-    });
-    view.querySelectorAll('[data-clear]').forEach(button => {
-      button.onclick = () => {
-        slots[Number(button.dataset.clear)] = null;
-        render();
-      };
-    });
-    view.querySelector('#savePicker').onclick = async () => {
-      const main = slots.find(Boolean) || null;
-      const profile = getState().profile || {};
-      const prompts = { ...(profile.prompts || {}), [id]: main };
-      const promptSlots = { ...(profile.promptSlots || {}), [id]: slots };
-      await saveProfile({ prompts, promptSlots });
-      navigate('prompts');
-    };
-  };
-  render();
-}
-
-export function cameraRollScreen() {
-  clearHeader();
-  view.innerHTML = `
-    <div class="camera-roll-page">
-      <button class="ob-back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-      <div class="roll-visual">
-        <div class="roll-card back"><img src="${esc(promptPhoto)}" alt=""><span class="top">Моё любимое место</span></div>
-        <div class="roll-card front"><img src="${esc(defaultProfile.photo)}" alt=""><span>Прошлые выходные</span></div>
-      </div>
-      <h1>Поделитесь фото<br>из галереи</h1>
-      <p>Несколько кадров, которые передают ваше настроение — селфи не нужны.</p>
-      <button class="ob-next on" data-action="prompts">Далее</button>
-    </div>`;
-}
-
 export function basicInfoScreen() {
   clearHeader();
   const profile = { ...defaultProfile, ...(getState().profile || {}) };
@@ -1122,8 +789,7 @@ export function basicInfoScreen() {
 
 export function notificationsScreen() {
   clearHeader();
-  const prefs = getState().notifications || { dm: true, reactions: true };
-  const mine = groups.filter(group => group.joined);
+  const prefs = getState().notifications || { dm: true, reactions: true, events: true, tickets: true };
 
   view.innerHTML = `
     <div class="settings-page">
@@ -1133,26 +799,28 @@ export function notificationsScreen() {
         <span></span>
       </header>
 
-      <h3 class="settings-label">Уведомления аккаунта</h3>
+      <h3 class="settings-label">Знакомства</h3>
       <section class="settings-block">
         <label class="settings-row toggle stacked">
-          <span>Личные сообщения<br><small>Получать уведомления о личных сообщениях</small></span>
-          <input type="checkbox" id="notifDm" ${prefs.dm ? 'checked' : ''}>
+          <span>Личные сообщения<br><small>Новые сообщения после взаимного привета</small></span>
+          <input type="checkbox" id="notifDm" ${prefs.dm !== false ? 'checked' : ''}>
         </label>
         <label class="settings-row toggle stacked">
-          <span>Реакции в ЛС<br><small>Получать уведомления о реакциях в личных сообщениях</small></span>
-          <input type="checkbox" id="notifReactions" ${prefs.reactions ? 'checked' : ''}>
+          <span>Реакции в ЛС<br><small>Реакции на ваши сообщения</small></span>
+          <input type="checkbox" id="notifReactions" ${prefs.reactions !== false ? 'checked' : ''}>
         </label>
       </section>
 
-      <h3 class="settings-label">Уведомления групп</h3>
+      <h3 class="settings-label">События</h3>
       <section class="settings-block">
-        ${mine.map(group => `
-          <button class="settings-row group-notif" type="button" data-action="group-notifications" data-id="${group.id}">
-            <img class="notif-avatar" src="${esc(group.photo)}" alt="">
-            <span>${esc(group.title)}<br><small>Все уведомления</small></span>
-            <i class="ti ti-chevron-right"></i>
-          </button>`).join('') || '<p class="settings-hint">Нет групп</p>'}
+        <label class="settings-row toggle stacked">
+          <span>Интересные события<br><small>«Хочу пойти» и ответы в «Кто идёт»</small></span>
+          <input type="checkbox" id="notifEvents" ${prefs.events !== false ? 'checked' : ''}>
+        </label>
+        <label class="settings-row toggle stacked">
+          <span>Билеты<br><small>Напоминания о купленных билетах и QR</small></span>
+          <input type="checkbox" id="notifTickets" ${prefs.tickets !== false ? 'checked' : ''}>
+        </label>
       </section>
     </div>`;
 
@@ -1161,12 +829,16 @@ export function notificationsScreen() {
       ...getState(),
       notifications: {
         dm: view.querySelector('#notifDm').checked,
-        reactions: view.querySelector('#notifReactions').checked
+        reactions: view.querySelector('#notifReactions').checked,
+        events: view.querySelector('#notifEvents').checked,
+        tickets: view.querySelector('#notifTickets').checked
       }
     });
   };
   view.querySelector('#notifDm').onchange = save;
   view.querySelector('#notifReactions').onchange = save;
+  view.querySelector('#notifEvents').onchange = save;
+  view.querySelector('#notifTickets').onchange = save;
 }
 
 export async function accountScreen(_id, token) {
@@ -1237,85 +909,6 @@ export async function accountScreen(_id, token) {
   view.querySelectorAll('[data-edit]').forEach(button => {
     button.onclick = () => showAccountFieldSheet(button.dataset.edit, profile, username);
   });
-}
-
-export function announcementsScreen() {
-  clearHeader();
-  const show = getState().announcements !== false;
-
-  view.innerHTML = `
-    <div class="settings-page">
-      <header class="filters-head">
-        <button data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>
-        <h1>Новости функций</h1>
-        <span></span>
-      </header>
-      <section class="settings-block">
-        <button class="settings-row stacked-btn" type="button" data-action="announcement-latest">
-          <span>Посмотреть последние анонсы<br><small>Узнайте, что нового в Yaqin</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <label class="settings-row toggle stacked">
-          <span>Показывать анонсы функций<br><small>Узнавайте о новостях Yaqin при выходе новых функций</small></span>
-          <input type="checkbox" id="announceToggle" ${show ? 'checked' : ''}>
-        </label>
-      </section>
-    </div>`;
-
-  view.querySelector('#announceToggle').onchange = event => {
-    saveState({ ...getState(), announcements: event.target.checked });
-  };
-}
-
-export async function shareProfileScreen(_id, token) {
-  clearHeader();
-  showLoading('Готовим ссылку...');
-  let profile;
-  try {
-    profile = (await loadProfile()) || { ...defaultProfile, ...(getState().profile || {}) };
-  } catch {
-    if (isCurrentRender(token)) showError('Не удалось открыть профиль.');
-    return;
-  }
-  if (!isCurrentRender(token)) return;
-
-  const link = `https://t.me/yaqin_bot?start=u_${encodeURIComponent((profile.name || 'yaqin').toLowerCase())}`;
-  const qr = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(link)}`;
-  const shortName = profile.name.split(' ')[0];
-
-  view.innerHTML = `
-    <div class="share-page">
-      <header class="filters-head">
-        <button data-action="back" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-        <h1>Поделиться профилем</h1>
-        <span></span>
-      </header>
-      <div class="share-card">
-        <h2>${esc(shortName)}</h2>
-        <div class="share-visual">
-          <img class="share-photo" src="${esc(profile.photo)}" alt="">
-          <img class="share-qr" src="${esc(qr)}" alt="QR">
-        </div>
-      </div>
-      <div class="share-actions">
-        <button type="button" class="share-primary" id="shareLink"><i class="ti ti-share-2"></i>Поделиться ссылкой</button>
-        <button type="button" class="share-gear" data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
-      </div>
-    </div>`;
-
-  view.querySelector('#shareLink').onclick = async () => {
-    const telegram = window.Telegram?.WebApp;
-    if (telegram?.openTelegramLink) {
-      telegram.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Мой профиль в Yaqin')}`);
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(link);
-      view.querySelector('#shareLink').textContent = 'Ссылка скопирована';
-    } catch {
-      /* ignore */
-    }
-  };
 }
 
 export function showFeedbackSheet() {
@@ -1450,7 +1043,7 @@ export function showDeleteAccountDialog() {
   const overlay = mountSheet(`
     <div class="delete-dialog">
       <h2>Удалить аккаунт</h2>
-      <p>Группы, которые вы создали, и переписки будут удалены. Действие нельзя отменить. Чтобы подтвердить, введите «Удалить» ниже.</p>
+      <p>Анкета, чаты и билеты в демо будут удалены. Действие нельзя отменить. Чтобы подтвердить, введите «Удалить» ниже.</p>
       <input id="deleteConfirm" placeholder="Удалить" autocomplete="off">
       <div class="delete-actions">
         <button type="button" data-action="close-sheet">Отмена</button>
@@ -1471,29 +1064,6 @@ export function showDeleteAccountDialog() {
     localStorage.removeItem('yaqin-demo');
     navigate('onboarding');
   };
-}
-
-export function showAnnouncementLatest() {
-  mountSheet(`
-    <div class="announce-sheet">
-      <div class="confirm-handle"></div>
-      <div class="announce-hero">
-        <img src="${esc(defaultProfile.photo)}" alt="">
-        <span class="bubble wave"><i class="ti ti-hand-stop"></i></span>
-        <span class="bubble filters"><i class="ti ti-adjustments-horizontal"></i></span>
-      </div>
-      <div class="announce-body">
-        <h2>Что нового в Yaqin</h2>
-        <time>9 сентября 2026</time>
-        <p>Смотрите, что появилось в последней версии Yaqin.</p>
-        <div class="announce-feature">
-          <b>🎛️ Фильтры возраста и расстояния</b>
-          <p>Находите подходящих людей на вкладке «Люди». Настройки сохраняются в профиле.</p>
-        </div>
-        <button class="announce-cta" data-action="close-sheet">В приложение</button>
-        <p class="announce-legal">Нажимая «В приложение», вы соглашаетесь с <button type="button" class="legal-inline" data-action="legal">условиями и политикой</button>.</p>
-      </div>
-    </div>`);
 }
 
 export function applyStoredTheme() {

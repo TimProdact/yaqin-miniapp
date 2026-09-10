@@ -9,48 +9,56 @@ const FULL_SCREEN_ROUTES = new Set([
   'settings',
   'search',
   'new-dm',
-  'create-group',
-  'join-group',
-  'group-chat',
-  'group-thread',
-  'group-hub',
-  'group-posts',
-  'create-post',
-  'group-search',
-  'group-settings',
-  'organize-rooms',
-  'post-comments',
-  'invite-friends',
-  'invite-sheet',
-  'invite-dm',
-  'group-pins',
-  'group-media',
-  'create-event',
   'blocked',
   'dark-mode',
   'notifications',
   'account',
-  'announcements',
   'privacy',
   'help',
   'legal',
-  'share-profile',
   'edit-photos',
-  'group-notifications',
   'edit',
-  'prompts',
-  'prompt-picker',
-  'camera-roll',
-  'my-events',
-  'profile-groups',
   'checkout',
   'ticket',
   'my-tickets'
 ]);
-const SHEET_ROUTES = new Set(['person', 'group', 'event']);
-const PROFILE_OPEN_ROUTES = new Set(['me', 'friends', 'my-events', 'my-tickets']);
-
+const SHEET_ROUTES = new Set(['person', 'event']);
+const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'me']);
+
+const LEGACY_REDIRECT = {
+  groups: 'events',
+  group: 'events',
+  activity: 'people',
+  friends: 'me',
+  'my-events': 'events',
+  'create-group': 'events',
+  'join-group': 'events',
+  'group-chat': 'chats',
+  'group-thread': 'chats',
+  'group-hub': 'events',
+  'group-posts': 'events',
+  'create-post': 'events',
+  'group-search': 'events',
+  'group-settings': 'settings',
+  'organize-rooms': 'events',
+  'post-comments': 'events',
+  'invite-friends': 'chats',
+  'invite-sheet': 'chats',
+  'invite-dm': 'chats',
+  'group-pins': 'events',
+  'group-media': 'events',
+  'create-event': 'events',
+  'profile-groups': 'me',
+  prompts: 'me',
+  'prompt-picker': 'me',
+  'camera-roll': 'edit-photos',
+  'share-profile': 'me',
+  announcements: 'settings',
+  'group-notifications': 'notifications',
+  'events-legacy': 'events',
+  'event-legacy': 'event'
+};
 
 let currentRoute = 'people';
 let selectedId = null;
@@ -70,9 +78,7 @@ export function getSelectedId() {
 }
 
 export function navigate(route, id) {
-  // MVP shell: old BFF tabs fold into the funnel IA
-  if (route === 'groups' || route === 'activity') route = route === 'activity' ? 'people' : 'events';
-  if (route === 'my-events' || route === 'friends') route = 'me';
+  if (LEGACY_REDIRECT[route]) route = LEGACY_REDIRECT[route];
   if (route !== currentRoute) {
     history = TAB_ROUTES.has(route) ? [] : [...history, currentRoute];
   }
@@ -83,7 +89,7 @@ export function navigate(route, id) {
 
 export function goBack() {
   const previous = history.pop() || 'people';
-  currentRoute = previous;
+  currentRoute = LEGACY_REDIRECT[previous] || previous;
   render();
 }
 
@@ -96,6 +102,10 @@ export function render() {
     syncNav();
     const screen = screens.get(currentRoute);
     if (screen) screen(selectedId, ++renderToken);
+    else {
+      currentRoute = 'people';
+      screens.get('people')?.(selectedId, ++renderToken);
+    }
   } catch (error) {
     console.error(error);
     const view = document.getElementById('view');
@@ -105,7 +115,6 @@ export function render() {
   }
 }
 
-/** Async screens use this to drop results that arrived after the user moved on. */
 export function isCurrentRender(token) {
   return token === renderToken;
 }

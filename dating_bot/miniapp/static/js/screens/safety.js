@@ -59,7 +59,7 @@ export function showBlockMeaning(person) {
       <div class="confirm-handle"></div>
       <div class="confirm-icon soft"><i class="ti ti-eye-off"></i></div>
       <h2>Что значит блок</h2>
-      <p class="confirm-copy">${firstName} не увидит ваш профиль, не сможет писать вам и приглашать в группы. Вы тоже перестанете видеть её анкету. Разблокировать можно в настройках.</p>
+      <p class="confirm-copy">${firstName} не увидит ваш профиль и не сможет писать вам. Вы тоже перестанете видеть её анкету. Разблокировать можно в настройках.</p>
       <button class="confirm-danger" data-action="block-user" data-id="${person.id}">Да, заблокировать</button>
       <button class="confirm-outline" data-action="block-confirm" data-id="${person.id}">Назад</button>
     </div>`);
