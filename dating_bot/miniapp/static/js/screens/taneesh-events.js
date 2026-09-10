@@ -7,6 +7,7 @@ import { showCelebrate } from '../celebrate.js';
 import { meTopHtml, meTabsHtml } from './me.js';
 import { isLive } from '../api.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
+import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
 
 const DEMO_GOING = {
   0: [
@@ -117,22 +118,6 @@ function isInterested(eventId) {
   return Boolean(interested[eventId] || interested[String(eventId)] || (getState().eventGoing || {})[eventId]);
 }
 
-function renderWhoList(eventId) {
-  const going = goingForEvent(eventId);
-  return going.map(person => {
-    const isMe = person.id === 'me';
-    const attrs = isMe ? '' : `data-action="person" data-id="${person.id}"`;
-    return `
-      <${isMe ? 'div' : 'button type="button"'} class="taneesh-who-row ${isMe ? 'me' : ''}" ${attrs}>
-        <img src="${esc(person.photo)}" alt="">
-        <div class="taneesh-who-copy">
-          <span>${esc(person.name)}${person.age ? `, ${person.age}` : ''}${isMe ? ' · вы' : ''}${person.demo ? ' · демо' : ''}</span>
-          ${person.message ? `<small>${esc(person.message)}</small>` : ''}
-        </div>
-      </${isMe ? 'div' : 'button'}>`;
-  }).join('');
-}
-
 /** Лента событий + покупка билета в Mini App. */
 export function taneeshEventsScreen() {
   clearHeader();
@@ -197,9 +182,11 @@ export function taneeshEventDetailScreen(id) {
     : 'Афиша';
 
   const render = () => {
+    closePeopleGoingSheet();
     const mine = (getState().eventGoing || {})[event.id];
     const want = isInterested(event.id) || mine;
     const metaLine = [event.when, event.place].filter(Boolean).join(' · ');
+    const going = goingForEvent(event.id);
     view.innerHTML = `
       <article class="person-view event-detail-view">
         <div class="person-hero event-detail-hero">
@@ -241,12 +228,12 @@ export function taneeshEventDetailScreen(id) {
           ` : ''}
         </section>
 
-        <h3 class="person-section">Кто идёт</h3>
-        <section class="person-card">
-          <div class="taneesh-who">
-            ${renderWhoList(event.id)}
-          </div>
-        </section>
+        <div class="people-going-wrap">
+          ${peopleGoingBlockHtml(going, {
+            title: 'Кто идёт',
+            empty: 'Будьте первой — нажмите «Хочу пойти»'
+          })}
+        </div>
 
         <div class="person-actions event-detail-actions">
           <button type="button" class="taneesh-want ${want ? 'on' : ''}" id="toggleWant">
@@ -264,6 +251,8 @@ export function taneeshEventDetailScreen(id) {
           </p>
         </div>
       </article>`;
+
+    bindPeopleGoingBlock(view, going, { title: 'Кто идёт' });
 
     view.querySelector('#toggleWant')?.addEventListener('click', () => {
       if (want) {
