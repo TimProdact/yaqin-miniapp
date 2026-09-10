@@ -4,6 +4,15 @@ body.profile-open .nav{display:grid}body.profile-open .app-header{display:none}b
   margin: 0 var(--yaqin-gutter) 16px;
   width: calc(100% - (var(--yaqin-gutter) * 2));
 }
+
+.my-tickets-page .my-tickets-list {
+  display: grid;
+  gap: 12px;
+  padding: 8px var(--yaqin-gutter) 120px;
+}
+.my-tickets-page .my-ticket-row {
+  background: var(--yaqin-surface-raised);
+}
 .me-page{background:var(--yaqin-bg)}
 .me-top{height:var(--yaqin-header-h);padding:8px var(--yaqin-gutter)}
 .me-top h1{font-size:var(--yaqin-fs-title);font-weight:700;letter-spacing:-.02em;color:var(--yaqin-text)}
