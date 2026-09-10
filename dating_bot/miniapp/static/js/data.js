@@ -139,13 +139,36 @@ export const people = [
 ];
 
 
+const _now = new Date();
+const _day = (offset, timeLabel) => {
+  const d = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() + offset);
+  const wd = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+  const mo = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  return {
+    when: `${wd[d.getDay()]}, ${d.getDate()} ${mo[d.getMonth()]} · ${timeLabel}`,
+    day: String(d.getDate()),
+    month: mo[d.getMonth()]
+  };
+};
+const _today = _day(0, '11:00–13:00');
+const _tomorrow = _day(1, '19:30–22:00');
+const _satOffset = (() => {
+  const dow = _now.getDay();
+  if (dow === 6) return 0;
+  if (dow === 0) return 6;
+  return 6 - dow;
+})();
+const _weekend = _day(_satOffset, '10:00–12:00');
+const _weekendSun = _day(_satOffset + 1, '16:00–19:00');
+const _later = _day(7, '19:00–21:00');
+
 export const events = [
   {
     id: 0,
     title: 'Кофе-прогулка по Мирабаду',
-    when: 'Вс, 14 сен · 11:00–13:00',
-    day: '14',
-    month: 'сен',
+    when: _today.when,
+    day: _today.day,
+    month: _today.month,
     place: 'Кофейня Moon',
     address: 'ул. Тараса Шевченко, 12',
     group: 'Девушки Ташкента',
@@ -160,9 +183,9 @@ export const events = [
   {
     id: 1,
     title: 'Вечер кино',
-    when: 'Пт, 19 сен · 19:30–22:00',
-    day: '19',
-    month: 'сен',
+    when: _tomorrow.when,
+    day: _tomorrow.day,
+    month: _tomorrow.month,
     place: 'Кинотеатр Next',
     address: 'ТРЦ Compass, Юнусабад',
     group: 'Юнусабад: спорт и йога',
@@ -177,9 +200,9 @@ export const events = [
   {
     id: 2,
     title: 'Пробежка и завтрак',
-    when: 'Сб, 20 сен · 10:00–12:00',
-    day: '20',
-    month: 'сен',
+    when: _weekend.when,
+    day: _weekend.day,
+    month: _weekend.month,
     place: 'Парк Ашхабад',
     address: 'Юнусабад, 12-й квартал',
     group: 'Юнусабад: спорт и йога',
@@ -194,9 +217,9 @@ export const events = [
   {
     id: 3,
     title: 'Открытый пикник у канала',
-    when: 'Вс, 21 сен · 16:00–19:00',
-    day: '21',
-    month: 'сен',
+    when: _weekendSun.when,
+    day: _weekendSun.day,
+    month: _weekendSun.month,
     place: 'Канал Анхор',
     address: 'Ташкент, набережная',
     group: 'Девушки Ташкента',
@@ -213,9 +236,9 @@ export const events = [
   {
     id: 4,
     title: 'Книжный вечер',
-    when: 'Чт, 18 сен · 19:00–21:00',
-    day: '18',
-    month: 'сен',
+    when: _later.when,
+    day: _later.day,
+    month: _later.month,
     place: 'Коворкинг Loom',
     address: 'Мирабад',
     group: 'Книжный клуб',

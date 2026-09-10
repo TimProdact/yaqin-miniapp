@@ -246,58 +246,209 @@ function bindPeopleBlocks(root, event) {
 }
 
 /** Лента событий + покупка билета в Mini App. */
+const MONTH_INDEX = {
+  янв: 0, фев: 1, мар: 2, апр: 3, май: 4, июн: 5,
+  июл: 6, авг: 7, сен: 8, окт: 9, ноя: 10, дек: 11
+};
+const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date, days) {
+  const next = new Date(date.getTime());
+  next.setDate(next.getDate() + days);
+  return startOfDay(next);
+}
+
+/** Дата события из day/month или строки when. */
+function eventDate(event) {
+  const monthKey = String(event?.month || '').toLowerCase();
+  const day = Number(event?.day);
+  if (Number.isFinite(day) && monthKey in MONTH_INDEX) {
+    const year = new Date().getFullYear();
+    return startOfDay(new Date(year, MONTH_INDEX[monthKey], day));
+  }
+  const match = String(event?.when || '').match(/(\d{1,2})\s+([а-яё]{3})/i);
+  if (match) {
+    const m = MONTH_INDEX[match[2].toLowerCase()];
+    if (m != null) {
+      return startOfDay(new Date(new Date().getFullYear(), m, Number(match[1])));
+    }
+  }
+  if (event?.createdAt) {
+    const created = new Date(event.createdAt);
+    if (!Number.isNaN(created.getTime())) return startOfDay(created);
+  }
+  return null;
+}
+
+function weekendBounds(from = new Date()) {
+  const today = startOfDay(from);
+  const dow = today.getDay(); // 0 Sun … 6 Sat
+  let sat;
+  let sun;
+  if (dow === 0) {
+    sat = addDays(today, -1);
+    sun = today;
+  } else if (dow === 6) {
+    sat = today;
+    sun = addDays(today, 1);
+  } else {
+    sat = addDays(today, 6 - dow);
+    sun = addDays(today, 7 - dow);
+  }
+  return { sat, sun };
+}
+
+function weekBounds(from = new Date()) {
+  const today = startOfDay(from);
+  const dow = today.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = addDays(today, mondayOffset);
+  const sunday = addDays(monday, 6);
+  return { monday, sunday };
+}
+
+function matchesDateFilter(event, filter, pickIso) {
+  if (filter === 'any') return true;
+  const date = eventDate(event);
+  if (!date) return filter === 'any';
+  const today = startOfDay(new Date());
+  if (filter === 'today') return date.getTime() === today.getTime();
+  if (filter === 'tomorrow') return date.getTime() === addDays(today, 1).getTime();
+  if (filter === 'weekend') {
+    const { sat, sun } = weekendBounds(today);
+    const t = date.getTime();
+    return t >= sat.getTime() && t <= sun.getTime();
+  }
+  if (filter === 'week') {
+    const { monday, sunday } = weekBounds(today);
+    const t = date.getTime();
+    return t >= monday.getTime() && t <= sunday.getTime();
+  }
+  if (filter === 'pick' && pickIso) {
+    const pick = startOfDay(new Date(`${pickIso}T12:00:00`));
+    if (Number.isNaN(pick.getTime())) return false;
+    return date.getTime() === pick.getTime();
+  }
+  return true;
+}
+
+function eventCardHtml(event) {
+  const hard = needsGuestPass(event);
+  const previewPeople = hard
+    ? attendingForEvent(event.id)
+    : wantingForEvent(event.id);
+  const preview = previewPeople.slice(0, 3);
+  const count = previewPeople.length;
+  const source = event.source === 'yaqin'
+    ? (event.hostId === 'me' ? 'Ваше' : 'Yaqin')
+    : 'Афиша';
+  return `
+    <article class="taneesh-event-card">
+      <button type="button" class="taneesh-event-hit" data-action="event" data-id="${esc(event.id)}">
+        <div class="event-photo">
+          <img src="${esc(event.photo)}" alt="">
+        </div>
+        <div class="taneesh-event-copy">
+          <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${source}</em>
+          <strong>${esc(event.title)}</strong>
+          <span>${esc(event.when)}</span>
+          <span>${esc(event.place)}</span>
+          <em class="taneesh-price">${esc(priceLabel(event))}</em>
+        </div>
+      </button>
+      <div class="taneesh-event-foot">
+        <div class="taneesh-going">
+          ${preview.map(person => `<img src="${esc(person.photo)}" alt="">`).join('')}
+          <span>${count}</span>
+        </div>
+      </div>
+    </article>`;
+}
+
 export function taneeshEventsScreen() {
   clearHeader();
-  const feed = allEvents();
+  let dateFilter = 'any'; // any | today | tomorrow | weekend | week | pick
+  let pickIso = '';
 
-  view.innerHTML = `
-    <div class="events-feed-page">
-      <header class="chats-head">
-        <h1>События</h1>
-        <div class="events-head-actions">
-          <button data-action="create-event" aria-label="Создать"><i class="ti ti-plus"></i></button>
+  const filters = [
+    ['any', 'Любая'],
+    ['today', 'Сегодня'],
+    ['tomorrow', 'Завтра'],
+    ['weekend', 'Выходные'],
+    ['week', 'Эта неделя'],
+    ['pick', 'Дата']
+  ];
+
+  const render = () => {
+    const feed = allEvents().filter(event => matchesDateFilter(event, dateFilter, pickIso));
+    const pickLabel = pickIso
+      ? (() => {
+        const d = new Date(`${pickIso}T12:00:00`);
+        return Number.isNaN(d.getTime()) ? 'Дата' : `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
+      })()
+      : 'Дата';
+
+    view.innerHTML = `
+      <div class="events-feed-page">
+        <header class="chats-head">
+          <h1>События</h1>
+          <div class="events-head-actions">
+            <button data-action="create-event" aria-label="Создать"><i class="ti ti-plus"></i></button>
+          </div>
+        </header>
+
+        <div class="events-date-bar">
+          <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
+            ${filters.map(([id, label]) => `
+              <button type="button" class="${dateFilter === id ? 'on' : ''}" data-date-filter="${id}">
+                ${id === 'pick' ? esc(pickLabel) : esc(label)}
+              </button>`).join('')}
+          </div>
+          <input type="date" id="eventsPickDate" value="${esc(pickIso)}" hidden>
         </div>
-      </header>
 
-      <p class="events-feed-lead">
-        Создавайте свои встречи или ходите на афишу. Билет с QR — в Mini App.
-      </p>
+        <div class="events-feed">
+          ${feed.length
+            ? feed.map(eventCardHtml).join('')
+            : `<div class="events-feed-empty">
+                <p>Нет событий на эту дату</p>
+                <button type="button" class="empty-primary" data-date-filter="any">Показать все</button>
+              </div>`}
+        </div>
+      </div>`;
 
-      <div class="events-feed">
-        ${feed.map(event => {
-          const hard = needsGuestPass(event);
-          const previewPeople = hard
-            ? attendingForEvent(event.id)
-            : wantingForEvent(event.id);
-          const preview = previewPeople.slice(0, 3);
-          const count = previewPeople.length;
-          const source = event.source === 'yaqin'
-            ? (event.hostId === 'me' ? 'Ваше' : 'Yaqin')
-            : 'Афиша';
-          return `
-            <article class="taneesh-event-card">
-              <button type="button" class="taneesh-event-hit" data-action="event" data-id="${esc(event.id)}">
-                <div class="event-photo">
-                  <img src="${esc(event.photo)}" alt="">
-                </div>
-                <div class="taneesh-event-copy">
-                  <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${source}</em>
-                  <strong>${esc(event.title)}</strong>
-                  <span>${esc(event.when)}</span>
-                  <span>${esc(event.place)}</span>
-                  <em class="taneesh-price">${esc(priceLabel(event))}</em>
-                </div>
-              </button>
-              <div class="taneesh-event-foot">
-                <div class="taneesh-going">
-                  ${preview.map(person => `<img src="${esc(person.photo)}" alt="">`).join('')}
-                  <span>${count}</span>
-                </div>
-              </div>
-            </article>`;
-        }).join('')}
-      </div>
-    </div>`;
+    view.querySelectorAll('[data-date-filter]').forEach(button => {
+      button.addEventListener('click', () => {
+        const next = button.dataset.dateFilter;
+        if (next === 'pick') {
+          const input = view.querySelector('#eventsPickDate');
+          if (!input) return;
+          const onPicked = () => {
+            pickIso = input.value || '';
+            dateFilter = pickIso ? 'pick' : 'any';
+            input.removeEventListener('change', onPicked);
+            render();
+          };
+          input.addEventListener('change', onPicked);
+          if (typeof input.showPicker === 'function') {
+            try { input.showPicker(); } catch (_) { input.click(); }
+          } else {
+            input.click();
+          }
+          return;
+        }
+        dateFilter = next;
+        pickIso = '';
+        render();
+      });
+    });
+  };
+
+  render();
 }
 
 /** Карточка события: гость vs кабинет организатора (своё). */
