@@ -35,13 +35,15 @@
 }
 
 body[data-route='people'] .view {
-  padding: 0 8px;
-  overflow: hidden;
+  padding: 0 8px !important;
+  overflow: hidden !important;
+  position: relative;
 }
 
 .swipe-stage {
-  position: relative;
-  height: 100%;
+  position: absolute;
+  inset: 0;
+  height: auto;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -120,7 +122,7 @@ body[data-route='people'] .view {
   top: 22px;
   left: 17px;
   right: 17px;
-  color: var(--yaqin-ink-inverse);
+  color: #fff;
 }
 .card-top h2 {
   margin: 0;
@@ -128,12 +130,14 @@ body[data-route='people'] .view {
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.02em;
+  color: #fff;
 }
 .card-top p {
   margin: 8px 0 0;
   font-size: 18px;
   font-weight: 400;
   line-height: 1.2;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .say-hi {
@@ -145,7 +149,7 @@ body[data-route='people'] .view {
   padding: 0 18px;
   border-radius: 21px;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
   font-size: 17px;
   font-weight: 600;
 }
@@ -163,7 +167,7 @@ body[data-route='people'] .view {
 .card-bio {
   margin: 0 0 20px;
   max-width: 74%;
-  color: var(--yaqin-ink-inverse);
+  color: #fff;
   font-size: 17px;
   font-weight: 500;
   line-height: 29px;
@@ -200,7 +204,7 @@ body[data-route='people'] .view {
   border: 0;
   border-radius: 50%;
   background: var(--yaqin-yellow);
-  color: var(--yaqin-text);
+  color: var(--yaqin-yellow-ink);
   display: grid;
   place-items: center;
   box-shadow: none;

@@ -69,7 +69,7 @@ export async function peopleScreen(_id, token) {
             </button>
             <div class="card-bottom">
               <p class="card-bio">${esc(person.bio)}</p>
-              <div class="chips">${person.tags.map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
+              <div class="chips">${(person.tags || []).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
             </div>
           </div>
           ${index < candidates.length - 1 ? '<div class="next-edge" aria-hidden="true"></div>' : ''}
