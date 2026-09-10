@@ -233,7 +233,7 @@ export function createEventScreen() {
           <button class="head-action coral ${ready ? 'on' : ''}" id="createEventBtn" ${ready ? '' : 'disabled'}>Создать</button>
         </header>
 
-        <div class="create-cover ${cover ? 'has-photo' : ''}" style="border-radius:20px;width:min(100%,320px);height:160px;margin:12px auto 8px">
+        <div class="create-cover create-event-cover ${cover ? 'has-photo' : ''}">
           ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ОБЛОЖКА</span>`}
           <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
         </div>

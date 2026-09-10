@@ -16,11 +16,13 @@ body[data-route='create-event'] .view {
   background: var(--yaqin-bg);
   padding: 4px 0 40px;
 }
-.create-event-page {
-  padding: 0 16px 40px;
+.create-event-cover {
+  width: min(100%, 220px);
+  height: auto;
+  aspect-ratio: 4 / 5;
+  margin: 12px auto 8px;
+  border-radius: 20px;
 }
-
-.create-cover {
   width: 112px;
   height: 112px;
   margin: 18px auto 20px;

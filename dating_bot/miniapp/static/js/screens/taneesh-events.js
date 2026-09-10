@@ -157,7 +157,9 @@ export function taneeshEventsScreen() {
           return `
             <article class="taneesh-event-card">
               <button type="button" class="taneesh-event-hit" data-action="event" data-id="${esc(event.id)}">
-                <img src="${esc(event.photo)}" alt="">
+                <div class="event-photo">
+                  <img src="${esc(event.photo)}" alt="">
+                </div>
                 <div class="taneesh-event-copy">
                   <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${source}</em>
                   <strong>${esc(event.title)}</strong>
@@ -169,14 +171,14 @@ export function taneeshEventsScreen() {
               <div class="taneesh-event-foot">
                 <div class="taneesh-going">
                   ${goingPreview.map(person => `<img src="${esc(person.photo)}" alt="">`).join('')}
-                  <span>${goingForEvent(event.id).length} хотят пойти</span>
+                  <span>${goingForEvent(event.id).length}</span>
                 </div>
                 <div class="taneesh-event-actions">
                   <button type="button" class="taneesh-chip ${want ? 'on' : ''}" data-toggle-want="${esc(event.id)}">
-                    ${want ? 'Иду' : 'Хочу пойти'}
+                    ${want ? 'Иду' : 'Хочу'}
                   </button>
                   <button type="button" class="taneesh-buy ${owned ? 'owned' : ''}" data-action="${owned ? 'ticket' : 'checkout'}" data-id="${owned ? esc(owned.id) : esc(event.id)}">
-                    ${buyLabel(event)}
+                    ${owned ? 'Билет' : event.ticketMode === 'free' ? 'Запись' : event.ticketMode === 'door' ? 'Бронь' : 'Билет'}
                   </button>
                 </div>
               </div>
@@ -211,7 +213,9 @@ export function taneeshEventDetailScreen(id) {
           <h1>Событие</h1>
           <span style="width:36px"></span>
         </header>
-        <img class="taneesh-detail-cover" src="${esc(event.photo)}" alt="">
+        <div class="event-photo taneesh-detail-cover">
+          <img src="${esc(event.photo)}" alt="">
+        </div>
         <div class="taneesh-detail-body">
           <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${event.source === 'yaqin' ? 'Yaqin' : 'Taneesh'}</em>
           <h2>${esc(event.title)}</h2>
@@ -288,7 +292,9 @@ export function ticketCheckoutScreen(eventId) {
       </header>
 
       <div class="ticket-checkout-card">
-        <img src="${esc(event.photo)}" alt="">
+        <div class="event-photo">
+          <img src="${esc(event.photo)}" alt="">
+        </div>
         <div>
           <strong>${esc(event.title)}</strong>
           <span>${esc(event.when)}</span>
@@ -359,7 +365,9 @@ export function ticketScreen(ticketId) {
       </header>
 
       <div class="ticket-pass">
-        <img class="ticket-pass-cover" src="${esc(ticket.photo)}" alt="">
+        <div class="event-photo ticket-pass-cover">
+          <img src="${esc(ticket.photo)}" alt="">
+        </div>
         <div class="ticket-pass-body">
           <strong>${esc(ticket.title)}</strong>
           <span>${esc(ticket.when)}</span>
@@ -399,7 +407,9 @@ export function myTicketsScreen() {
         <div class="my-tickets-list">
           ${tickets.map(ticket => `
             <button type="button" class="my-ticket-row" data-action="ticket" data-id="${esc(ticket.id)}">
-              <img src="${esc(ticket.photo)}" alt="">
+              <div class="event-photo">
+                <img src="${esc(ticket.photo)}" alt="">
+              </div>
               <div>
                 <strong>${esc(ticket.title)}</strong>
                 <span>${esc(ticket.when)}</span>
