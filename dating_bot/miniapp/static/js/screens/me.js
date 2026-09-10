@@ -97,65 +97,92 @@ export async function meScreen(_id, token) {
 
   const photos = (profile.photos?.length ? profile.photos : [profile.photo]).filter(Boolean);
   const heroPhoto = photos[0] || profile.photo;
+  const verify = resolveView(verification);
+  const interests = interestsOf(profile);
+  const looking = lookingOf(profile);
+  const media = mediaOf(profile);
+  const basics = basicRowsFromProfile(profile);
+  const links = [
+    profile.instagram && `IG @${profile.instagram}`,
+    profile.tiktok && `TT @${profile.tiktok}`,
+    profile.website
+  ].filter(Boolean);
+
+  const preview = (items, empty) => {
+    if (!items?.length) return empty;
+    const text = Array.isArray(items) ? items.join(', ') : String(items);
+    return text.length > 36 ? `${text.slice(0, 36)}…` : text;
+  };
 
   view.innerHTML = `
-    <div class="me-page">
+    <div class="me-page me-hub-page">
       ${meTopHtml()}
       ${meTabsHtml('me')}
-      <div class="me-profile-card">
-        <div class="me-hero">
-          <img src="${esc(heroPhoto)}" alt="">
-          <button class="edit-profile" data-action="edit">Редактировать</button>
-          <button class="edit-photos-btn" data-action="edit-photos" aria-label="Фото"><i class="ti ti-pencil"></i></button>
-          ${photos.length > 1 ? `<div class="me-dots">${photos.map((_, i) => `<span class="${i === 0 ? 'on' : ''}"></span>`).join('')}</div>` : ''}
+
+      <button type="button" class="me-hub-identity" data-action="edit">
+        <img src="${esc(heroPhoto)}" alt="">
+        <div>
+          <strong>${esc(profile.name || 'Без имени')}</strong>
+          <span>${esc(String(profile.age || ''))}${profile.city ? ` · ${esc(profile.city)}` : ''}</span>
         </div>
-        <section class="me-info">
-          <h2>${esc(profile.name)}</h2>
-          <p>${profile.age} · ${esc(profile.city)}</p>
-          ${profile.bio ? `<p class="me-bio">${esc(profile.bio)}</p>` : ''}
-        </section>
-      </div>
-      <section class="me-section">${verificationRow(verification)}</section>
-      ${interestsOf(profile).length || lookingOf(profile).length || mediaOf(profile).length ? `
-      <section class="me-section">
-        <h3>О себе</h3>
-        <div class="me-box">
-          ${interestsOf(profile).length ? `<h4>Интересы</h4><div class="big-chips">${chipList(interestsOf(profile))}</div>` : ''}
-          ${lookingOf(profile).length ? `<h4>Чего хочу</h4><div class="big-chips">${chipList(lookingOf(profile))}</div>` : ''}
-          ${mediaOf(profile).length ? `<h4>Сейчас смотрю / читаю</h4><div class="big-chips">${chipList(mediaOf(profile))}</div>` : ''}
-        </div>
-      </section>` : ''}
-      <section class="me-section">
-        <h3>Основное</h3>
-        <div class="me-box" data-action="basic">
-          ${basicRowsFromProfile(profile).map(row => `
-            <h4>${esc(row.label)}</h4><div class="big-chips"><span>${esc(row.value)}</span></div>
-          `).join('') || '<p class="muted">Добавьте работу и языки</p>'}
-        </div>
+        <i class="ti ti-chevron-right"></i>
+      </button>
+
+      <h3 class="settings-label">Анкета</h3>
+      <section class="settings-block me-hub-block">
+        <button class="settings-row" type="button" data-action="edit-photos">
+          <span class="settings-icon blue square"><i class="ti ti-photo"></i></span>
+          <span>Фото<br><small>${photos.length ? `${photos.length} фото` : 'Добавить'}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="edit">
+          <span class="settings-icon purple square"><i class="ti ti-user"></i></span>
+          <span>Имя и о себе<br><small>${esc(preview(profile.bio, 'Добавить'))}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="edit">
+          <span class="settings-icon pink square"><i class="ti ti-sparkles"></i></span>
+          <span>Интересы<br><small>${esc(preview(interests, 'Добавить'))}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="edit">
+          <span class="settings-icon orange square"><i class="ti ti-heart"></i></span>
+          <span>Чего хочу<br><small>${esc(preview(looking, 'Добавить'))}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="edit">
+          <span class="settings-icon green square"><i class="ti ti-book"></i></span>
+          <span>Сейчас смотрю / читаю<br><small>${esc(preview(media, 'Добавить'))}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="basic">
+          <span class="settings-icon yellow square"><i class="ti ti-briefcase"></i></span>
+          <span>Основное<br><small>${esc(preview(basics.map(row => row.value), 'Работа, языки'))}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" type="button" data-action="edit">
+          <span class="settings-icon red square"><i class="ti ti-link"></i></span>
+          <span>Ссылки<br><small>${esc(preview(links, 'Instagram, TikTok, сайт'))}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
       </section>
-      ${profile.instagram || profile.tiktok || profile.website ? `
-      <section class="me-section">
-        <h3>Ссылки</h3>
-        <div class="me-box">
-          ${profile.instagram ? `<h4>Instagram</h4><div class="big-chips"><span>@${esc(profile.instagram)}</span></div>` : ''}
-          ${profile.tiktok ? `<h4>TikTok</h4><div class="big-chips"><span>@${esc(profile.tiktok)}</span></div>` : ''}
-          ${profile.website ? `<h4>Сайт</h4><div class="big-chips"><span>${esc(profile.website)}</span></div>` : ''}
-        </div>
-      </section>` : `
-      <section class="me-section">
-        <h3>Ссылки</h3>
-        <div class="me-box">
-          <p class="muted">Instagram, TikTok или сайт — добавьте в редактировании</p>
-        </div>
-      </section>`}
-      <section class="me-section me-quick">
-        <h3>Быстрые действия</h3>
-        <div class="me-quick-list">
-          <button type="button" class="me-quick-row" data-action="edit"><i class="ti ti-user-edit"></i><span>Редактировать анкету</span><i class="ti ti-chevron-right"></i></button>
-          <button type="button" class="me-quick-row" data-action="edit-photos"><i class="ti ti-photo"></i><span>Фото</span><i class="ti ti-chevron-right"></i></button>
-          <button type="button" class="me-quick-row" data-action="verify"><i class="ti ti-shield-check"></i><span>Проверка анкеты</span><i class="ti ti-chevron-right"></i></button>
-          <button type="button" class="me-quick-row" data-action="settings"><i class="ti ti-settings"></i><span>Настройки</span><i class="ti ti-chevron-right"></i></button>
-        </div>
+
+      <h3 class="settings-label">Проверка</h3>
+      <section class="settings-block me-hub-block">
+        <button class="settings-row" type="button" data-action="verify">
+          <span class="settings-icon yellow square"><i class="ti ti-shield-check"></i></span>
+          <span>Проверка анкеты<br><small>${esc(verify.short)}</small></span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </section>
+
+      <h3 class="settings-label">Ещё</h3>
+      <section class="settings-block me-hub-block">
+        <button class="settings-row" type="button" data-action="settings">
+          <span class="settings-icon green square"><i class="ti ti-settings"></i></span>
+          <span>Настройки</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
       </section>
     </div>`;
 }

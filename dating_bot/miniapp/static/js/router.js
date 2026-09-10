@@ -33,12 +33,10 @@ const SHEET_ROUTES = new Set(['person', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me', 'my-tickets', 'my-events', 'my-groups']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'groups', 'me']);
 
-/** Старые BFF-роуты → живые экраны MVP. */
+/** Старые BFF-роуты → живые экраны MVP. Не трогать живые group / my-events. */
 const LEGACY_REDIRECT = {
-  group: 'groups',
   activity: 'people',
   friends: 'me',
-  'my-events': 'events',
   'join-group': 'groups',
   'group-hub': 'groups',
   'group-posts': 'groups',

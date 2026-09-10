@@ -209,6 +209,57 @@ body.profile-open .view {
   color: var(--yaqin-text-tertiary);
 }
 
+.me-hub-page .settings-label {
+  margin: 18px var(--yaqin-gutter) 8px;
+}
+.me-hub-block {
+  margin: 0 var(--yaqin-gutter);
+}
+.me-hub-identity {
+  display: grid;
+  grid-template-columns: 56px 1fr 20px;
+  gap: 12px;
+  align-items: center;
+  width: calc(100% - 2 * var(--yaqin-gutter));
+  margin: 4px var(--yaqin-gutter) 8px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--yaqin-radius-md);
+  background: var(--yaqin-surface-raised);
+  color: var(--yaqin-text);
+  text-align: left;
+  font: inherit;
+}
+.me-hub-identity img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.me-hub-identity strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+}
+.me-hub-identity span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--yaqin-text-tertiary);
+}
+.me-hub-identity > i {
+  color: var(--yaqin-text-tertiary);
+  font-size: 18px;
+}
+.me-hub-block .settings-row small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--yaqin-text-tertiary);
+}
+
 .me-profile-card {
   margin: 0;
   background: var(--yaqin-bg);
