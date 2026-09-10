@@ -274,6 +274,95 @@ export const chats = [
 ];
 
 
+/** Публичные демо-группы для вкладки «Группы». */
+export const demoGroups = [
+  {
+    id: 'demo-girls-tashkent',
+    title: 'Девушки Ташкента',
+    about: 'Прогулки, кофе и новые знакомства в городе',
+    city: 'Ташкент',
+    photo: PHOTOS.city,
+    isPublic: true,
+    members: 248,
+    online: 12,
+    catalog: true,
+    messages: [
+      { from: 'them', name: 'Малика', text: 'Кто на кофе в Мирабаде в воскресенье?', time: '2 ч' }
+    ]
+  },
+  {
+    id: 'demo-yoga-yunusabad',
+    title: 'Юнусабад: спорт и йога',
+    about: 'Утренние практики и пробежки',
+    city: 'Ташкент',
+    photo: PHOTOS.palms,
+    isPublic: true,
+    members: 96,
+    online: 5,
+    catalog: true,
+    messages: [
+      { from: 'them', name: 'Мила', text: 'Завтра в 7:30 у парка — кто с нами?', time: '5 ч' }
+    ]
+  },
+  {
+    id: 'demo-book-club',
+    title: 'Книжный клуб',
+    about: 'Читаем и обсуждаем раз в две недели',
+    city: 'Ташкент',
+    photo: PHOTOS.books,
+    isPublic: true,
+    members: 64,
+    online: 3,
+    catalog: true,
+    messages: [
+      { from: 'them', name: 'Аня', text: 'На этой неделе — «Маленькая жизнь»', time: '1 д' }
+    ]
+  },
+  {
+    id: 'demo-coffee-walks',
+    title: 'Кофе и прогулки',
+    about: 'Новые кофейни и маршруты по центру',
+    city: 'Ташкент',
+    photo: PHOTOS.coffee,
+    isPublic: true,
+    members: 132,
+    online: 8,
+    catalog: true,
+    messages: [
+      { from: 'them', name: 'Сара', text: 'Нашла уютное место у площади', time: '3 ч' }
+    ]
+  },
+  {
+    id: 'demo-samarkand',
+    title: 'Самарканд girls',
+    about: 'Встречи и выходные в Самарканде',
+    city: 'Самарканд',
+    photo: PHOTOS.event,
+    isPublic: true,
+    members: 41,
+    online: 2,
+    catalog: true,
+    messages: [
+      { from: 'them', name: 'Нилуфар', text: 'В субботу на Регистан?', time: '6 ч' }
+    ]
+  },
+  {
+    id: 'demo-photo',
+    title: 'Фотопрогулки',
+    about: 'Съёмки на улице и обмен кадрами',
+    city: 'Ташкент',
+    photo: PHOTOS.mila,
+    isPublic: true,
+    members: 78,
+    online: 4,
+    catalog: true,
+    messages: [
+      { from: 'them', name: 'Зарина', text: 'Золотой час у канала — кто в деле?', time: '1 д' }
+    ]
+  }
+];
+
+
 export const defaultProfile = {
   name: 'Камила',
   age: 25,

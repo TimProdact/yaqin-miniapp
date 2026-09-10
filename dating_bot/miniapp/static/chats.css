@@ -1229,10 +1229,13 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   position: relative;
   color: var(--yaqin-text);
 }
+.groups-tab-page .groups-search {
+  margin: 4px 0 12px;
+}
 .groups-tab-list {
   display: grid;
-  gap: 4px;
-  margin-top: 8px;
+  gap: 0;
+  margin-top: 0;
 }
 .group-tab-row {
   display: grid;
@@ -1243,9 +1246,13 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   border: 0;
   background: none;
   text-align: left;
-  padding: 12px 0;
+  padding: 10px 0;
   color: inherit;
   font: inherit;
+  border-bottom: 1px solid var(--yaqin-sep-soft);
+}
+.group-tab-row:last-child {
+  border-bottom: 0;
 }
 .group-tab-row img {
   width: 52px;
@@ -1266,6 +1273,13 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.groups-tab-hint {
+  margin: 16px 4px 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--yaqin-text-tertiary);
+  text-align: center;
 }
 .groups-tab-empty {
   text-align: center;

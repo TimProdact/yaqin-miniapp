@@ -1,4 +1,4 @@
-import { events as taneeshEvents, PHOTOS, defaultProfile } from '../data.js';
+import { events as taneeshEvents, PHOTOS, defaultProfile, demoGroups } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { navigate } from '../router.js';
 import { getState, saveState } from '../state.js';
@@ -9,8 +9,37 @@ export function getUserGroups() {
   return getState().userGroups || [];
 }
 
+/** Каталог + созданные пользователем (без дублей по id). */
+export function listAllGroups() {
+  const mine = getUserGroups();
+  const mineIds = new Set(mine.map(group => String(group.id)));
+  const catalog = demoGroups
+    .filter(group => !mineIds.has(String(group.id)))
+    .map(group => ({ ...group }));
+  return [...mine, ...catalog];
+}
+
 export function findUserGroup(id) {
-  return getUserGroups().find(group => String(group.id) === String(id));
+  return getUserGroups().find(group => String(group.id) === String(id))
+    || demoGroups.find(group => String(group.id) === String(id))
+    || null;
+}
+
+/** Открыть группу: каталожные копируются в userGroups при первом входе. */
+export function openGroup(id) {
+  const existing = getUserGroups().find(group => String(group.id) === String(id));
+  if (existing) return existing;
+  const catalog = demoGroups.find(group => String(group.id) === String(id));
+  if (!catalog) return null;
+  const joined = {
+    ...catalog,
+    catalog: false,
+    joinedAt: new Date().toISOString(),
+    messages: [...(catalog.messages || [])]
+  };
+  const state = getState();
+  saveState({ ...state, userGroups: [joined, ...(state.userGroups || [])] });
+  return joined;
 }
 
 export function getUserEvents() {
@@ -33,39 +62,91 @@ function nextCover(index = 0) {
   return COVER_POOL[index % COVER_POOL.length] || PHOTOS.city;
 }
 
-/** Вкладка «Группы» — BFF my-groups--069, без хаба комнат. */
+function groupMatchesQuery(group, term) {
+  if (!term) return true;
+  const hay = `${group.title || ''} ${group.about || ''} ${group.city || ''}`.toLowerCase();
+  return hay.includes(term);
+}
+
+/** Вкладка «Группы» — список + поиск как в Telegram. */
 export function groupsScreen() {
   clearHeader();
-  const groups = getUserGroups();
+  let query = '';
 
-  view.innerHTML = `
-    <div class="groups-tab-page">
-      <header class="chats-head">
-        <h1>Группы</h1>
-        <span></span>
-      </header>
+  const render = () => {
+    const term = query.trim().toLowerCase();
+    const groups = listAllGroups().filter(group => groupMatchesQuery(group, term));
+    const mineCount = getUserGroups().length;
 
-      ${groups.length
-        ? `<div class="groups-tab-list">${groups.map(group => {
-            const last = group.messages?.[group.messages.length - 1];
-            return `
-              <button class="group-tab-row" type="button" data-action="group-chat" data-id="${esc(group.id)}">
-                <img src="${esc(group.photo)}" alt="">
-                <div>
-                  <strong>${esc(group.title)}</strong>
-                  <span>${esc(last?.text || group.about || 'Группа')} · ${esc(last?.time || 'новая')}</span>
-                </div>
-              </button>`;
-          }).join('')}</div>`
-        : `<div class="groups-tab-empty">
-            <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
-            <h2>Создайте группу</h2>
-            <p>Соберите людей по интересам и планируйте встречи вместе.</p>
-            <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
-          </div>`}
+    view.innerHTML = `
+      <div class="groups-tab-page">
+        <header class="chats-head">
+          <h1>Группы</h1>
+          <span></span>
+        </header>
 
-      <button class="compose" data-action="create-group" aria-label="Создать"><i class="ti ti-plus"></i></button>
-    </div>`;
+        <div class="search-box groups-search">
+          <i class="ti ti-search"></i>
+          <input id="groupSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
+          ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
+        </div>
+
+        ${groups.length
+          ? `<div class="groups-tab-list">${groups.map(group => {
+              const last = group.messages?.[group.messages.length - 1];
+              const meta = last?.text
+                || (group.members ? `${group.members} участниц` : group.about)
+                || 'Группа';
+              return `
+                <button class="group-tab-row" type="button" data-open-group="${esc(group.id)}">
+                  <img src="${esc(group.photo)}" alt="">
+                  <div>
+                    <strong>${esc(group.title)}</strong>
+                    <span>${esc(meta)}${last?.time ? ` · ${esc(last.time)}` : ''}</span>
+                  </div>
+                </button>`;
+            }).join('')}</div>`
+          : term
+            ? `<p class="search-none">Ничего не найдено</p>`
+            : `<div class="groups-tab-empty">
+                <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
+                <h2>Создайте группу</h2>
+                <p>Соберите людей по интересам и планируйте встречи вместе.</p>
+                <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
+              </div>`}
+
+        ${!term && groups.length && !mineCount ? `
+          <p class="groups-tab-hint">Публичные группы рядом. Нажмите, чтобы открыть чат.</p>
+        ` : ''}
+
+        <button class="compose" data-action="create-group" aria-label="Создать"><i class="ti ti-plus"></i></button>
+      </div>`;
+
+    const input = view.querySelector('#groupSearch');
+    input?.addEventListener('input', () => {
+      query = input.value;
+      render();
+      const next = view.querySelector('#groupSearch');
+      if (next) {
+        next.focus();
+        const pos = query.length;
+        next.setSelectionRange(pos, pos);
+      }
+    });
+    view.querySelector('#clearGroupSearch')?.addEventListener('click', () => {
+      query = '';
+      render();
+      view.querySelector('#groupSearch')?.focus();
+    });
+    view.querySelectorAll('[data-open-group]').forEach(button => {
+      button.onclick = () => {
+        const group = openGroup(button.dataset.openGroup);
+        if (group) navigate('group-chat', group.id);
+      };
+    });
+  };
+
+  render();
 }
 
 /** Создание группы — только название + фото. */
@@ -141,7 +222,7 @@ export function createGroupScreen() {
 /** Простой чат группы (без комнат/постов). */
 export function groupChatScreen(id) {
   clearHeader();
-  const group = findUserGroup(id);
+  const group = openGroup(id);
   if (!group) {
     navigate('groups');
     return;

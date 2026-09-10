@@ -1,6 +1,6 @@
 import { people, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
-import { getUserGroups } from './community.js';
+import { getUserGroups, listAllGroups } from './community.js';
 import { interestsOf } from '../profile-fields.js';
 import { navigate } from '../router.js';
 import {
@@ -81,7 +81,7 @@ export function chatsScreen() {
 export function searchChatsScreen(queryOrId = '') {
   clearHeader();
   let query = typeof queryOrId === 'string' ? queryOrId : '';
-  const groups = getUserGroups();
+  const groups = listAllGroups();
 
   const render = () => {
     const term = query.trim().toLowerCase();
