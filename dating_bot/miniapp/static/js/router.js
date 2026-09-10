@@ -27,6 +27,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'ticket',
   'create-group',
   'create-event',
+  'edit-event',
   'group-chat',
   'group'
 ]);

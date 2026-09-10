@@ -510,8 +510,8 @@ function renderHostEventDashboard(event) {
               <p class="person-meta">${esc(metaLine)}</p>
               <p class="event-detail-price">${esc(priceLabel(event))}</p>
             </div>
-            <button class="hero-wave" type="button" id="hostShare" aria-label="Поделиться">
-              <i class="ti ti-share"></i>
+            <button class="hero-wave" type="button" data-action="edit-event" data-id="${esc(event.id)}" aria-label="Редактировать">
+              <i class="ti ti-pencil"></i>
             </button>
           </div>
           ${event.description ? `<p class="person-bio">${esc(event.description)}</p>` : ''}
@@ -551,6 +551,14 @@ function renderHostEventDashboard(event) {
                     </div>
                     <i class="ti ti-chevron-right"></i>
                   </button>` : ''}
+                <button type="button" class="me-mini-row" data-action="edit-event" data-id="${esc(event.id)}">
+                  <span class="host-action-icon yellow"><i class="ti ti-pencil"></i></span>
+                  <div>
+                    <strong>Редактировать</strong>
+                    <span>Название, время, место, вход</span>
+                  </div>
+                  <i class="ti ti-chevron-right"></i>
+                </button>
                 <button type="button" class="me-mini-row" id="hostShareRow">
                   <span class="host-action-icon blue"><i class="ti ti-share"></i></span>
                   <div>
@@ -671,7 +679,6 @@ function renderHostEventDashboard(event) {
         render();
       });
     });
-    view.querySelector('#hostShare')?.addEventListener('click', () => shareEvent(event));
     view.querySelector('#hostShareRow')?.addEventListener('click', () => shareEvent(event));
   };
 

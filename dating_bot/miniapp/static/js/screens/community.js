@@ -672,8 +672,8 @@ export function groupChatScreen(id) {
   render();
 }
 
-/** Создание события — поля как в Taneesh: ряды → модалки. */
-export function createEventScreen() {
+/** Создание / редактирование события — поля как в Taneesh: ряды → модалки. */
+export function createEventScreen(editId = null) {
   clearHeader();
   const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
   const WEEKDAYS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -715,19 +715,48 @@ export function createEventScreen() {
   ];
   const INTEREST_MAX = 5;
 
-  let title = '';
-  let place = '';
-  let address = '';
-  let description = '';
-  let interests = [];
+  const existing = editId != null && editId !== '' ? findEvent(editId) : null;
+  const isEdit = Boolean(existing && existing.hostId === 'me');
+  if (editId && !isEdit) {
+    navigate('events');
+    return;
+  }
+
+  let title = isEdit ? (existing.title || '') : '';
+  let place = isEdit ? (existing.place || '') : '';
+  let address = isEdit ? (existing.address || '') : '';
+  let description = isEdit ? (existing.description || '') : '';
+  let interests = isEdit ? [...(existing.interests || [])] : [];
   let whenIdx = 3;
-  let cover = null;
+  if (isEdit && existing.when) {
+    const found = WHEN_OPTIONS.findIndex(option => option.when === existing.when);
+    if (found >= 0) whenIdx = found;
+    else {
+      WHEN_OPTIONS.unshift({
+        when: existing.when,
+        day: existing.day || '',
+        month: existing.month || ''
+      });
+      whenIdx = 0;
+    }
+  }
+  let cover = isEdit ? (existing.photo || null) : null;
   let coverIndex = 0;
-  let ticketMode = 'free';
-  let freeEntryMode = 'open'; // open = свободный вход · register = с записью + QR
-  let doorPrice = '50000';
-  let paidPrice = '45000';
-  let capacity = '30';
+  let ticketMode = isEdit
+    ? (existing.ticketMode || (existing.isFree === false
+      ? (existing.paymentMode === 'at_door' || existing.paymentMode === 'door' ? 'door' : 'paid')
+      : 'free'))
+    : 'free';
+  let freeEntryMode = isEdit
+    ? (existing.freeEntryMode === 'register' ? 'register' : 'open')
+    : 'open';
+  let doorPrice = isEdit && ticketMode === 'door'
+    ? String(existing.price || '50000')
+    : '50000';
+  let paidPrice = isEdit && ticketMode === 'paid'
+    ? String(existing.price || '45000')
+    : '45000';
+  let capacity = isEdit ? String(existing.capacity || '30') : '30';
   let sheet = null;
   let sheetQuery = '';
   let draftText = '';
@@ -889,8 +918,8 @@ export function createEventScreen() {
     view.innerHTML = `
       <div class="create-event-page">
         <header class="modal-head">
-          ${backControlHtml('events')}
-          <h1>Новое событие</h1>
+          ${isEdit ? backControlHtml('back') : backControlHtml('events')}
+          <h1>${isEdit ? 'Редактировать' : 'Новое событие'}</h1>
           <span></span>
         </header>
 
@@ -991,7 +1020,7 @@ export function createEventScreen() {
         </div>
 
         <div class="create-sticky-cta">
-          <button type="button" class="create-submit ${ready ? 'on' : ''}" id="createEventBtn" ${ready ? '' : 'disabled'}>Создать</button>
+          <button type="button" class="create-submit ${ready ? 'on' : ''}" id="createEventBtn" ${ready ? '' : 'disabled'}>${isEdit ? 'Сохранить' : 'Создать'}</button>
         </div>
       </div>
 
@@ -1175,8 +1204,9 @@ export function createEventScreen() {
           : 0;
       if ((ticketMode === 'door' || ticketMode === 'paid') && price < 1) return;
 
-      const eventId = `e-${Date.now()}`;
+      const eventId = isEdit ? existing.id : `e-${Date.now()}`;
       const event = {
+        ...(isEdit ? existing : {}),
         id: eventId,
         title: title.trim(),
         when: slot.when,
@@ -1187,11 +1217,11 @@ export function createEventScreen() {
         description: description.trim(),
         interests: [...interests],
         capacity: Number(capacity) || 30,
-        group: 'Yaqin',
-        host: profile.name || 'Вы',
+        group: isEdit ? (existing.group || 'Yaqin') : 'Yaqin',
+        host: profile.name || existing?.host || 'Вы',
         hostId: 'me',
-        going: 1,
-        photo: cover || nextCover(1),
+        going: isEdit ? (existing.going || 1) : 1,
+        photo: cover || existing?.photo || nextCover(1),
         isFree: ticketMode === 'free',
         freeEntryMode: ticketMode === 'free' ? freeEntryMode : undefined,
         ticketMode,
@@ -1199,9 +1229,36 @@ export function createEventScreen() {
         price,
         fee: ticketMode === 'paid' ? Math.round(price * 0.1) : 0,
         currency: 'UZS',
-        source: 'yaqin',
-        createdAt: new Date().toISOString()
+        source: isEdit ? (existing.source || 'yaqin') : 'yaqin',
+        createdAt: isEdit ? existing.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
+
+      const state = getState();
+
+      if (isEdit) {
+        const tickets = (state.tickets || []).map(ticket => {
+          if (String(ticket.eventId) !== String(eventId)) return ticket;
+          return {
+            ...ticket,
+            title: event.title,
+            when: event.when,
+            place: event.place,
+            photo: event.photo,
+            mode: ticket.role === 'host' ? ticketMode : ticket.mode,
+            doorPay: ticket.role === 'host' && ticketMode === 'door' ? price : ticket.doorPay
+          };
+        });
+        saveState({
+          ...state,
+          userEvents: (state.userEvents || []).map(item =>
+            String(item.id) === String(eventId) ? event : item
+          ),
+          tickets
+        });
+        navigate('event', eventId);
+        return;
+      }
 
       const hostTicket = {
         id: `t-${eventId}-host`,
@@ -1220,7 +1277,6 @@ export function createEventScreen() {
         createdAt: new Date().toISOString()
       };
 
-      const state = getState();
       saveState({
         ...state,
         userEvents: [event, ...(state.userEvents || [])],
