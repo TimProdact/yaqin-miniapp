@@ -73,10 +73,11 @@ function meGuest() {
 
 function goingForEvent(eventId) {
   const key = Number(eventId);
-  const demo = Number.isFinite(key) && DEMO_GOING[key] ? DEMO_GOING[key] : (Number.isFinite(key) ? DEMO_GOING[0] : []);
+  const demoRaw = Number.isFinite(key) && DEMO_GOING[key] ? DEMO_GOING[key] : [];
+  const demo = demoRaw.map(person => ({ ...person, demo: true }));
   const mine = (getState().eventGoing || {})[eventId];
   if (!mine) return demo;
-  return [mine, ...demo.filter(person => person.id !== 'me')];
+  return [mine, ...demo.filter(person => person.id !== 'me' && String(person.id) !== String(mine.id))];
 }
 
 function saveGoing(eventId, entry) {
@@ -124,7 +125,7 @@ function renderWhoList(eventId) {
       <${isMe ? 'div' : 'button type="button"'} class="taneesh-who-row ${isMe ? 'me' : ''}" ${attrs}>
         <img src="${esc(person.photo)}" alt="">
         <div class="taneesh-who-copy">
-          <span>${esc(person.name)}${person.age ? `, ${person.age}` : ''}${isMe ? ' · вы' : ''}</span>
+          <span>${esc(person.name)}${person.age ? `, ${person.age}` : ''}${isMe ? ' · вы' : ''}${person.demo ? ' · демо' : ''}</span>
           ${person.message ? `<small>${esc(person.message)}</small>` : ''}
         </div>
       </${isMe ? 'div' : 'button'}>`;

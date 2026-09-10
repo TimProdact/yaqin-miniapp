@@ -122,17 +122,29 @@ export async function verifyScreen(_id, token) {
 
 export function startVerification() {
   const telegram = window.Telegram?.WebApp;
-  const username = window.YAQIN_BOT_USERNAME || '';
+  const username = String(window.YAQIN_BOT_USERNAME || '').trim();
 
-  if (username && telegram?.openTelegramLink) {
-    telegram.openTelegramLink(`https://t.me/${username}?start=verify`);
+  if (username) {
+    const url = `https://t.me/${username}?start=verify`;
+    try {
+      if (telegram?.openTelegramLink) {
+        telegram.openTelegramLink(url);
+      } else {
+        window.open(url, '_blank', 'noopener');
+      }
+    } catch (_) {
+      window.open(url, '_blank', 'noopener');
+    }
+    saveDemoVerification({ status: 'pending', stage: 'awaiting_video' });
+    saveState({ ...getState(), verifyStep: 'status' });
+    navigate('verify');
     return;
   }
   if (telegram?.showAlert) {
-    telegram.showAlert('Отправьте /verify в боте, чтобы получить код.');
+    telegram.showAlert('Задайте YAQIN_BOT_USERNAME в config.js или отправьте /verify в боте.');
     return;
   }
-  // Локальное демо без Telegram: имитируем «код выдан, ждём видео»
+  // Локальное демо без Telegram и без username
   saveDemoVerification({ status: 'pending', stage: 'awaiting_video' });
   saveState({ ...getState(), verifyStep: 'status' });
   navigate('verify');

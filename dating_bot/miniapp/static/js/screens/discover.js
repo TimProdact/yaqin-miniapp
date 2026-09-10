@@ -299,7 +299,7 @@ export function filtersScreen() {
           <p class="filter-hint">Покажем тех, у кого есть хотя бы один выбранный интерес.</p>
         </section>
 
-        <button class="filters-save" data-action="save-filters">Сохранить</button>
+        <button class="filters-save" type="button" id="saveFilters">Сохранить</button>
       </div>`;
 
     const minInput = view.querySelector('#ageMin');
@@ -346,7 +346,7 @@ export function filtersScreen() {
       };
     });
 
-    view.querySelector('[data-action="save-filters"]').onclick = () => {
+    view.querySelector('#saveFilters').onclick = () => {
       saveFilters({ ageMin, ageMax, distance, interests: [...interests] });
       navigate('people');
     };

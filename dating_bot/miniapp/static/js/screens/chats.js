@@ -1,4 +1,4 @@
-import { people, PHOTOS } from '../data.js';
+import { people } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { listAllGroups, allEvents } from './community.js';
 import { interestsOf } from '../profile-fields.js';
@@ -324,8 +324,31 @@ export function chatScreen(id) {
           <b>${esc(message.name)}</b>
           <time>${esc(message.time)}</time>
         </div>
+        ${message.replyTo ? `<div class="bubble-reply"><small>В ответ</small><span>${esc(message.replyTo)}</span></div>` : ''}
         ${message.text ? `<p>${message.text.split('\n').map(line => esc(line)).join('<br>')}</p>` : ''}
         ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
+        ${message.link ? `
+          <a class="link-card" href="${esc(message.link.url)}" target="_blank" rel="noopener">
+            ${message.link.image ? `<img src="${esc(message.link.image)}" alt="">` : ''}
+            <div>
+              <small>${esc(message.link.domain || '')}</small>
+              <strong>${esc(message.link.title || '')}</strong>
+              ${message.link.desc ? `<span>${esc(message.link.desc)}</span>` : ''}
+            </div>
+          </a>` : ''}
+        ${message.audio ? `
+          <div class="audio-bubble" role="group" aria-label="Голосовое">
+            <i class="ti ti-player-play-filled"></i>
+            <div>
+              <span class="audio-track"></span>
+              <small>${esc(message.audio.duration || '0:00')}</small>
+            </div>
+            <time>${esc(message.time)}</time>
+          </div>` : ''}
+        ${message.reaction ? `
+          <div class="bubble-reactions">
+            <span>${esc(message.reaction)}</span>
+          </div>` : ''}
       </div>
     </div>`;
 
@@ -366,6 +389,7 @@ export function chatScreen(id) {
         </div>` : ''}
       <div class="message-bar">
         <button class="msg-add" id="attachPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
+        <input type="file" id="attachFile" accept="image/*" hidden>
         <label class="msg-field">
           <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
         </label>
@@ -394,9 +418,18 @@ export function chatScreen(id) {
   });
 
   view.querySelector('#attachPhoto')?.addEventListener('click', () => {
-    ui.attachPhoto = PHOTOS.city;
-    setChatUi(chatId, ui);
-    chatScreen(chatId);
+    view.querySelector('#attachFile')?.click();
+  });
+  view.querySelector('#attachFile')?.addEventListener('change', event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      ui.attachPhoto = String(reader.result || '');
+      setChatUi(chatId, ui);
+      chatScreen(chatId);
+    };
+    reader.readAsDataURL(file);
   });
   view.querySelector('#clearAttach')?.addEventListener('click', () => {
     ui.attachPhoto = null;

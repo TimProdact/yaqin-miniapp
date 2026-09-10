@@ -1,4 +1,5 @@
 import { unreadChatCount } from './match.js';
+import { esc } from './dom.js';
 
 const screens = new Map();
 
@@ -99,7 +100,7 @@ export function render() {
     console.error(error);
     const view = document.getElementById('view');
     if (view) {
-      view.innerHTML = `<div class="yaqin-boot-error" style="position:static;padding:24px"><h1>Ошибка экрана</h1><pre>${String(error?.stack || error)}</pre></div>`;
+      view.innerHTML = `<div class="yaqin-boot-error" style="position:static;padding:24px"><h1>Ошибка экрана</h1><pre>${esc(String(error?.stack || error))}</pre></div>`;
     }
   }
 }

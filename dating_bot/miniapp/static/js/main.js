@@ -37,6 +37,7 @@ import {
   legalScreen
 } from './screens/me.js';
 import { onboardingScreen } from './screens/onboarding.js';
+import { getState } from './state.js';
 
 const telegram = window.Telegram?.WebApp;
 
@@ -203,3 +204,7 @@ document.querySelectorAll('.nav button').forEach(button => {
 });
 
 render();
+
+if (!getState().onboarded) {
+  navigate('onboarding');
+}

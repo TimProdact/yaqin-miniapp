@@ -110,6 +110,34 @@ export function requestJoinGroup(id) {
   return pending;
 }
 
+export function acceptJoinRequest(groupId, userId) {
+  const state = getState();
+  const list = (state.userGroups || []).map(group => {
+    if (String(group.id) !== String(groupId)) return group;
+    const requests = (group.joinRequests || []).filter(item => String(item.id) !== String(userId));
+    return {
+      ...group,
+      joinRequests: requests,
+      members: Math.max(1, Number(group.members || 1) + 1)
+    };
+  });
+  saveState({ ...state, userGroups: list });
+  return list.find(group => String(group.id) === String(groupId)) || null;
+}
+
+export function rejectJoinRequest(groupId, userId) {
+  const state = getState();
+  const list = (state.userGroups || []).map(group => {
+    if (String(group.id) !== String(groupId)) return group;
+    return {
+      ...group,
+      joinRequests: (group.joinRequests || []).filter(item => String(item.id) !== String(userId))
+    };
+  });
+  saveState({ ...state, userGroups: list });
+  return list.find(group => String(group.id) === String(groupId)) || null;
+}
+
 export function getUserEvents() {
   return getState().userEvents || [];
 }
@@ -322,8 +350,15 @@ export function createGroupScreen() {
         members: 1,
         online: 1,
         membership: 'member',
+        ownerId: 'me',
         createdAt: new Date().toISOString(),
         ownerName: profile.name || 'Вы',
+        joinRequests: isPublic ? [] : people.slice(1, 3).map(person => ({
+          id: person.id,
+          name: person.name,
+          photo: person.photo,
+          age: person.age
+        })),
         messages: [
           {
             from: 'me',
@@ -373,6 +408,8 @@ export function groupHubScreen(id) {
   const member = isGroupMember(group);
   const pending = isGroupPending(group);
   const open = isGroupPublic(group);
+  const isOwner = member && (group.ownerId === 'me' || String(group.id).startsWith('g-'));
+  const joinRequests = isOwner ? (group.joinRequests || []) : [];
 
   view.innerHTML = `
     <div class="group-hub-page">
@@ -390,6 +427,21 @@ export function groupHubScreen(id) {
         <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
         <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
         <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
+
+        ${joinRequests.length ? `
+          <h3>Заявки · ${joinRequests.length}</h3>
+          <div class="group-join-requests">
+            ${joinRequests.map(person => `
+              <div class="group-join-row">
+                <img src="${esc(person.photo)}" alt="">
+                <div>
+                  <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
+                  <span>Хочет вступить</span>
+                </div>
+                <button type="button" class="group-join-accept" data-accept="${esc(String(person.id))}">Принять</button>
+                <button type="button" class="group-join-reject" data-reject="${esc(String(person.id))}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
+              </div>`).join('')}
+          </div>` : ''}
 
         <h3>Участницы</h3>
         <div class="group-hub-members">
@@ -441,6 +493,18 @@ export function groupHubScreen(id) {
   view.querySelector('#joinOpenGroup')?.addEventListener('click', () => {
     const joined = joinOpenGroup(group.id);
     if (joined) navigate('group-chat', joined.id);
+  });
+  view.querySelectorAll('[data-accept]').forEach(button => {
+    button.onclick = () => {
+      acceptJoinRequest(group.id, button.dataset.accept);
+      groupHubScreen(group.id);
+    };
+  });
+  view.querySelectorAll('[data-reject]').forEach(button => {
+    button.onclick = () => {
+      rejectJoinRequest(group.id, button.dataset.reject);
+      groupHubScreen(group.id);
+    };
   });
 }
 
@@ -527,13 +591,31 @@ export function groupChatScreen(id) {
 /** Создание события — поля как в Taneesh: ряды → модалки. */
 export function createEventScreen() {
   clearHeader();
+  const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  const WEEKDAYS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+  const whenSlot = (date, timeLabel, label) => {
+    const slot = new Date(date.getTime());
+    return {
+      when: `${label || `${WEEKDAYS[slot.getDay()]}, ${slot.getDate()} ${MONTHS_SHORT[slot.getMonth()]}`} · ${timeLabel}`,
+      day: String(slot.getDate()),
+      month: MONTHS_SHORT[slot.getMonth()]
+    };
+  };
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const inDays = n => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d;
+  };
   const WHEN_OPTIONS = [
-    { when: 'Сегодня · 19:00', day: String(new Date().getDate()), month: 'сен' },
-    { when: 'Завтра · 11:00', day: String(new Date().getDate() + 1), month: 'сен' },
-    { when: 'Сб, 20 сен · 10:00', day: '20', month: 'сен' },
-    { when: 'Вс, 21 сен · 11:00', day: '21', month: 'сен' },
-    { when: 'Пт, 26 сен · 19:30', day: '26', month: 'сен' },
-    { when: 'Сб, 27 сен · 16:00', day: '27', month: 'сен' }
+    whenSlot(today, '19:00', 'Сегодня'),
+    whenSlot(tomorrow, '11:00', 'Завтра'),
+    whenSlot(inDays(3), '10:00'),
+    whenSlot(inDays(4), '11:00'),
+    whenSlot(inDays(7), '19:30'),
+    whenSlot(inDays(8), '16:00')
   ];
   const PLACE_OPTIONS = [
     'Кофейня в центре',
@@ -551,7 +633,7 @@ export function createEventScreen() {
 
   let title = '';
   let place = '';
-  let city = 'Ташкент';
+  let address = '';
   let description = '';
   let interests = [];
   let whenIdx = 3;
@@ -559,6 +641,7 @@ export function createEventScreen() {
   let coverIndex = 0;
   let ticketMode = 'free';
   let doorPrice = '50000';
+  let paidPrice = '45000';
   let capacity = '30';
   let sheet = null;
   let sheetQuery = '';
@@ -632,6 +715,19 @@ export function createEventScreen() {
         </div>`;
     }
 
+    if (sheet === 'address') {
+      return `
+        <div class="edit-sheet-scrim" id="sheetScrim"></div>
+        <div class="edit-sheet edit-sheet--text create-when-sheet" role="dialog" aria-modal="true">
+          ${sheetHead('Адрес', 'Уточните локацию')}
+          <textarea class="create-sheet-textarea" id="addressInput" maxlength="120" rows="3" placeholder="Улица, ориентир или «онлайн»">${esc(draftText)}</textarea>
+          <div class="edit-sheet-foot">
+            ${draftText ? '<button type="button" class="edit-sheet-clear-field" id="clearAddress">Очистить</button>' : ''}
+            <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+          </div>
+        </div>`;
+    }
+
     if (sheet === 'description') {
       return `
         <div class="edit-sheet-scrim" id="sheetScrim"></div>
@@ -697,10 +793,13 @@ export function createEventScreen() {
   };
 
   const render = () => {
-    const ready = title.trim().length > 1 && place.trim().length > 1
-      && (ticketMode === 'free' || Number(String(doorPrice).replace(/\D/g, '')) > 0);
-    const when = whenOf();
     const doorSum = Number(String(doorPrice).replace(/\D/g, '')) || 0;
+    const paidSum = Number(String(paidPrice).replace(/\D/g, '')) || 0;
+    const ready = title.trim().length > 1 && place.trim().length > 1
+      && (ticketMode === 'free'
+        || (ticketMode === 'door' && doorSum > 0)
+        || (ticketMode === 'paid' && paidSum > 0));
+    const when = whenOf();
 
     view.innerHTML = `
       <div class="create-event-page">
@@ -713,6 +812,7 @@ export function createEventScreen() {
         <div class="create-cover create-event-cover ${cover ? 'has-photo' : ''}">
           ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ОБЛОЖКА</span>`}
           <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+          <input type="file" id="coverFile" accept="image/*" hidden>
         </div>
 
         <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}" maxlength="80" autocomplete="off">
@@ -721,6 +821,11 @@ export function createEventScreen() {
           <button class="settings-row" type="button" data-sheet="place">
             <span class="settings-icon orange square"><i class="ti ti-map-pin"></i></span>
             <span>Место<br><small>${esc(preview(place, 'Добавить'))}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          <button class="settings-row" type="button" data-sheet="address">
+            <span class="settings-icon blue square"><i class="ti ti-building"></i></span>
+            <span>Адрес<br><small>${esc(preview(address, 'Добавить'))}</small></span>
             <i class="ti ti-chevron-right"></i>
           </button>
           <button class="settings-row" type="button" data-sheet="when">
@@ -751,7 +856,10 @@ export function createEventScreen() {
             <i class="ti ti-ticket"></i> Бесплатно
           </button>
           <button type="button" class="${ticketMode === 'door' ? 'on' : ''}" data-mode="door">
-            <i class="ti ti-cash"></i> Оплата на входе
+            <i class="ti ti-cash"></i> На входе
+          </button>
+          <button type="button" class="${ticketMode === 'paid' ? 'on' : ''}" data-mode="paid">
+            <i class="ti ti-credit-card"></i> Онлайн
           </button>
         </div>
 
@@ -764,11 +872,22 @@ export function createEventScreen() {
             </div>
           </label>
         ` : ''}
+        ${ticketMode === 'paid' ? `
+          <label class="create-price-field">
+            <span>Цена билета</span>
+            <div class="create-price-input">
+              <input id="paidPrice" type="text" inputmode="numeric" value="${esc(paidPrice)}" placeholder="45000" maxlength="10" autocomplete="off">
+              <em>сум</em>
+            </div>
+          </label>
+        ` : ''}
 
         <p class="create-legal">
           ${ticketMode === 'free'
             ? 'Гость записывается бесплатно и получает QR для входа.'
-            : `Гость бронирует место бесплатно, на входе платит ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'указанную сумму'} и показывает QR.`}
+            : ticketMode === 'paid'
+              ? `Гость оплачивает ${paidSum ? paidSum.toLocaleString('ru-RU') + ' сум' : 'билет'} в Mini App и получает QR.`
+              : `Гость бронирует место бесплатно, на входе платит ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'указанную сумму'} и показывает QR.`}
         </p>
 
         <div class="create-sticky-cta">
@@ -781,7 +900,9 @@ export function createEventScreen() {
     const syncReady = () => {
       const btn = view.querySelector('#createEventBtn');
       if (!btn) return;
-      const priceOk = ticketMode === 'free' || Number(String(doorPrice).replace(/\D/g, '')) > 0;
+      const doorOk = Number(String(doorPrice).replace(/\D/g, '')) > 0;
+      const paidOk = Number(String(paidPrice).replace(/\D/g, '')) > 0;
+      const priceOk = ticketMode === 'free' || (ticketMode === 'door' && doorOk) || (ticketMode === 'paid' && paidOk);
       const ok = title.trim().length > 1 && place.trim().length > 1 && priceOk;
       btn.disabled = !ok;
       btn.classList.toggle('on', ok);
@@ -789,20 +910,39 @@ export function createEventScreen() {
 
     view.querySelector('#eventTitle').oninput = event => { title = event.target.value; syncReady(); };
     view.querySelector('#setCover').onclick = () => {
-      cover = nextCover(coverIndex++);
-      render();
+      view.querySelector('#coverFile')?.click();
     };
+    view.querySelector('#coverFile')?.addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        cover = nextCover(coverIndex++);
+        render();
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        cover = String(reader.result || '') || nextCover(coverIndex++);
+        render();
+      };
+      reader.onerror = () => {
+        cover = nextCover(coverIndex++);
+        render();
+      };
+      reader.readAsDataURL(file);
+    });
     view.querySelectorAll('[data-sheet]').forEach(button => {
       button.onclick = () => {
         sheet = button.dataset.sheet;
         sheetQuery = '';
         if (sheet === 'description') draftText = description;
+        if (sheet === 'address') draftText = address;
         render();
       };
     });
     view.querySelectorAll('[data-mode]').forEach(button => {
       button.onclick = () => {
-        ticketMode = button.dataset.mode === 'door' ? 'door' : 'free';
+        const mode = button.dataset.mode;
+        ticketMode = mode === 'door' || mode === 'paid' ? mode : 'free';
         render();
       };
     });
@@ -814,6 +954,14 @@ export function createEventScreen() {
         syncReady();
       };
     }
+    const paidInput = view.querySelector('#paidPrice');
+    if (paidInput) {
+      paidInput.oninput = event => {
+        paidPrice = event.target.value.replace(/[^\d]/g, '');
+        event.target.value = paidPrice;
+        syncReady();
+      };
+    }
 
     view.querySelector('#sheetScrim')?.addEventListener('click', closeSheet);
     view.querySelector('#closeSheet')?.addEventListener('click', closeSheet);
@@ -821,6 +969,9 @@ export function createEventScreen() {
       if (sheet === 'place') {
         const custom = view.querySelector('#placeCustom')?.value?.trim() || '';
         if (custom) place = custom;
+      }
+      if (sheet === 'address') {
+        address = (view.querySelector('#addressInput')?.value || draftText || '').trim();
       }
       if (sheet === 'description') {
         description = (view.querySelector('#descInput')?.value || draftText || '').trim();
@@ -888,13 +1039,27 @@ export function createEventScreen() {
       description = '';
       render();
     });
+    const addressInput = view.querySelector('#addressInput');
+    if (addressInput) {
+      addressInput.focus();
+      addressInput.oninput = () => { draftText = addressInput.value; };
+    }
+    view.querySelector('#clearAddress')?.addEventListener('click', () => {
+      draftText = '';
+      address = '';
+      render();
+    });
 
     view.querySelector('#createEventBtn').onclick = () => {
       if (!(title.trim().length > 1 && place.trim().length > 1)) return;
       const profile = getState().profile || defaultProfile;
       const slot = whenOf();
-      const price = ticketMode === 'door' ? Number(String(doorPrice).replace(/\D/g, '')) || 0 : 0;
-      if (ticketMode === 'door' && price < 1) return;
+      const price = ticketMode === 'door'
+        ? Number(String(doorPrice).replace(/\D/g, '')) || 0
+        : ticketMode === 'paid'
+          ? Number(String(paidPrice).replace(/\D/g, '')) || 0
+          : 0;
+      if ((ticketMode === 'door' || ticketMode === 'paid') && price < 1) return;
 
       const eventId = `e-${Date.now()}`;
       const event = {
@@ -904,7 +1069,7 @@ export function createEventScreen() {
         day: slot.day,
         month: slot.month,
         place: place.trim(),
-        address: city,
+        address: address.trim() || 'Ташкент',
         description: description.trim(),
         interests: [...interests],
         capacity: Number(capacity) || 30,
@@ -915,9 +1080,9 @@ export function createEventScreen() {
         photo: cover || nextCover(1),
         isFree: ticketMode === 'free',
         ticketMode,
-        paymentMode: ticketMode === 'door' ? 'at_door' : undefined,
+        paymentMode: ticketMode === 'door' ? 'at_door' : ticketMode === 'paid' ? 'online' : undefined,
         price,
-        fee: 0,
+        fee: ticketMode === 'paid' ? Math.round(price * 0.1) : 0,
         currency: 'UZS',
         source: 'yaqin',
         createdAt: new Date().toISOString()
@@ -962,7 +1127,9 @@ export function createEventScreen() {
         title: 'Событие создано',
         subtitle: ticketMode === 'free'
           ? 'Гости запишутся и получат QR. Ваш QR уже в «Билеты».'
-          : 'Гости бронируют место, платят на входе и показывают QR.',
+          : ticketMode === 'paid'
+            ? 'Гости оплатят онлайн и получат QR. Ваш QR уже в «Билеты».'
+            : 'Гости бронируют место, платят на входе и показывают QR.',
         primaryLabel: 'Открыть QR',
         secondaryLabel: 'К событию',
         shareText: `Иду на «${event.title}» — присоединяйся в Yaqin`,

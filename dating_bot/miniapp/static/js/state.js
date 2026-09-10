@@ -10,7 +10,7 @@ const initialState = {
   skipped: [],
   blocked: [],
   profile: null,
-  onboarded: true,
+  onboarded: false,
   filters: { ageMin: 18, ageMax: 40, distance: 50, interests: [], city: 'Ташкент' },
   theme: { dark: false, followSystem: true },
   email: '',
