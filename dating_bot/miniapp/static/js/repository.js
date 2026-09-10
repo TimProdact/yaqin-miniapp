@@ -2,6 +2,7 @@ import { api, isLive } from './api.js';
 import { people as demoPeople, defaultProfile } from './data.js';
 import { getState, saveState } from './state.js';
 import { interestsOf, lookingOf } from './profile-fields.js';
+import { wouldMatch } from './match.js';
 
 const PLACEHOLDER_PHOTO =
   'data:image/svg+xml;utf8,' +
@@ -33,11 +34,13 @@ function toPerson(item) {
 }
 
 export async function loadPeople({ includeSkipped = false } = {}) {
-  const { blocked, skipped, filters } = getState();
-  const hidden = includeSkipped ? [...blocked] : [...blocked, ...skipped];
+  const { blocked, skipped, liked, matches, filters } = getState();
+  const hidden = includeSkipped
+    ? [...blocked]
+    : [...blocked, ...skipped, ...(liked || []), ...(matches || [])];
   const candidates = isLive ? (await api.discover()).items.map(toPerson) : demoPeople;
   return candidates.filter(person => {
-    if (hidden.includes(person.id)) return false;
+    if (hidden.map(Number).includes(Number(person.id))) return false;
     if (person.age < filters.ageMin || person.age > filters.ageMax) return false;
     const km = person.distanceKm ?? 10;
     if (km > (filters.distance || 50)) return false;
@@ -102,6 +105,6 @@ export function saveDemoVerification(verification) {
 }
 
 export async function sendLike(id) {
-  if (!isLive) return { mutual: true };
+  if (!isLive) return { mutual: wouldMatch(id) };
   return api.like(id);
 }

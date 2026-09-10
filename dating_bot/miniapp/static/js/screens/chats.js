@@ -1,11 +1,21 @@
-import { chats, people, PHOTOS } from '../data.js';
+import { people, PHOTOS } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { getUserGroups } from './community.js';
 import { interestsOf } from '../profile-fields.js';
 import { navigate } from '../router.js';
+import {
+  listVisibleChats,
+  getChatByIndex,
+  chatIndexForPerson,
+  matchedPeople,
+  appendChatMessage,
+  markChatRead,
+  unreadChatCount
+} from '../match.js';
 
+/** @deprecated use chatIndexForPerson — оставлено для совместимости импортов */
 export function chatIdForPerson(personId) {
-  const index = chats.findIndex(chat => chat.personId === Number(personId));
+  const index = chatIndexForPerson(personId);
   return index >= 0 ? index : 0;
 }
 
@@ -14,9 +24,20 @@ function avatar(photo, team = false) {
   return `<div class="chat-avatar">${photo ? `<img src="${esc(photo)}">` : '✿'}</div>`;
 }
 
+function syncChatsBadge() {
+  const badge = document.querySelector('.nav button[data-tab="chats"] .badge');
+  if (!badge) return;
+  const count = unreadChatCount();
+  badge.hidden = count < 1;
+  badge.textContent = String(count);
+}
+
 export function chatsScreen() {
   clearHeader();
-  const hasChats = chats.length > 0;
+  const chats = listVisibleChats();
+  const dms = chats.filter(chat => !chat.team);
+  const hasDms = dms.length > 0;
+  syncChatsBadge();
 
   view.innerHTML = `
     <div class="chats-page">
@@ -25,31 +46,35 @@ export function chatsScreen() {
         <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
       </header>
 
-      ${hasChats ? `
+      ${hasDms ? `
         <h2 class="chats-section">Новые знакомства</h2>
         <div class="new-friends">
-          <div class="new-friend">
-            <img src="${esc(people[0].photo)}" alt="">
-            <b>НОВОЕ</b>
-          </div>
-        </div>
-        <div class="chat-list">${chats.map((chat, index) => `
-          <button class="chat-row" data-action="chat" data-id="${index}">
-            ${avatar(chat.photo, chat.team)}
-            <div class="chat-copy">
-              <strong>${esc(chat.name)}</strong>
-              <span>${esc(chat.preview)} · ${esc(chat.time)}</span>
-            </div>
-            ${chat.unread ? '<i class="unread-dot"></i>' : ''}
-          </button>`).join('')}</div>`
-      : `<div class="chats-empty">
-          <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
-          <h2>Пока нет чатов</h2>
-          <p>После взаимного привета переписка появится здесь.</p>
-          <button class="empty-primary" type="button" data-action="people">Смотреть анкеты</button>
-        </div>`}
+          ${dms.slice(0, 3).map(chat => `
+            <button type="button" class="new-friend" data-action="chat" data-id="${chatIndexForPerson(chat.personId)}">
+              <img src="${esc(chat.photo || people[0].photo)}" alt="">
+              ${chat.unread ? '<b>НОВОЕ</b>' : ''}
+            </button>`).join('')}
+        </div>` : ''}
 
-      <button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>
+      <div class="chat-list">${chats.map((chat, index) => `
+        <button class="chat-row" data-action="chat" data-id="${index}">
+          ${avatar(chat.photo, chat.team)}
+          <div class="chat-copy">
+            <strong>${esc(chat.name)}</strong>
+            <span>${esc(chat.preview)} · ${esc(chat.time || '')}</span>
+          </div>
+          ${chat.unread ? '<i class="unread-dot"></i>' : ''}
+        </button>`).join('')}</div>
+
+      ${!hasDms ? `
+        <div class="chats-empty compact">
+          <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
+          <h2>Пока нет переписок</h2>
+          <p>Передайте привет в «Люди». Чат появится, когда она ответит приветом.</p>
+          <button class="empty-primary" type="button" data-action="people">Смотреть анкеты</button>
+        </div>` : ''}
+
+      ${hasDms ? `<button class="compose" data-action="new-dm" aria-label="Написать"><i class="ti ti-send"></i></button>` : ''}
     </div>`;
 }
 
@@ -60,10 +85,11 @@ export function searchChatsScreen(queryOrId = '') {
 
   const render = () => {
     const term = query.trim().toLowerCase();
+    const chats = listVisibleChats();
     const dmRows = chats
       .map((chat, index) => ({ chat, index }))
       .filter(({ chat }) =>
-        !term || chat.name.toLowerCase().includes(term) || chat.preview.toLowerCase().includes(term)
+        !term || chat.name.toLowerCase().includes(term) || (chat.preview || '').toLowerCase().includes(term)
       );
     const groupRows = groups.filter(group =>
       !term || group.title.toLowerCase().includes(term) || (group.about || '').toLowerCase().includes(term)
@@ -87,7 +113,7 @@ export function searchChatsScreen(queryOrId = '') {
               ${dmRows.map(({ chat, index }) => `
                 <button class="chat-row" data-action="chat" data-id="${index}">
                   ${avatar(chat.photo, chat.team)}
-                  <div class="chat-copy"><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)} · ${esc(chat.time)}</span></div>
+                  <div class="chat-copy"><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)}</span></div>
                 </button>`).join('')}
               ${groupRows.map(group => `
                 <button class="chat-row" data-action="group-chat" data-id="${esc(group.id)}">
@@ -119,10 +145,10 @@ export function searchChatsScreen(queryOrId = '') {
   render();
 }
 
-/** Выбор человека → сразу открыть его чат. */
+/** Только мэтчи — без взаимного привета писать нельзя. */
 export function newDmScreen() {
   clearHeader();
-  const friends = people.slice(0, 6);
+  const friends = matchedPeople();
   let query = '';
 
   const render = () => {
@@ -132,44 +158,53 @@ export function newDmScreen() {
       <div class="new-dm-page">
         <header class="modal-head">
           <button data-action="chats" aria-label="Закрыть"><i class="ti ti-x"></i></button>
-          <h1>Новое сообщение</h1>
+          <h1>Написать</h1>
           <span></span>
         </header>
-        <h2 class="invite-title">Кому написать</h2>
+        <h2 class="invite-title">Взаимные приветы</h2>
         <input class="plain-search" id="dmSearch" placeholder="Поиск..." value="${esc(query)}">
-        <h3 class="list-label">Знакомства</h3>
-        ${list.map(person => `
-          <button class="pick-row" type="button" data-open-dm="${person.id}">
-            <img src="${esc(person.photo)}" alt="">
-            <div>
-              <strong>${esc(person.name)}</strong>
-              <span>${esc(person.city)}</span>
-            </div>
-            <i class="ti ti-chevron-right"></i>
-          </button>`).join('') || '<p class="search-none">Никого не нашли</p>'}
+        ${list.length
+          ? list.map(person => `
+            <button class="pick-row" type="button" data-open-dm="${person.id}">
+              <img src="${esc(person.photo)}" alt="">
+              <div>
+                <strong>${esc(person.name)}</strong>
+                <span>${esc(person.city)}</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`).join('')
+          : `<div class="chats-empty compact">
+              <p class="search-none">Пока нет взаимных приветов. Сначала помашите в «Люди».</p>
+              <button class="empty-primary" type="button" data-action="people">К анкетам</button>
+            </div>`}
       </div>`;
 
-    view.querySelector('#dmSearch').oninput = event => {
+    view.querySelector('#dmSearch')?.addEventListener('input', event => {
       query = event.target.value;
       render();
-    };
-    view.querySelectorAll('[data-open-dm]').forEach(button => {
-      button.onclick = () => navigate('chat', chatIdForPerson(Number(button.dataset.openDm)));
     });
-    if (query) {
-      const input = view.querySelector('#dmSearch');
-      input.focus();
-      input.setSelectionRange(query.length, query.length);
-    }
+    view.querySelectorAll('[data-open-dm]').forEach(button => {
+      button.onclick = () => {
+        const index = chatIndexForPerson(Number(button.dataset.openDm));
+        if (index >= 0) navigate('chat', index);
+      };
+    });
   };
   render();
 }
 
-/** ЛС MVP: текст + фото. Без GIF / голоса / файлов / reply / реакций. */
 export function chatScreen(id) {
   clearHeader();
-  const chatId = Number(id) || 0;
-  const chat = chats[chatId];
+  const chatId = Number(id);
+  const chat = getChatByIndex(chatId);
+  if (!chat) {
+    navigate('chats');
+    return;
+  }
+
+  if (chat.personId) markChatRead(chat.personId);
+  syncChatsBadge();
+
   const messages = chat.messages || [];
   const person = people.find(item => item.id === chat.personId);
   const pills = interestsOf(person).slice(0, 3);
@@ -183,29 +218,11 @@ export function chatScreen(id) {
       ${message.from === 'me' ? '' : avatar(chat.photo, chat.team)}
       <div class="bubble-body">
         <div class="bubble-head">
-          <b class="${message.link ? 'accent' : ''}">${esc(message.name)}</b>
+          <b>${esc(message.name)}</b>
           <time>${esc(message.time)}</time>
         </div>
         ${message.text ? `<p>${message.text.split('\n').map(line => esc(line)).join('<br>')}</p>` : ''}
         ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
-        ${message.audio ? `
-          <div class="audio-bubble">
-            <i class="ti ti-player-play-filled"></i>
-            <div>
-              <span class="audio-track"></span>
-              <small>Аудиосообщение</small>
-            </div>
-            <time>${esc(message.audio.duration || '0:10')}</time>
-          </div>` : ''}
-        ${message.link ? `
-          <div class="link-card">
-            <img src="${esc(message.link.image)}" alt="">
-            <div>
-              <small>${esc(message.link.domain)}</small>
-              <strong>${esc(message.link.title)}</strong>
-              <span>${esc(message.link.desc)}</span>
-            </div>
-          </div>` : ''}
       </div>
     </div>`;
 
@@ -217,42 +234,47 @@ export function chatScreen(id) {
         </button>
         <div class="chat-peer">
           <h1>${esc(chat.name)}</h1>
-          <p>Чат</p>
+          <p>${chat.team ? 'Yaqin' : 'Чат'}</p>
         </div>
         ${chat.personId ? `<button id="chatMenuBtn" aria-label="Ещё"><i class="ti ti-dots"></i></button>` : '<span></span>'}
       </header>
 
-      ${ui.menuOpen ? `
+      ${ui.menuOpen && chat.personId ? `
         <div class="chat-menu-pop">
           <button type="button" data-action="person" data-id="${chat.personId}">Смотреть профиль</button>
           <button type="button" data-action="report-flow" data-id="${chat.personId}">Пожаловаться</button>
         </div>` : ''}
 
       <main class="chat-thread ${empty ? 'start' : ''}">
-        <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
-        <p class="chat-meta">${empty
-          ? `Это начало вашей переписки · ${esc(chat.name)}`
-          : `Вы познакомились · ${esc(chat.name)}`}</p>
-        <div class="chat-pills">${emptyPills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
+        ${chat.team ? '' : `
+          <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
+          <p class="chat-meta">${empty
+            ? `Это начало вашей переписки · ${esc(chat.name)}`
+            : `Вы познакомились · ${esc(chat.name)}`}</p>
+          <div class="chat-pills">${emptyPills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
+        `}
         ${messages.map(renderMessage).join('')}
       </main>
 
-      ${ui.attachPhoto ? `
-        <div class="draft-attach">
-          <img src="${esc(ui.attachPhoto)}" alt="">
-          <button type="button" id="clearAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
-        </div>` : ''}
-
-      <div class="message-bar">
-        <button class="msg-add" id="attachPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
-        <label class="msg-field">
-          <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
-        </label>
-        <button class="msg-send ${hasDraft ? 'on' : ''}" id="sendMsg" aria-label="Отправить" ${hasDraft ? '' : 'disabled'}>
-          <i class="ti ti-arrow-up"></i>
-        </button>
-      </div>
+      ${chat.team ? '' : `
+        ${ui.attachPhoto ? `
+          <div class="draft-attach">
+            <img src="${esc(ui.attachPhoto)}" alt="">
+            <button type="button" id="clearAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
+          </div>` : ''}
+        <div class="message-bar">
+          <button class="msg-add" id="attachPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
+          <label class="msg-field">
+            <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
+          </label>
+          <button class="msg-send ${hasDraft ? 'on' : ''}" id="sendMsg" aria-label="Отправить" ${hasDraft ? '' : 'disabled'}>
+            <i class="ti ti-arrow-up"></i>
+          </button>
+        </div>
+      `}
     </div>`;
+
+  if (chat.team) return;
 
   const input = view.querySelector('#msgInput');
   input?.addEventListener('input', () => {
@@ -284,15 +306,13 @@ export function chatScreen(id) {
   });
   view.querySelector('#sendMsg')?.addEventListener('click', () => {
     if (!ui.draft.trim() && !ui.attachPhoto) return;
-    chat.messages = chat.messages || [];
-    chat.messages.push({
+    appendChatMessage(chat.personId, {
       from: 'me',
       name: 'Вы',
       text: ui.draft.trim(),
       time: 'сейчас',
       image: ui.attachPhoto || undefined
     });
-    chat.preview = ui.draft.trim() || 'Фото';
     ui.draft = '';
     ui.attachPhoto = null;
     setChatUi(chatId, ui);
@@ -325,7 +345,6 @@ export function primeChatUi(id, patch = {}) {
   chatScreen(id);
 }
 
-/** Оставляем API для main.js — короткий sheet без реакций/reply. */
 export function showMessageMenu(person, message, chatId = 0) {
   closeMessageMenu();
   const overlay = document.createElement('div');

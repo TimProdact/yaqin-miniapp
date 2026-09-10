@@ -3,6 +3,14 @@ import { navigate } from './router.js';
 import { sendLike } from './repository.js';
 import { showError } from './dom.js';
 import { api, isLive } from './api.js';
+import {
+  completeMatch,
+  registerOutgoingWave,
+  showWaveBanner,
+  findPersonById,
+  isMatched,
+  chatIndexForPerson
+} from './match.js';
 
 export async function decide(action, id) {
   const targetId = Number(id);
@@ -14,12 +22,27 @@ export async function decide(action, id) {
     return;
   }
 
+  if (isMatched(targetId)) {
+    const index = chatIndexForPerson(targetId);
+    if (index >= 0) navigate('chat', index);
+    else navigate('chats');
+    return;
+  }
+
   try {
     const { mutual } = await sendLike(targetId);
-    addToList('liked', targetId);
-    navigate(mutual ? 'connected' : 'people', targetId);
+    if (mutual) {
+      const person = findPersonById(targetId);
+      if (person) completeMatch(person);
+      else registerOutgoingWave(targetId);
+      navigate('connected', targetId);
+      return;
+    }
+    registerOutgoingWave(targetId);
+    showWaveBanner('Привет отправлен — чат откроется, когда она ответит');
+    navigate('people');
   } catch {
-    showError('Симпатия не отправилась. Попробуйте ещё раз.');
+    showError('Привет не отправился. Попробуйте ещё раз.');
   }
 }
 

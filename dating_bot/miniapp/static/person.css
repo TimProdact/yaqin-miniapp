@@ -102,6 +102,12 @@ body.sheet-view .view {
   line-height: 1.25;
   color: var(--yaqin-text-secondary);
 }
+.person-wave-hint {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--yaqin-yellow);
+}
 .person-bio {
   margin: 18px 0 0;
   max-width: none;

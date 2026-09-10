@@ -2,7 +2,7 @@ import { registerScreens, navigate, goBack, render } from './router.js';
 import { view, header, showError } from './dom.js';
 import { decide, blockPerson, reportPerson } from './actions.js';
 import { saveProfile } from './repository.js';
-import { chats } from './data.js';
+import { getChatByIndex } from './match.js';
 import { peopleScreen, personScreen, filtersScreen, connectedScreen, getPersonById, showSkippedPeople } from './screens/discover.js';
 import {
   showPersonMenu,
@@ -152,7 +152,7 @@ async function handleAction(target) {
   }
   if (action === 'message-menu') {
     const chatId = Number(target.dataset.chat || 0);
-    const chat = chats[chatId] || chats.find(item => item.personId === Number(id)) || chats[0];
+    const chat = getChatByIndex(chatId);
     const message = chat?.messages?.[Number(target.dataset.msg || 0)];
     return showMessageMenu(person || { id: Number(id), name: message?.name, photo: chat?.photo }, message, chatId);
   }

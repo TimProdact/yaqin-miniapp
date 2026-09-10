@@ -1,7 +1,11 @@
-const STORAGE_KEY = 'yaqin-demo';
+const STORAGE_KEY = 'yaqin-demo-v2';
 
 const initialState = {
-  liked: [2],
+  liked: [],
+  /** Кто уже передал вам привет (демо-сид). */
+  incomingWaves: [1, 3, 7],
+  matches: [],
+  userChats: [],
   skipped: [],
   blocked: [],
   profile: null,

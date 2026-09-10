@@ -1,3 +1,5 @@
+import { unreadChatCount } from './match.js';
+
 const screens = new Map();
 
 const FULL_SCREEN_ROUTES = new Set([
@@ -109,4 +111,9 @@ function syncNav() {
   document.querySelectorAll('.nav button').forEach(button => {
     button.classList.toggle('active', button.dataset.tab === currentRoute);
   });
+  const badge = document.querySelector('.nav button[data-tab="chats"] .badge');
+  if (!badge) return;
+  const count = unreadChatCount();
+  badge.hidden = count < 1;
+  badge.textContent = String(count || '');
 }

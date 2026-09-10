@@ -1,12 +1,12 @@
 import { view, esc, setDiscoverHeader, clearHeader, showDiscoverLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
-import { loadPeople, clearSkipped, saveFilters, sendLike } from '../repository.js';
+import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
 import { decide } from '../actions.js';
 import { people as demoPeople } from '../data.js';
-import { getState, addToList } from '../state.js';
+import { getState } from '../state.js';
 import { closeSafetyOverlay } from './safety.js';
-import { chatIdForPerson } from './chats.js';
+import { chatIndexForPerson, hasIncomingWave, isMatched } from '../match.js';
 import {
   INTEREST_OPTIONS,
   interestsOf,
@@ -43,6 +43,7 @@ function renderEmptyState(kind = 'exhausted') {
 }
 
 function cardMarkup(person) {
+  const waved = hasIncomingWave(person.id);
   return `
     <div class="profile-card" data-id="${person.id}">
       <img src="${esc(person.photo)}" alt="">
@@ -51,14 +52,14 @@ function cardMarkup(person) {
       <div class="card-top">
         <h2>${esc(person.name)}</h2>
         <p>${person.age} • ${esc(person.city)}</p>
-        <span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>
+        ${waved ? '<span class="say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет!</span>' : ''}
       </div>
       <div class="card-bottom">
         <div class="card-bottom-copy">
           <p class="card-bio">${esc(person.bio)}</p>
           <div class="chips">${interestsOf(person).map(tag => `<span class="chip">${esc(tag)}</span>`).join('')}</div>
         </div>
-        <button class="decision like" data-action="like" data-id="${person.id}" aria-label="Передать привет">
+        <button class="decision like" data-action="like" data-id="${person.id}" aria-label="${waved ? 'Ответить приветом' : 'Передать привет'}">
           <i class="ti ti-hand-stop"></i>
         </button>
       </div>
@@ -157,6 +158,9 @@ export function personScreen(id) {
     chipGroup('Хочет', looking);
   const basic = basicRowsFromProfile(person);
 
+  const waved = hasIncomingWave(person.id);
+  const matched = isMatched(person.id);
+
   view.innerHTML = `
     <article class="person-view">
       <div class="person-hero" data-photos="${photos.length}">
@@ -171,8 +175,9 @@ export function personScreen(id) {
           <div class="person-head-copy">
             <h1>${esc(person.name)}</h1>
             <p class="person-meta">${person.age} • ${esc(person.city)}</p>
+            ${waved && !matched ? '<p class="person-wave-hint">Передаёт вам привет</p>' : ''}
           </div>
-          <button class="hero-wave" type="button" id="personWave" aria-label="Передать привет">
+          <button class="hero-wave" type="button" id="personWave" aria-label="${matched ? 'Открыть чат' : waved ? 'Ответить приветом' : 'Передать привет'}">
             <i class="ti ti-hand-stop"></i>
           </button>
         </div>
@@ -197,15 +202,7 @@ export function personScreen(id) {
     </article>`;
 
   bindPersonHero(photos);
-  view.querySelector('#personWave')?.addEventListener('click', async () => {
-    try {
-      await sendLike(person.id);
-      addToList('liked', person.id);
-    } catch {
-      /* демо: всё равно открываем чат */
-    }
-    navigate('chat', chatIdForPerson(person.id));
-  });
+  view.querySelector('#personWave')?.addEventListener('click', () => decide('like', person.id));
 }
 
 function bindPersonHero(photos) {
@@ -355,7 +352,7 @@ export function connectedScreen(id) {
 
   const firstName = person.name.split(' ')[0];
   const withName = firstName.replace(/а$/i, 'ой').replace(/я$/i, 'ей');
-  const chatIndex = chatIdForPerson(person.id);
+  const chatIndex = chatIndexForPerson(person.id);
 
   view.innerHTML = `
     <div class="connected-page">
