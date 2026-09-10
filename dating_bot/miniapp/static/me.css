@@ -774,56 +774,223 @@ body[data-route='edit-photos'] .view {
   transform: translateX(-50%);
   bottom: 0;
   width: min(442px, 100%);
-  max-height: 70vh;
+  max-height: min(88vh, 720px);
   background: var(--yaqin-surface-raised);
   color: var(--yaqin-text);
   border-radius: 20px 20px 0 0;
   box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.35);
   z-index: 50;
-  padding: 16px 16px calc(28px + env(safe-area-inset-bottom, 0px));
-  overflow: auto;
-}
-.edit-sheet header {
+  padding: 12px 16px 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
+  flex-direction: column;
+  overflow: hidden;
 }
-.edit-sheet h2 { margin: 0; font-size: 20px; color: var(--yaqin-text); }
-.edit-sheet header button {
-  border: 0;
-  background: none;
-  color: var(--yaqin-link);
+.edit-sheet-head {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.edit-sheet-titles {
+  text-align: center;
+  min-width: 0;
+}
+.edit-sheet-titles h2 {
+  margin: 0;
+  font-size: var(--yaqin-fs-modal);
   font-weight: 700;
+  color: var(--yaqin-text);
+}
+.edit-sheet-titles p {
+  margin: 2px 0 0;
+  font-size: var(--yaqin-fs-caption);
+  color: var(--yaqin-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.edit-sheet-close,
+.edit-sheet-spacer {
+  width: 40px;
+  height: 40px;
+}
+.edit-sheet-close {
+  border: 0;
+  border-radius: 50%;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+}
+.edit-sheet-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0 12px;
+  min-height: 44px;
+  border-radius: 14px;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text-tertiary);
+  flex-shrink: 0;
+}
+.edit-sheet-search i {
+  font-size: 18px;
+}
+.edit-sheet-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--yaqin-text);
+  font: inherit;
   font-size: 16px;
+  outline: 0;
+  padding: 10px 0;
+}
+.edit-sheet-clear {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--yaqin-text) 12%, transparent);
+  color: var(--yaqin-text-secondary);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+.edit-sheet-hint {
+  margin: -4px 0 10px;
+  font-size: var(--yaqin-fs-caption);
+  color: var(--yaqin-text-tertiary);
+}
+.edit-sheet-hint.warn {
+  color: var(--yaqin-danger);
+}
+.edit-sheet-empty {
+  margin: 24px 0;
+  width: 100%;
+  text-align: center;
+  color: var(--yaqin-text-tertiary);
+  font-size: var(--yaqin-fs-body-rg);
 }
 .edit-chip-picker {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-content: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 8px;
+  flex: 1;
+  min-height: 120px;
 }
-.edit-chip-picker button {
-  border: 0;
-  background: var(--yaqin-bg-subtle);
+.pick-chip {
+  border: 1.5px solid color-mix(in srgb, var(--yaqin-text) 22%, transparent);
+  background: transparent;
   color: var(--yaqin-text);
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 11px 16px;
+  font: inherit;
+  font-size: 15px;
   font-weight: 600;
+  line-height: 1.2;
 }
-.edit-chip-picker .on {
+.pick-chip.on {
   background: var(--yaqin-ink);
   color: var(--yaqin-ink-inverse);
+  border-color: var(--yaqin-ink);
 }
-.edit-text-input {
+.edit-work-custom {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 8px;
+  flex-shrink: 0;
+}
+.edit-work-custom span {
+  font-size: var(--yaqin-fs-caption);
+  color: var(--yaqin-text-tertiary);
+  font-weight: 600;
+}
+.edit-work-custom input,
+.edit-text-wrap {
   width: 100%;
   border: 1.5px solid var(--yaqin-sep);
-  border-radius: var(--yaqin-radius-md);
-  padding: 14px 16px;
-  font: inherit;
-  font-size: 16px;
+  border-radius: 14px;
   background: var(--yaqin-bg);
   color: var(--yaqin-text);
+  font: inherit;
+  font-size: 17px;
+  padding: 14px 16px;
   outline: 0;
+  box-sizing: border-box;
+}
+.edit-work-custom input:focus,
+.edit-text-wrap:focus-within {
+  border-color: color-mix(in srgb, var(--yaqin-text) 45%, transparent);
+}
+.edit-text-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px;
+  margin-bottom: 8px;
+}
+.edit-text-wrap.has-prefix {
+  padding-left: 14px;
+}
+.edit-text-prefix {
+  color: var(--yaqin-text-tertiary);
+  font-size: 17px;
+  font-weight: 600;
+}
+.edit-text-wrap .edit-text-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 14px 0;
+  font: inherit;
+  font-size: 17px;
+  color: var(--yaqin-text);
+  outline: 0;
+}
+.edit-sheet-foot {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+  background: linear-gradient(180deg, transparent, var(--yaqin-surface-raised) 18%);
+}
+.edit-sheet-done {
+  width: 100%;
+  border: 0;
+  border-radius: var(--yaqin-radius-pill);
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
+  font-size: var(--yaqin-fs-body);
+  font-weight: 700;
+  padding: 16px 20px;
+}
+.edit-sheet-clear-field {
+  width: 100%;
+  border: 0;
+  background: none;
+  color: var(--yaqin-text-secondary);
+  font-size: var(--yaqin-fs-secondary);
+  font-weight: 600;
+  padding: 8px;
+}
+body.edit-sheet-open {
+  overflow: hidden;
+}
+body.edit-sheet-open .nav {
+  visibility: hidden;
+  pointer-events: none;
 }
 .edit-radio-list { display: grid; gap: 8px; }
 .edit-radio-list button {

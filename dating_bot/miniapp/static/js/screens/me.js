@@ -5,14 +5,13 @@ import { isCurrentRender, navigate } from '../router.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
 import {
-  INTEREST_OPTIONS,
-  LANGUAGE_OPTIONS,
-  LOOKING_OPTIONS,
-  MEDIA_OPTIONS,
+  WORK_OPTIONS,
+  CHIP_SHEETS,
   interestsOf,
   lookingOf,
   mediaOf,
-  basicRowsFromProfile
+  basicRowsFromProfile,
+  filterOptions
 } from '../profile-fields.js';
 
 let closeOverlay = null;
@@ -471,20 +470,157 @@ export async function editScreen(_id, token) {
     tiktok: profile.tiktok || '',
     website: profile.website || ''
   };
-  /** null | interests | looking | media | languages | text */
+  /** null | interests | looking | media | languages | work | text */
   let sheet = null;
-  let textField = null; // { key, label }
+  let textField = null; // { key, label, prefix?, placeholder?, mode? }
   let textDraft = '';
+  let sheetQuery = '';
+  let sheetHint = '';
   let notice = '';
+  let restoreSearchFocus = false;
 
-  const FIELD_LABELS = {
-    work: 'Работа',
-    instagram: 'Instagram',
-    tiktok: 'TikTok',
-    website: 'Сайт'
+  const TEXT_FIELDS = {
+    instagram: {
+      key: 'instagram',
+      label: 'Instagram',
+      prefix: '@',
+      placeholder: 'username',
+      mode: 'handle'
+    },
+    tiktok: {
+      key: 'tiktok',
+      label: 'TikTok',
+      prefix: '@',
+      placeholder: 'username',
+      mode: 'handle'
+    },
+    website: {
+      key: 'website',
+      label: 'Сайт',
+      prefix: '',
+      placeholder: 'https://…',
+      mode: 'url'
+    }
+  };
+
+  const normalizeHandle = value => String(value || '').trim().replace(/^@+/, '');
+  const normalizeWebsite = value => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.includes('.') && !raw.includes(' ')) return `https://${raw}`;
+    return raw;
+  };
+
+  const chipSheetMarkup = key => {
+    const meta = CHIP_SHEETS[key];
+    if (!meta) return '';
+    const selected = draft[key] || [];
+    const filtered = filterOptions(meta.options, sheetQuery);
+    const selectedFirst = [
+      ...selected.filter(item => filtered.includes(item)),
+      ...filtered.filter(item => !selected.includes(item))
+    ];
+    return `
+      <div class="edit-sheet-scrim" id="sheetScrim"></div>
+      <div class="edit-sheet edit-sheet--picker" role="dialog" aria-modal="true">
+        <header class="edit-sheet-head">
+          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <div class="edit-sheet-titles">
+            <h2>${esc(meta.title)}</h2>
+            <p>${selected.length ? `выбрано ${selected.length} из ${meta.max}` : esc(meta.hint)}</p>
+          </div>
+          <span class="edit-sheet-spacer"></span>
+        </header>
+        <label class="edit-sheet-search">
+          <i class="ti ti-search"></i>
+          <input id="sheetSearch" type="search" enterkeyhint="search" placeholder="Поиск" value="${esc(sheetQuery)}" autocomplete="off">
+          ${sheetQuery ? '<button type="button" class="edit-sheet-clear" id="clearSearch" aria-label="Очистить"><i class="ti ti-x"></i></button>' : ''}
+        </label>
+        ${sheetHint ? `<p class="edit-sheet-hint warn">${esc(sheetHint)}</p>` : ''}
+        <div class="edit-chip-picker">
+          ${selectedFirst.length
+            ? selectedFirst.map(item => {
+                const on = selected.includes(item);
+                return `<button type="button" class="pick-chip ${on ? 'on' : ''}" data-chip="${esc(item)}">${esc(item)}</button>`;
+              }).join('')
+            : '<p class="edit-sheet-empty">Ничего не найдено</p>'}
+        </div>
+        <div class="edit-sheet-foot">
+          <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+        </div>
+      </div>`;
+  };
+
+  const workSheetMarkup = () => {
+    const filtered = filterOptions(WORK_OPTIONS, sheetQuery);
+    const custom = draft.work && !WORK_OPTIONS.includes(draft.work) ? draft.work : '';
+    return `
+      <div class="edit-sheet-scrim" id="sheetScrim"></div>
+      <div class="edit-sheet edit-sheet--picker" role="dialog" aria-modal="true">
+        <header class="edit-sheet-head">
+          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <div class="edit-sheet-titles">
+            <h2>Работа</h2>
+            <p>${draft.work ? esc(draft.work) : 'Выберите или напишите своё'}</p>
+          </div>
+          <span class="edit-sheet-spacer"></span>
+        </header>
+        <label class="edit-sheet-search">
+          <i class="ti ti-search"></i>
+          <input id="sheetSearch" type="search" enterkeyhint="search" placeholder="Поиск или своя должность" value="${esc(sheetQuery)}" autocomplete="off">
+          ${sheetQuery ? '<button type="button" class="edit-sheet-clear" id="clearSearch" aria-label="Очистить"><i class="ti ti-x"></i></button>' : ''}
+        </label>
+        <div class="edit-chip-picker">
+          ${filtered.map(item => `
+            <button type="button" class="pick-chip ${draft.work === item ? 'on' : ''}" data-work="${esc(item)}">${esc(item)}</button>
+          `).join('')}
+        </div>
+        <div class="edit-work-custom">
+          <span>Своё значение</span>
+          <input id="workCustom" type="text" maxlength="48" value="${esc(custom || (sheetQuery && !filtered.length ? sheetQuery : ''))}" placeholder="Например: продюсер" autocomplete="off">
+        </div>
+        <div class="edit-sheet-foot">
+          ${draft.work ? '<button type="button" class="edit-sheet-clear-field" id="clearWork">Очистить</button>' : ''}
+          <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+        </div>
+      </div>`;
+  };
+
+  const textSheetMarkup = () => {
+    if (!textField) return '';
+    return `
+      <div class="edit-sheet-scrim" id="sheetScrim"></div>
+      <div class="edit-sheet edit-sheet--text" role="dialog" aria-modal="true">
+        <header class="edit-sheet-head">
+          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+          <div class="edit-sheet-titles">
+            <h2>${esc(textField.label)}</h2>
+            <p>только в Yaqin</p>
+          </div>
+          <span class="edit-sheet-spacer"></span>
+        </header>
+        <label class="edit-text-wrap ${textField.prefix ? 'has-prefix' : ''}">
+          ${textField.prefix ? `<span class="edit-text-prefix">${esc(textField.prefix)}</span>` : ''}
+          <input class="edit-text-input" id="fieldInput" type="${textField.mode === 'url' ? 'url' : 'text'}" maxlength="80" value="${esc(textDraft)}" placeholder="${esc(textField.placeholder || textField.label)}" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </label>
+        <div class="edit-sheet-foot">
+          ${textDraft ? '<button type="button" class="edit-sheet-clear-field" id="clearText">Очистить</button>' : ''}
+          <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+        </div>
+      </div>`;
   };
 
   const render = () => {
+    document.body.classList.toggle('edit-sheet-open', Boolean(sheet));
+    const sheetHtml = CHIP_SHEETS[sheet]
+      ? chipSheetMarkup(sheet)
+      : sheet === 'work'
+        ? workSheetMarkup()
+        : sheet === 'text'
+          ? textSheetMarkup()
+          : '';
+
     view.innerHTML = `
       <div class="edit-profile-page">
         <div class="edit-hero">
@@ -543,8 +679,8 @@ export async function editScreen(_id, token) {
           <h3 class="settings-label">Ссылки <small style="font-weight:500;opacity:.55">только в Yaqin</small></h3>
           <div class="edit-basic-list">
             ${[
-              ['instagram', 'Instagram', draft.instagram || 'Добавить'],
-              ['tiktok', 'TikTok', draft.tiktok || 'Добавить'],
+              ['instagram', 'Instagram', draft.instagram ? `@${draft.instagram}` : 'Добавить'],
+              ['tiktok', 'TikTok', draft.tiktok ? `@${draft.tiktok}` : 'Добавить'],
               ['website', 'Сайт', draft.website || 'Добавить']
             ].map(([key, label, value]) => `
               <button type="button" class="edit-basic-row" data-field="${key}">
@@ -554,45 +690,7 @@ export async function editScreen(_id, token) {
           </div>
         </section>
 
-        ${sheet === 'interests' || sheet === 'looking' || sheet === 'media' ? `
-          <div class="edit-sheet-scrim" id="sheetScrim"></div>
-          <div class="edit-sheet">
-            <header>
-              <h2>${sheet === 'interests' ? 'Интересы' : sheet === 'looking' ? 'Чего хочу' : 'Сейчас в медиа'}</h2>
-              <button type="button" id="closeSheet">Готово</button>
-            </header>
-            <div class="edit-chip-picker">
-              ${(sheet === 'interests' ? INTEREST_OPTIONS : sheet === 'looking' ? LOOKING_OPTIONS : MEDIA_OPTIONS).map(item => {
-                const on = draft[sheet].includes(item);
-                return `<button type="button" class="${on ? 'on' : ''}" data-chip="${esc(item)}">${esc(item)}</button>`;
-              }).join('')}
-            </div>
-          </div>` : ''}
-
-        ${sheet === 'languages' ? `
-          <div class="edit-sheet-scrim" id="sheetScrim"></div>
-          <div class="edit-sheet">
-            <header>
-              <h2>Языки</h2>
-              <button type="button" id="closeSheet">Готово</button>
-            </header>
-            <div class="edit-chip-picker">
-              ${LANGUAGE_OPTIONS.map(item => {
-                const on = draft.languages.includes(item);
-                return `<button type="button" class="${on ? 'on' : ''}" data-lang="${esc(item)}">${esc(item)}</button>`;
-              }).join('')}
-            </div>
-          </div>` : ''}
-
-        ${sheet === 'text' && textField ? `
-          <div class="edit-sheet-scrim" id="sheetScrim"></div>
-          <div class="edit-sheet">
-            <header>
-              <h2>${esc(textField.label)}</h2>
-              <button type="button" id="closeSheet">Готово</button>
-            </header>
-            <input class="edit-text-input" id="fieldInput" type="text" maxlength="80" value="${esc(textDraft)}" placeholder="${esc(textField.label)}" autocomplete="off">
-          </div>` : ''}
+        ${sheetHtml}
       </div>`;
 
     const syncDraft = () => {
@@ -606,18 +704,35 @@ export async function editScreen(_id, token) {
     const openSheet = next => {
       syncDraft();
       notice = '';
+      sheetHint = '';
+      sheetQuery = '';
       sheet = next;
       render();
     };
 
+    const commitTextSheet = () => {
+      if (sheet !== 'text' || !textField) return;
+      const input = view.querySelector('#fieldInput');
+      const raw = input ? input.value : textDraft;
+      if (textField.mode === 'handle') draft[textField.key] = normalizeHandle(raw);
+      else if (textField.mode === 'url') draft[textField.key] = normalizeWebsite(raw);
+      else draft[textField.key] = String(raw || '').trim();
+      textField = null;
+      textDraft = '';
+    };
+
+    const commitWorkSheet = () => {
+      if (sheet !== 'work') return;
+      const custom = view.querySelector('#workCustom')?.value?.trim() || '';
+      if (custom) draft.work = custom;
+    };
+
     const closeSheet = () => {
-      if (sheet === 'text' && textField) {
-        const input = view.querySelector('#fieldInput');
-        if (input) draft[textField.key] = input.value.trim();
-        textField = null;
-        textDraft = '';
-      }
+      commitTextSheet();
+      commitWorkSheet();
       sheet = null;
+      sheetQuery = '';
+      sheetHint = '';
       render();
     };
 
@@ -630,29 +745,81 @@ export async function editScreen(_id, token) {
     });
     view.querySelector('#sheetScrim')?.addEventListener('click', closeSheet);
     view.querySelector('#closeSheet')?.addEventListener('click', closeSheet);
+    view.querySelector('#doneSheet')?.addEventListener('click', closeSheet);
+
+    const search = view.querySelector('#sheetSearch');
+    if (search) {
+      if (restoreSearchFocus) {
+        search.focus();
+        const len = search.value.length;
+        search.setSelectionRange(len, len);
+        restoreSearchFocus = false;
+      }
+      search.oninput = () => {
+        sheetQuery = search.value;
+        restoreSearchFocus = true;
+        render();
+      };
+    }
+    view.querySelector('#clearSearch')?.addEventListener('click', () => {
+      sheetQuery = '';
+      restoreSearchFocus = true;
+      render();
+    });
+
     view.querySelectorAll('[data-chip]').forEach(button => {
       button.onclick = event => {
         event.preventDefault();
         event.stopPropagation();
         const value = button.dataset.chip;
+        const meta = CHIP_SHEETS[sheet];
         const list = draft[sheet];
+        if (!meta || !list) return;
         const index = list.indexOf(value);
-        if (index >= 0) list.splice(index, 1);
-        else list.push(value);
+        if (index >= 0) {
+          list.splice(index, 1);
+          sheetHint = '';
+        } else if (list.length >= meta.max) {
+          sheetHint = `Можно выбрать максимум ${meta.max}`;
+        } else {
+          list.push(value);
+          sheetHint = '';
+        }
+        restoreSearchFocus = Boolean(sheetQuery);
         render();
       };
     });
-    view.querySelectorAll('[data-lang]').forEach(button => {
+
+    view.querySelectorAll('[data-work]').forEach(button => {
       button.onclick = event => {
         event.preventDefault();
         event.stopPropagation();
-        const value = button.dataset.lang;
-        const index = draft.languages.indexOf(value);
-        if (index >= 0) draft.languages.splice(index, 1);
-        else draft.languages.push(value);
+        const value = button.dataset.work;
+        draft.work = draft.work === value ? '' : value;
+        const custom = view.querySelector('#workCustom');
+        if (custom) custom.value = '';
         render();
       };
     });
+    view.querySelector('#clearWork')?.addEventListener('click', () => {
+      draft.work = '';
+      sheetQuery = '';
+      render();
+    });
+    const workCustom = view.querySelector('#workCustom');
+    if (workCustom) {
+      workCustom.oninput = () => {
+        const value = workCustom.value.trim();
+        if (value) draft.work = value;
+      };
+      workCustom.onkeydown = event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          closeSheet();
+        }
+      };
+    }
+
     view.querySelectorAll('[data-field]').forEach(button => {
       button.onclick = event => {
         event.preventDefault();
@@ -663,7 +830,13 @@ export async function editScreen(_id, token) {
           openSheet('languages');
           return;
         }
-        textField = { key, label: FIELD_LABELS[key] || key };
+        if (key === 'work') {
+          openSheet('work');
+          return;
+        }
+        const meta = TEXT_FIELDS[key];
+        if (!meta) return;
+        textField = meta;
         textDraft = draft[key] || '';
         openSheet('text');
       };
@@ -683,10 +856,16 @@ export async function editScreen(_id, token) {
         }
       };
     }
+    view.querySelector('#clearText')?.addEventListener('click', () => {
+      textDraft = '';
+      draft[textField.key] = '';
+      render();
+    });
 
     view.querySelector('#saveEdit').onclick = async event => {
       event.preventDefault();
       event.stopPropagation();
+      if (sheet) closeSheet();
       syncDraft();
       const ageOk = Number.isFinite(draft.age) && draft.age >= 18 && draft.age <= 100;
       if (!draft.name.trim() || !ageOk) {
@@ -712,12 +891,13 @@ export async function editScreen(_id, token) {
           media: draft.media,
           work: draft.work,
           languages: draft.languages,
-          instagram: draft.instagram,
-          tiktok: draft.tiktok,
-          website: draft.website,
+          instagram: normalizeHandle(draft.instagram),
+          tiktok: normalizeHandle(draft.tiktok),
+          website: normalizeWebsite(draft.website),
           photo: profile.photo,
           photos: profile.photos
         });
+        document.body.classList.remove('edit-sheet-open');
         navigate('me');
       } catch {
         notice = 'Анкета не сохранилась. Попробуйте ещё раз.';

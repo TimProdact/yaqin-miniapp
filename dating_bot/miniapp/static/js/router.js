@@ -89,6 +89,7 @@ export function render() {
     document.body.classList.toggle('full-screen', FULL_SCREEN_ROUTES.has(currentRoute));
     document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
     document.body.classList.toggle('sheet-view', SHEET_ROUTES.has(currentRoute));
+    if (currentRoute !== 'edit') document.body.classList.remove('edit-sheet-open');
     syncNav();
     const screen = screens.get(currentRoute);
     if (screen) screen(selectedId, ++renderToken);
