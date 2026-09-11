@@ -1444,6 +1444,15 @@ body[data-route='group'] .view {
   margin-left: var(--person-gutter, 20px);
   margin-right: var(--person-gutter, 20px);
 }
+.host-group-page .me-mini-row {
+  grid-template-columns: 36px 1fr 18px;
+}
+.host-group-page .me-mini-row .settings-icon {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  border-radius: 10px;
+}
 .chats-pills button b {
   min-width: 18px;
   height: 18px;

@@ -547,15 +547,10 @@ export function groupHubScreen(id) {
           </div>
 
           <section class="person-head">
-            <div class="person-head-row">
-              <div class="person-head-copy">
-                <em class="taneesh-source yaqin">Ваша группа</em>
-                <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
-                <p class="person-meta">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'} · ${memberCount} участниц</p>
-              </div>
-              <button class="hero-wave" type="button" data-action="edit-group" data-id="${esc(group.id)}" aria-label="Настройки">
-                <i class="ti ti-settings"></i>
-              </button>
+            <div class="person-head-copy">
+              <em class="taneesh-source yaqin">Ваша группа</em>
+              <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
+              <p class="person-meta">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'} · ${memberCount} участниц</p>
             </div>
             ${group.about ? `<p class="person-bio">${esc(group.about)}</p>` : ''}
           </section>
@@ -573,7 +568,7 @@ export function groupHubScreen(id) {
                 <div class="me-section-head"><div><h3>Действия</h3></div></div>
                 <div class="me-mini-list">
                   <button type="button" class="me-mini-row" data-action="group-chat" data-id="${esc(group.id)}">
-                    <span class="host-action-icon"><i class="ti ti-message"></i></span>
+                    <span class="settings-icon blue square"><i class="ti ti-message"></i></span>
                     <div>
                       <strong>Чат группы</strong>
                       <span>Переписка участниц</span>
@@ -581,7 +576,7 @@ export function groupHubScreen(id) {
                     <i class="ti ti-chevron-right"></i>
                   </button>
                   <button type="button" class="me-mini-row" id="inviteGroup">
-                    <span class="host-action-icon blue"><i class="ti ti-share"></i></span>
+                    <span class="settings-icon green square"><i class="ti ti-share"></i></span>
                     <div>
                       <strong>Пригласить</strong>
                       <span>Ссылка на группу в Yaqin</span>
@@ -589,22 +584,13 @@ export function groupHubScreen(id) {
                     <i class="ti ti-chevron-right"></i>
                   </button>
                   <button type="button" class="me-mini-row" data-action="edit-group" data-id="${esc(group.id)}">
-                    <span class="host-action-icon yellow"><i class="ti ti-settings"></i></span>
+                    <span class="settings-icon orange square"><i class="ti ti-settings"></i></span>
                     <div>
                       <strong>Настройки</strong>
                       <span>Название, фото, тип группы</span>
                     </div>
                     <i class="ti ti-chevron-right"></i>
                   </button>
-                  ${!open ? `
-                    <button type="button" class="me-mini-row" data-host-tab="requests">
-                      <span class="host-action-icon green"><i class="ti ti-user-plus"></i></span>
-                      <div>
-                        <strong>Заявки</strong>
-                        <span>${joinRequests.length ? `${joinRequests.length} ожидают` : 'Пока пусто'}</span>
-                      </div>
-                      <i class="ti ti-chevron-right"></i>
-                    </button>` : ''}
                 </div>
               </section>
             ` : ''}
