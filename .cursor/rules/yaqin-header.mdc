@@ -21,7 +21,8 @@ alwaysApply: false
 
 ## Other page headers (`.filters-head`, `.modal-head`, `.sheet-head`)
 
-- Sticky / float-head по необходимости экрана.
+- Как на главных вкладках: **слева**, `font-size: var(--yaqin-fs-title-sm)`, фон `var(--yaqin-bg)`.
+- Sticky сверху; пустой spacer справа не центрирует title.
 - Не дублировать «✕ Закрыть» в UI при системном Telegram Back.
 
 ## Conversation header (`.chat-top`)
