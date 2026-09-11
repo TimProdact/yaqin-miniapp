@@ -89,7 +89,22 @@ body.profile-open .view {
   margin-bottom: 8px;
 }
 .settings-page .filters-head {
-  /* floating — layout.css */
+  justify-content: flex-start !important;
+  margin: 0 calc(var(--yaqin-gutter) * -1) 12px !important;
+  padding: 10px 16px !important;
+  width: calc(100% + (var(--yaqin-gutter) * 2));
+  background: var(--yaqin-bg) !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+.settings-page .filters-head h1 {
+  flex: 1 1 auto !important;
+  max-width: none !important;
+  width: auto !important;
+  text-align: left !important;
+  font-size: var(--yaqin-fs-title-sm) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
 }
 .me-panel {
   width: 100%;

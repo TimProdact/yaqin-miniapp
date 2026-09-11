@@ -331,7 +331,6 @@ export function settingsScreen() {
       <header class="filters-head">
         ${backControlHtml('back')}
         <h1>Настройки</h1>
-        <span></span>
       </header>
 
       <h3 class="settings-label">Основные</h3>
@@ -437,7 +436,6 @@ export function blockedScreen() {
       <header class="filters-head">
         ${backControlHtml('back')}
         <h1>Заблокированные</h1>
-        <span></span>
       </header>
       ${rows.length
         ? `<div class="blocked-list">${rows.map(person => `
@@ -481,7 +479,6 @@ export function privacyScreen() {
         <header class="filters-head">
           ${backControlHtml('back')}
           <h1>Приватность</h1>
-          <span></span>
         </header>
         <h3 class="settings-label">Видимость</h3>
         <section class="settings-block">
@@ -527,7 +524,6 @@ export function helpScreen() {
       <header class="filters-head">
         ${backControlHtml('back')}
         <h1>Справка</h1>
-        <span></span>
       </header>
       <section class="settings-block">
         ${topics.map(([id, title, text]) => `
@@ -573,7 +569,6 @@ export function legalScreen() {
       <header class="filters-head">
         ${backControlHtml('back')}
         <h1>Правовая информация</h1>
-        <span></span>
       </header>
       <section class="settings-block">
         ${docs.map(([id, title]) => `
@@ -615,7 +610,6 @@ export function darkModeScreen() {
       <header class="filters-head">
         ${backControlHtml('back')}
         <h1>Тёмная тема</h1>
-        <span></span>
       </header>
       <section class="settings-block">
         <label class="settings-row toggle">
@@ -1222,7 +1216,6 @@ export function notificationsScreen() {
       <header class="filters-head">
         ${backControlHtml('back')}
         <h1>Уведомления</h1>
-        <span></span>
       </header>
 
       <h3 class="settings-label">Знакомства</h3>
@@ -1297,7 +1290,6 @@ export async function accountScreen(_id, token) {
       <header class="filters-head">
         ${backControlHtml('back')}
         <h1>Мой аккаунт</h1>
-        <span></span>
       </header>
 
       <h3 class="settings-label">Данные аккаунта</h3>

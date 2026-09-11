@@ -430,14 +430,16 @@ body[data-route='filters'] .view {
   padding: 4px var(--yaqin-gutter) calc(100px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
-.filters-head {
-  /* floating pills — see layout.css */
+.filters-page .filters-head {
+  justify-content: flex-start !important;
+  background: var(--yaqin-bg) !important;
 }
-.filters-head button {
-  color: var(--yaqin-text);
-}
-.filters-head h1 {
-  color: var(--yaqin-text);
+.filters-page .filters-head h1 {
+  flex: 1 1 auto !important;
+  max-width: none !important;
+  text-align: left !important;
+  font-size: var(--yaqin-fs-title-sm) !important;
+  font-weight: 700 !important;
 }
 
 .filter-block {
