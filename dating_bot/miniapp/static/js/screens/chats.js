@@ -37,6 +37,7 @@ function syncChatsBadge() {
 export function chatsScreen() {
   clearHeader();
   let segment = 'all'; // all | dm | groups | events
+  let query = '';
   syncChatsBadge();
 
   const buildRows = () => {
@@ -89,11 +90,20 @@ export function chatsScreen() {
     else if (segment === 'groups') rows = groupItems;
     else if (segment === 'events') rows = eventItems;
 
+    const term = query.trim().toLowerCase();
+    if (term) {
+      rows = rows.filter(row =>
+        row.name.toLowerCase().includes(term)
+        || (row.preview || '').toLowerCase().includes(term)
+      );
+    }
+
     return { rows, dmCount: dmItems.filter(i => i.kind === 'dm').length, hasAny: dmItems.length + groupItems.length > 0 };
   };
 
   const render = () => {
-    const { rows, dmCount, hasAny } = buildRows();
+    const { rows } = buildRows();
+    const term = query.trim();
     const pills = [
       ['all', 'Все'],
       ['dm', 'Знакомства'],
@@ -105,8 +115,13 @@ export function chatsScreen() {
       <div class="chats-page">
         <header class="chats-head">
           <h1>Чаты</h1>
-          <button data-action="search" aria-label="Поиск"><i class="ti ti-search"></i></button>
         </header>
+
+        <div class="search-box chats-search">
+          <i class="ti ti-search"></i>
+          <input id="chatListSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
+          ${term ? '<button type="button" id="clearChatSearch" aria-label="Очистить">×</button>' : ''}
+        </div>
 
         <div class="chats-pills" role="tablist">
           ${pills.map(([id, label]) => `
@@ -130,15 +145,35 @@ export function chatsScreen() {
             </button>`).join('')}</div>` : `
           <div class="chats-empty compact">
             <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
-            <h2>${segment === 'events' ? 'Пока нет событий' : 'Пока нет переписок'}</h2>
-            <p>${segment === 'events'
-              ? 'События появятся после интереса на афише.'
-              : 'Чат откроется при взаимном привете.'}</p>
-            <button class="empty-primary" type="button" data-action="${segment === 'events' ? 'events' : 'people'}">${segment === 'events' ? 'К событиям' : 'Смотреть анкеты'}</button>
+            <h2>${term
+              ? 'Ничего не найдено'
+              : segment === 'events' ? 'Пока нет событий' : 'Пока нет переписок'}</h2>
+            <p>${term
+              ? 'Попробуйте другое имя или фрагмент сообщения.'
+              : segment === 'events'
+                ? 'События появятся после интереса на афише.'
+                : 'Чат откроется при взаимном привете.'}</p>
+            ${term ? '' : `<button class="empty-primary" type="button" data-action="${segment === 'events' ? 'events' : 'people'}">${segment === 'events' ? 'К событиям' : 'Смотреть анкеты'}</button>`}
           </div>`}
 
       </div>`;
 
+    const input = view.querySelector('#chatListSearch');
+    input?.addEventListener('input', () => {
+      query = input.value;
+      render();
+      const next = view.querySelector('#chatListSearch');
+      if (next) {
+        next.focus();
+        const pos = query.length;
+        next.setSelectionRange(pos, pos);
+      }
+    });
+    view.querySelector('#clearChatSearch')?.addEventListener('click', () => {
+      query = '';
+      render();
+      view.querySelector('#chatListSearch')?.focus();
+    });
     view.querySelectorAll('[data-segment]').forEach(button => {
       button.onclick = () => {
         segment = button.dataset.segment;

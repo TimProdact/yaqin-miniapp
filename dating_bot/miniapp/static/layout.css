@@ -286,7 +286,8 @@ body.full-screen .view {
 }
 
 /* Title clears fixed right actions */
-.chats-head h1,
+.chats-head:has(button) h1,
+.chats-head:has(.events-head-actions) h1,
 .me-top h1 {
   padding-right: 52px;
 }

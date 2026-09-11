@@ -10,8 +10,8 @@
   color: var(--yaqin-text);
 }
 
-.chats-head {
-  /* floating pills — see layout.css */
+.chats-page .chats-search {
+  margin: 4px 0 10px;
 }
 .chats-head h1 {
   color: var(--yaqin-text);
