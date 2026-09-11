@@ -9,7 +9,7 @@ export function hasTelegramBack() {
 /** В браузере без TG — оставляем кнопку «назад» в UI. */
 export function backControlHtml(action = 'back', label = 'Назад') {
   if (hasTelegramBack()) {
-    return '<span class="head-spacer" aria-hidden="true"></span>';
+    return '';
   }
   return `<button type="button" data-action="${action}" aria-label="${label}"><i class="ti ti-chevron-left"></i></button>`;
 }

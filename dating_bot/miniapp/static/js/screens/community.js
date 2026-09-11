@@ -322,10 +322,9 @@ export function createGroupScreen(editId = null) {
     const canCreate = name.trim().length > 1;
     view.innerHTML = `
       <div class="create-group-page">
-        <header class="modal-head">
+        <header class="filters-head">
           ${isEdit ? backControlHtml('back') : backControlHtml('me')}
           <h1>${isEdit ? 'Редактировать' : 'Создать группу'}</h1>
-          <span></span>
         </header>
 
         <div class="create-identity-panel">
