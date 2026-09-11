@@ -728,12 +728,11 @@ export async function editScreen(_id, token) {
       <div class="edit-sheet-scrim" id="sheetScrim"></div>
       <div class="edit-sheet edit-sheet--picker" role="dialog" aria-modal="true">
         <header class="edit-sheet-head">
-          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <div class="edit-sheet-titles">
             <h2>${esc(meta.title)}</h2>
             <p>${selected.length ? `выбрано ${selected.length} из ${meta.max}` : esc(meta.hint)}</p>
           </div>
-          <span class="edit-sheet-spacer"></span>
+          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
         </header>
         <label class="edit-sheet-search">
           <i class="ti ti-search"></i>
@@ -762,12 +761,11 @@ export async function editScreen(_id, token) {
       <div class="edit-sheet-scrim" id="sheetScrim"></div>
       <div class="edit-sheet edit-sheet--picker" role="dialog" aria-modal="true">
         <header class="edit-sheet-head">
-          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <div class="edit-sheet-titles">
             <h2>Работа</h2>
             <p>${draft.work ? esc(draft.work) : 'Выберите или напишите своё'}</p>
           </div>
-          <span class="edit-sheet-spacer"></span>
+          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
         </header>
         <label class="edit-sheet-search">
           <i class="ti ti-search"></i>
@@ -796,12 +794,11 @@ export async function editScreen(_id, token) {
       <div class="edit-sheet-scrim" id="sheetScrim"></div>
       <div class="edit-sheet edit-sheet--text" role="dialog" aria-modal="true">
         <header class="edit-sheet-head">
-          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
           <div class="edit-sheet-titles">
             <h2>${esc(textField.label)}</h2>
             <p>только в Yaqin</p>
           </div>
-          <span class="edit-sheet-spacer"></span>
+          <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
         </header>
         <label class="edit-text-wrap ${textField.prefix ? 'has-prefix' : ''}">
           ${textField.prefix ? `<span class="edit-text-prefix">${esc(textField.prefix)}</span>` : ''}

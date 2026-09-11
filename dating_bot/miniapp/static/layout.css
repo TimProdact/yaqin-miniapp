@@ -146,6 +146,19 @@ body.full-screen .view {
   pointer-events: auto;
 }
 
+/* Крестик закрытия модалки — справа, заголовок слева */
+.modal-head > h1 {
+  order: 1;
+  flex: 1 1 auto;
+}
+.modal-head > .head-action {
+  order: 2;
+}
+.modal-head > button:not(.head-action) {
+  order: 3;
+  margin-left: 0;
+}
+
 .chats-head h1,
 .me-top h1 {
   flex: 0 1 auto;

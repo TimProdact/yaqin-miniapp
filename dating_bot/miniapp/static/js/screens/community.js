@@ -348,9 +348,8 @@ export function createGroupScreen(editId = null) {
 
   const sheetHead = (heading, sub) => `
     <header class="edit-sheet-head">
-      <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
       <div class="edit-sheet-titles"><h2>${esc(heading)}</h2><p>${esc(sub)}</p></div>
-      <span class="edit-sheet-spacer"></span>
+      <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
     </header>`;
 
   const render = () => {
@@ -710,12 +709,11 @@ export function groupHubScreen(id) {
             <div class="edit-sheet-scrim" id="viewRequestScrim"></div>
             <div class="edit-sheet edit-sheet--text create-when-sheet join-request-sheet" role="dialog" aria-modal="true" aria-labelledby="viewRequestTitle">
               <header class="edit-sheet-head">
-                <button type="button" class="edit-sheet-close" id="closeViewRequest" aria-label="Закрыть"><i class="ti ti-x"></i></button>
                 <div class="edit-sheet-titles">
                   <h2 id="viewRequestTitle">${esc(viewRequest.name)}${viewRequest.age ? `, ${viewRequest.age}` : ''}</h2>
                   <p>Сообщение к заявке</p>
                 </div>
-                <span class="edit-sheet-spacer"></span>
+                <button type="button" class="edit-sheet-close" id="closeViewRequest" aria-label="Закрыть"><i class="ti ti-x"></i></button>
               </header>
               <div class="join-request-message">${esc(viewRequest.message)}</div>
               <div class="edit-sheet-foot join-request-actions">
@@ -765,12 +763,11 @@ export function groupHubScreen(id) {
             <div class="edit-sheet-scrim" id="joinSheetScrim"></div>
             <div class="edit-sheet edit-sheet--text create-when-sheet join-request-sheet" role="dialog" aria-modal="true" aria-labelledby="joinSheetTitle">
               <header class="edit-sheet-head">
-                <button type="button" class="edit-sheet-close" id="closeJoinSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
                 <div class="edit-sheet-titles">
                   <h2 id="joinSheetTitle">Заявка</h2>
                   <p>Коротко напишите, почему хотите вступить</p>
                 </div>
-                <span class="edit-sheet-spacer"></span>
+                <button type="button" class="edit-sheet-close" id="closeJoinSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
               </header>
               <textarea class="create-sheet-textarea" id="joinMessage" maxlength="200" rows="4" placeholder="Например: читаю нон-фикшн и ищу компанию для обсуждений">${esc(joinDraft)}</textarea>
               <p class="edit-sheet-hint">От 3 до 200 символов</p>
@@ -1187,9 +1184,8 @@ export function createEventScreen(editId = null) {
 
   const sheetHead = (heading, sub) => `
     <header class="edit-sheet-head">
-      <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
       <div class="edit-sheet-titles"><h2>${esc(heading)}</h2><p>${esc(sub)}</p></div>
-      <span class="edit-sheet-spacer"></span>
+      <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
     </header>`;
 
   const renderSheet = () => {

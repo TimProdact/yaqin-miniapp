@@ -1311,15 +1311,23 @@ body[data-route='edit-photos'] .view {
 }
 .edit-sheet-head {
   display: grid;
-  grid-template-columns: 40px 1fr 40px;
-  align-items: center;
-  gap: 4px;
+  grid-template-columns: 1fr 40px;
+  align-items: start;
+  gap: 8px;
   margin-bottom: 10px;
   flex-shrink: 0;
 }
-.edit-sheet-titles {
-  text-align: center;
+.edit-sheet-head > .edit-sheet-titles {
+  grid-column: 1;
+  grid-row: 1;
+  text-align: left;
   min-width: 0;
+  padding-top: 6px;
+}
+.edit-sheet-head > .edit-sheet-close {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
 }
 .edit-sheet-titles h2 {
   margin: 0;
@@ -1339,6 +1347,9 @@ body[data-route='edit-photos'] .view {
 .edit-sheet-spacer {
   width: 40px;
   height: 40px;
+}
+.edit-sheet-spacer {
+  display: none;
 }
 .edit-sheet-close {
   border: 0;
