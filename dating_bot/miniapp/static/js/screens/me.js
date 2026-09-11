@@ -3,8 +3,7 @@ import { getState, saveState, clearPersistedState } from '../state.js';
 import { view, esc, clearHeader, chipList, showLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
-import { loadProfile, loadVerification, saveProfile } from '../repository.js';
-import { resolveView } from './verify.js';
+import { loadProfile, saveProfile } from '../repository.js';
 import { getUserEvents, getOwnedGroups } from './community.js';
 import {
   WORK_OPTIONS,
@@ -199,9 +198,8 @@ export async function meScreen(_id, token) {
   showLoading('Загружаем профиль...');
 
   let profile;
-  let verification;
   try {
-    [profile, verification] = await Promise.all([loadProfile(), loadVerification()]);
+    profile = await loadProfile();
   } catch {
     if (isCurrentRender(token)) showError('Не удалось загрузить профиль.');
     return;
@@ -215,7 +213,6 @@ export async function meScreen(_id, token) {
 
   const photos = (profile.photos?.length ? profile.photos : [profile.photo]).filter(Boolean);
   const heroPhoto = photos[0] || profile.photo;
-  const verify = resolveView(verification);
   const tickets = listTickets();
   const events = getUserEvents();
   const groups = getOwnedGroups();
@@ -230,7 +227,6 @@ export async function meScreen(_id, token) {
         <div class="me-identity">
           <button type="button" class="me-identity-avatar" data-action="edit-photos" aria-label="Фото">
             <img src="${esc(heroPhoto)}" alt="">
-            ${verify.tone === 'ok' ? '<i class="ti ti-circle-check me-verified"></i>' : ''}
           </button>
           <div class="me-identity-copy">
             <h2>${esc(profile.name || 'Без имени')}${profile.age ? `, ${esc(String(profile.age))}` : ''}</h2>
@@ -288,11 +284,6 @@ export async function meScreen(_id, token) {
             <span>Показывать в ленте<br><small>Анкета появляется во вкладке «Люди»</small></span>
             <input type="checkbox" id="showInFeed" ${privacy.showInFeed !== false ? 'checked' : ''}>
           </label>
-          <button class="settings-row" type="button" data-action="verify">
-            <span class="settings-icon yellow square"><i class="ti ti-shield-check"></i></span>
-            <span>Проверка анкеты<br><small>${esc(verify.short)}</small></span>
-            <i class="ti ti-chevron-right"></i>
-          </button>
           <button class="settings-row" type="button" id="inviteFriends">
             <span class="settings-icon blue square"><i class="ti ti-user-plus"></i></span>
             <span>Пригласить подруг<br><small>Ссылка на Yaqin</small></span>
@@ -368,11 +359,6 @@ export function settingsScreen() {
         <button class="settings-row" data-action="add-email" type="button">
           <span class="settings-icon green square"><i class="ti ti-mail"></i></span>
           <span>Email<br><small>${esc(email || 'Добавить')}</small></span>
-          <i class="ti ti-chevron-right"></i>
-        </button>
-        <button class="settings-row" data-action="verify" type="button">
-          <span class="settings-icon yellow square"><i class="ti ti-shield-check"></i></span>
-          <span>Проверка анкеты</span>
           <i class="ti ti-chevron-right"></i>
         </button>
       </section>
@@ -528,7 +514,6 @@ export function privacyScreen() {
 export function helpScreen() {
   clearHeader();
   const topics = [
-    ['verify', 'Как пройти проверку анкеты', 'Запишите короткое видео с кодом — команда проверит вручную.'],
     ['events', 'События и билеты', 'Смотрите афишу, отмечайте «хочу пойти» и покупайте билет с QR прямо в Mini App.'],
     ['safety', 'Безопасность и жалобы', 'Можно пожаловаться или заблокировать прямо из профиля или чата.'],
     ['account', 'Почта и доступ', 'Добавьте email в аккаунте, чтобы не потерять доступ.']

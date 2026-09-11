@@ -86,7 +86,7 @@ export async function loadProfile() {
 export async function loadVerification() {
   if (!isLive) {
     const { verification } = getState();
-    return { status: verification?.status || 'pending', stage: verification?.stage || 'none' };
+    return { status: verification?.status || 'approved', stage: verification?.stage || 'reviewed' };
   }
   const { verification_status: status, verification_stage: stage } = await api.me();
   return { status, stage };

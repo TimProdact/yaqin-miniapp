@@ -14,7 +14,7 @@ import {
 import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen } from './screens/taneesh-events.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, showMessageMenu, closeMessageMenu } from './screens/chats.js';
 import { createGroupScreen, createEventScreen, groupChatScreen, groupHubScreen, groupsScreen } from './screens/community.js';
-import { verifyScreen, startVerification } from './screens/verify.js';
+import { verifyScreen } from './screens/verify.js';
 import {
   meScreen,
   settingsScreen,
@@ -182,9 +182,8 @@ async function handleAction(target) {
     return;
   }
   if (action === 'show-skipped') return showSkippedPeople();
-  if (action === 'verify-start') {
-    startVerification();
-    return;
+  if (action === 'verify' || action === 'verify-start') {
+    return navigate('me');
   }
   if (action === 'feedback') return showFeedbackSheet();
   if (action === 'add-email') return showAddEmailSheet();
