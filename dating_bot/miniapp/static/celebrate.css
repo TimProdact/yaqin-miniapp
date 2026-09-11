@@ -81,8 +81,8 @@
   font-size: var(--yaqin-fs-secondary);
   font-weight: 600;
 }
-.celebrate-card > .celebrate-primary {
-  margin-top: 22px;
+.celebrate-card h2 + .celebrate-primary {
+  margin-top: 14px;
 }
 .celebrate-burst {
   pointer-events: none;
