@@ -75,6 +75,18 @@ export function isGroupPending(group) {
     || getUserGroups().some(item => String(item.id) === String(group?.id) && item.membership === 'pending');
 }
 
+/** Выйти из группы (не для организатора). */
+export function leaveGroup(id) {
+  const group = getUserGroups().find(item => String(item.id) === String(id));
+  if (!group || isGroupOwner(group)) return false;
+  const state = getState();
+  saveState({
+    ...state,
+    userGroups: (state.userGroups || []).filter(item => String(item.id) !== String(id))
+  });
+  return true;
+}
+
 /** Вступление в открытую группу — только по явной CTA. */
 export function joinOpenGroup(id) {
   const existing = getUserGroups().find(group => String(group.id) === String(id));
@@ -913,14 +925,19 @@ export function groupChatScreen(id) {
               <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
             </span>
           </button>
-          <button type="button" id="groupChatMenu" aria-label="Ещё"><i class="ti ti-dots"></i></button>
+          <div class="chat-top-menu-wrap">
+            <button type="button" id="groupChatMenu" aria-label="Ещё" aria-expanded="${menuOpen ? 'true' : 'false'}">
+              <i class="ti ti-dots"></i>
+            </button>
+            ${menuOpen ? `
+              <div class="chat-menu-pop" role="menu">
+                <button type="button" role="menuitem" data-action="group" data-id="${esc(group.id)}">О группе</button>
+                <button type="button" role="menuitem" id="groupChatShare">Пригласить</button>
+                ${isGroupOwner(group) ? '' : `
+                  <button type="button" role="menuitem" class="danger" id="leaveGroupBtn">Выйти из группы</button>`}
+              </div>` : ''}
+          </div>
         </header>
-
-        ${menuOpen ? `
-          <div class="chat-menu-pop">
-            <button type="button" data-action="group" data-id="${esc(group.id)}">О группе</button>
-            <button type="button" id="groupChatShare">Пригласить</button>
-          </div>` : ''}
 
         <div class="chat-thread">
           ${messages.map(message => `
@@ -968,15 +985,38 @@ export function groupChatScreen(id) {
       render();
     });
     view.querySelector('#groupChatShare')?.addEventListener('click', () => {
+      menuOpen = false;
       const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
       try {
         const tg = window.Telegram?.WebApp;
         if (tg?.openTelegramLink) {
           tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/yaqin_bot')}&text=${encodeURIComponent(text)}`);
+          render();
           return;
         }
       } catch (_) { /* ignore */ }
       navigator.share?.({ text }).catch(() => {});
+      render();
+    });
+    view.querySelector('#leaveGroupBtn')?.addEventListener('click', () => {
+      const ask = `Выйти из «${group.title}»?`;
+      const doLeave = () => {
+        if (!leaveGroup(group.id)) return;
+        navigate('groups');
+      };
+      const onCancel = () => {
+        menuOpen = false;
+        render();
+      };
+      if (typeof window.Telegram?.WebApp?.showConfirm === 'function') {
+        window.Telegram.WebApp.showConfirm(ask, confirmed => {
+          if (confirmed) doLeave();
+          else onCancel();
+        });
+        return;
+      }
+      if (window.confirm(ask)) doLeave();
+      else onCancel();
     });
     view.querySelector('#groupAttachPhoto')?.addEventListener('click', () => {
       view.querySelector('#groupAttachFile')?.click();
