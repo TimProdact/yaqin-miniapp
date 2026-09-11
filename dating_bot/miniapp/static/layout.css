@@ -298,7 +298,13 @@ body.full-screen .view {
 }
 .list-sticky-pill .chats-pills,
 .list-sticky-pill .events-date-bar {
-  margin: 0;
+  margin: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+}
+.list-sticky-pill .groups-pills {
+  margin: 0 !important;
 }
 .chats-page > .list-sticky-pill + *,
 .groups-tab-page > .list-sticky-pill + *,
