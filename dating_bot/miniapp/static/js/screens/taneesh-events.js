@@ -777,14 +777,9 @@ function renderGuestEventDetail(event) {
         </div>
 
         <section class="person-head">
-          <div class="person-head-row">
-            <div class="person-head-copy">
-              <h1>${esc(event.title)}</h1>
-              <p class="person-meta">${esc(metaLine)}</p>
-            </div>
-            <button class="hero-wave event-want-btn ${want ? 'on' : ''}" type="button" id="toggleWant" aria-label="${want ? 'Интерес снят' : 'Хочу пойти'}" aria-pressed="${want ? 'true' : 'false'}">
-              <i class="ti ${want ? 'ti-check' : 'ti-hand-stop'}"></i>
-            </button>
+          <div class="person-head-copy">
+            <h1>${esc(event.title)}</h1>
+            <p class="person-meta">${esc(metaLine)}</p>
           </div>
           ${event.description ? `<p class="person-bio">${esc(event.description)}</p>` : ''}
         </section>
@@ -852,7 +847,6 @@ function renderGuestEventDetail(event) {
       }
     };
 
-    view.querySelector('#toggleWant')?.addEventListener('click', toggleWant);
     view.querySelector('#stickyWant')?.addEventListener('click', toggleWant);
   };
 

@@ -318,15 +318,30 @@
 .event-detail-hero {
   height: min(528px, 62dvh);
 }
+.event-detail-view .person-head {
+  padding: 28px max(20px, var(--person-gutter, 20px)) 24px;
+}
 .event-detail-view .person-head .taneesh-source {
   display: inline-block;
-  margin: 0;
+  margin: 0 0 6px;
   font-size: 11px;
   line-height: 1.2;
 }
+.event-detail-view .person-head-copy {
+  max-height: none;
+  gap: 8px;
+}
 .event-detail-view .person-head h1 {
   font-size: 24px;
-  line-height: 1.12;
+  line-height: 1.2;
+  max-width: none;
+}
+.event-detail-view .person-meta {
+  font-size: 15px;
+  line-height: 1.4;
+}
+.event-detail-view .person-bio {
+  margin-top: 16px;
 }
 .event-detail-price {
   margin: 0;
