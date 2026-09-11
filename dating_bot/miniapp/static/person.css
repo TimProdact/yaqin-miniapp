@@ -122,29 +122,11 @@ body.sheet-view .view {
   color: var(--yaqin-text-secondary);
 }
 .person-wave-hint {
-  display: none;
-}
-
-.person-say-hi {
-  position: absolute;
-  z-index: 3;
-  left: 16px;
-  bottom: 36px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 16px;
-  background: var(--yaqin-yellow);
-  color: var(--yaqin-yellow-ink);
+  margin: 0;
   font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
-}
-.person-say-hi i {
-  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--yaqin-yellow);
 }
 .person-bio {
   margin: 18px 0 0;
