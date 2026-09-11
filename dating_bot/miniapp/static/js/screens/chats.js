@@ -40,6 +40,67 @@ function syncChatsBadge() {
   badge.textContent = String(count);
 }
 
+function chatPreviewText(chat) {
+  const raw = (chat.preview || '').trim();
+  if (!raw) return chat.team ? 'Сообщения от команды' : 'Начните переписку';
+  if (raw === 'Вы познакомились') return 'Вы познакомились · напишите первой';
+  return raw;
+}
+
+function groupListPreview(group) {
+  const messages = group.messages || [];
+  const last = messages[messages.length - 1];
+  if (!last) return 'Напишите первой';
+  if (last.image && !last.text) return last.from === 'me' ? 'Вы: фото' : 'Фото';
+  if (last.share) return last.from === 'me' ? 'Вы: вложение' : 'Вложение';
+  const text = String(last.text || '').trim();
+  if (!text || /^группа создана/i.test(text)) {
+    return messages.length <= 1 ? 'Напишите первой' : 'Нет текста';
+  }
+  if (last.from === 'me') return `Вы: ${text}`;
+  return last.name ? `${last.name}: ${text}` : text;
+}
+
+function eventListPreview(event) {
+  const parts = [event.when, event.place].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'Событие в Yaqin';
+}
+
+function sortChatRows(rows) {
+  return [...rows].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    if (a.unread !== b.unread) return a.unread ? -1 : 1;
+    return 0;
+  });
+}
+
+function chatRowHtml(row, { showKind = false } = {}) {
+  const media = row.kind === 'group' || row.kind === 'event'
+    ? `<div class="content-thumb chat-content-thumb"><img src="${esc(row.photo)}" alt=""></div>`
+    : avatar(row.photo, row.team);
+  const kindLabel = showKind && row.kind === 'group'
+    ? '<em class="chat-kind-inline">группа</em>'
+    : showKind && row.kind === 'event'
+      ? '<em class="chat-kind-inline">событие</em>'
+      : '';
+  return `
+    <button class="chat-row${row.unread ? ' unread' : ''}${row.pinned ? ' pinned' : ''}" data-action="${row.action}" data-id="${esc(row.id)}">
+      ${media}
+      <div class="chat-copy">
+        <div class="chat-copy-top">
+          <strong>${esc(row.name)}</strong>
+          ${kindLabel}
+        </div>
+        <span>${esc(row.preview)}</span>
+      </div>
+      <div class="chat-row-meta">
+        ${row.time ? `<time>${esc(row.time)}</time>` : '<span class="chat-row-meta-spacer"></span>'}
+        ${row.unread ? '<i class="unread-dot" aria-label="Непрочитано"></i>' : ''}
+        ${row.pinned && !row.unread ? '<i class="ti ti-pinned chat-pin" aria-hidden="true"></i>' : ''}
+      </div>
+    </button>`;
+}
+
 export function chatsScreen() {
   clearHeader();
   let segment = 'all'; // all | dm | groups | events
@@ -55,10 +116,11 @@ export function chatsScreen() {
       action: 'chat',
       id: index,
       name: chat.name,
-      preview: chat.preview || '',
+      preview: chatPreviewText(chat),
       time: chat.time || '',
       photo: chat.photo,
       team: Boolean(chat.team),
+      pinned: Boolean(chat.team),
       unread: Boolean(chat.unread)
     }));
     const groupItems = listAllGroups().map(group => {
@@ -69,10 +131,11 @@ export function chatsScreen() {
         action: 'group',
         id: group.id,
         name: group.title,
-        preview: last?.text || group.about || 'Группа',
+        preview: groupListPreview(group),
         time: last?.time || '',
         photo: group.photo,
-        unread: false
+        pinned: false,
+        unread: Boolean(group.unread)
       };
     });
     const interested = getState().eventInterest || {};
@@ -85,17 +148,18 @@ export function chatsScreen() {
         action: 'event',
         id: event.id,
         name: event.title,
-        preview: event.when || 'Событие',
+        preview: eventListPreview(event),
         time: '',
         photo: event.photo,
+        pinned: false,
         unread: false
       }));
 
     let rows = [];
-    if (segment === 'all') rows = [...dmItems, ...groupItems];
-    else if (segment === 'dm') rows = dmItems.filter(item => item.kind === 'dm' || item.kind === 'team');
-    else if (segment === 'groups') rows = groupItems;
-    else if (segment === 'events') rows = eventItems;
+    if (segment === 'all') rows = sortChatRows([...dmItems, ...groupItems]);
+    else if (segment === 'dm') rows = sortChatRows(dmItems.filter(item => item.kind === 'dm' || item.kind === 'team'));
+    else if (segment === 'groups') rows = sortChatRows(groupItems);
+    else if (segment === 'events') rows = sortChatRows(eventItems);
 
     const term = query.trim().toLowerCase();
     if (term) {
@@ -118,6 +182,7 @@ export function chatsScreen() {
       ['events', 'События']
     ];
     const filterActive = segment !== 'all' || Boolean(term);
+    const showKind = segment === 'all';
 
     view.innerHTML = `
       <div class="chats-page">
@@ -147,19 +212,7 @@ export function chatsScreen() {
         </div>
 
         ${rows.length ? `
-          <div class="chat-list">${rows.map(row => `
-            <button class="chat-row" data-action="${row.action}" data-id="${esc(row.id)}">
-              ${row.kind === 'group' || row.kind === 'event'
-                ? `<div class="content-thumb chat-content-thumb"><img src="${esc(row.photo)}" alt=""></div>`
-                : avatar(row.photo, row.team)}
-              <div class="chat-copy">
-                <strong>${esc(row.name)}</strong>
-                <span>${esc(row.preview)}${row.time ? ` · ${esc(row.time)}` : ''}</span>
-              </div>
-              ${row.unread ? '<i class="unread-dot"></i>' : ''}
-              ${row.kind === 'group' ? '<em class="chat-kind">группа</em>' : ''}
-              ${row.kind === 'event' ? '<em class="chat-kind">событие</em>' : ''}
-            </button>`).join('')}</div>` : `
+          <div class="chat-list">${rows.map(row => chatRowHtml(row, { showKind })).join('')}</div>` : `
           <div class="chats-empty compact">
             <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
             <h2>${term
@@ -248,16 +301,29 @@ export function searchChatsScreen(queryOrId = '') {
         <div class="search-results">
           ${term
             ? `
-              ${dmRows.map(({ chat, index }) => `
-                <button class="chat-row" data-action="chat" data-id="${index}">
-                  ${avatar(chat.photo, chat.team)}
-                  <div class="chat-copy"><strong>${esc(chat.name)}</strong><span>${esc(chat.preview)}</span></div>
-                </button>`).join('')}
-              ${groupRows.map(group => `
-                <button class="chat-row" data-action="group" data-id="${esc(group.id)}">
-                  <div class="content-thumb chat-content-thumb"><img src="${esc(group.photo)}" alt=""></div>
-                  <div class="chat-copy"><strong>${esc(group.title)}</strong><span>Группа</span></div>
-                </button>`).join('')}
+              ${dmRows.map(({ chat, index }) => chatRowHtml({
+                kind: chat.team ? 'team' : 'dm',
+                action: 'chat',
+                id: index,
+                name: chat.name,
+                preview: chatPreviewText(chat),
+                time: chat.time || '',
+                photo: chat.photo,
+                team: Boolean(chat.team),
+                pinned: Boolean(chat.team),
+                unread: Boolean(chat.unread)
+              })).join('')}
+              ${groupRows.map(group => chatRowHtml({
+                kind: 'group',
+                action: 'group',
+                id: group.id,
+                name: group.title,
+                preview: groupListPreview(group),
+                time: group.messages?.[group.messages.length - 1]?.time || '',
+                photo: group.photo,
+                pinned: false,
+                unread: Boolean(group.unread)
+              }, { showKind: true })).join('')}
               ${!dmRows.length && !groupRows.length ? '<p class="search-none">Ничего не найдено</p>' : ''}
             `
             : `<div class="chats-empty compact">

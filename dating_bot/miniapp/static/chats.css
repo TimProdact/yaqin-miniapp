@@ -99,9 +99,10 @@
   width: 100%;
   border: 0;
   background: none;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   padding: 12px 0;
   text-align: left;
   color: inherit;
@@ -131,9 +132,26 @@
   gap: 4px;
   min-width: 0;
 }
+.chat-copy-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
 .chat-copy strong {
   font-size: 17px;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.chat-row.unread .chat-copy strong {
+  font-weight: 700;
+}
+.chat-row.unread .chat-copy span {
+  color: var(--yaqin-text);
+  font-weight: 500;
 }
 .chat-copy span {
   font-size: 14px;
@@ -142,13 +160,50 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.chat-kind-inline {
+  flex: 0 0 auto;
+  margin: 0;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--yaqin-text-tertiary);
+}
+.chat-row-meta {
+  display: grid;
+  justify-items: end;
+  align-content: center;
+  gap: 8px;
+  min-width: 36px;
+  flex: 0 0 auto;
+}
+.chat-row-meta time {
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--yaqin-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chat-row.unread .chat-row-meta time {
+  color: var(--yaqin-link);
+  font-weight: 600;
+}
+.chat-row-meta-spacer {
+  display: block;
+  height: 14px;
+}
 .unread-dot {
-  margin-left: auto;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--yaqin-blue);
+  background: var(--yaqin-link);
   flex: 0 0 auto;
+}
+.chat-pin {
+  font-size: 14px;
+  color: var(--yaqin-text-tertiary);
+  line-height: 1;
 }
 
 .compose {
@@ -1400,14 +1455,7 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   margin: 4px 0 10px;
 }
 .chat-kind {
-  font-style: normal;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--yaqin-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-left: auto;
-  flex: 0 0 auto;
+  display: none;
 }
 
 /* Group hub — отступы как у person/event (~20px) */

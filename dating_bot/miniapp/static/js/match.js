@@ -48,7 +48,8 @@ export function listDmChats() {
 }
 
 export function listVisibleChats() {
-  return [...listDmChats(), getTeamChat()];
+  // Команда Yaqin всегда первой в списке индексов/экрана
+  return [getTeamChat(), ...listDmChats()];
 }
 
 export function chatIndexForPerson(personId) {
