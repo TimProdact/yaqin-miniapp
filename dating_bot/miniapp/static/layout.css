@@ -104,40 +104,50 @@ body.full-screen .view {
   color: var(--yaqin-text);
   flex-shrink: 0;
   box-sizing: border-box;
-  min-height: var(--yaqin-header-h);
-  height: var(--yaqin-header-h);
 }
 
-/* List / modal headers: floating pills, content scrolls underneath */
+/* Вкладки: прозрачный float (часто внутри .list-sticky-pill) */
 .chats-head,
-.me-top,
-.filters-head,
-.modal-head,
-.sheet-head {
+.me-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin: 0 calc(var(--yaqin-gutter) * -1) calc(-1 * var(--yaqin-header-h));
   padding: 6px var(--yaqin-gutter);
+  min-height: var(--yaqin-header-h);
+  height: var(--yaqin-header-h);
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   pointer-events: none;
 }
 .chats-head > *,
-.me-top > *,
-.filters-head > *,
-.modal-head > *,
-.sheet-head > * {
+.me-top > * {
+  pointer-events: auto;
+}
+
+/* Внутренние экраны: как главные — слева, 22px, с фоном */
+.filters-head,
+.modal-head,
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 0 calc(var(--yaqin-gutter) * -1) 12px;
+  padding: 10px 16px;
+  width: calc(100% + (var(--yaqin-gutter) * 2));
+  min-height: 0;
+  height: auto;
+  background: var(--yaqin-bg) !important;
+  border: 0 !important;
+  box-shadow: none !important;
   pointer-events: auto;
 }
 
 .chats-head h1,
-.me-top h1,
-.filters-head h1,
-.modal-head h1,
-.sheet-head h1 {
+.me-top h1 {
   flex: 0 1 auto;
   width: fit-content;
   max-width: min(72vw, 260px);
@@ -159,10 +169,37 @@ body.full-screen .view {
   text-align: left;
   color: var(--yaqin-text);
 }
+
 .filters-head h1,
 .modal-head h1,
 .sheet-head h1 {
-  font-size: var(--yaqin-fs-modal);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: var(--yaqin-fs-title-sm);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  color: var(--yaqin-text);
+}
+
+/* Пустой spacer справа больше не центрирует заголовок */
+.filters-head > span:empty,
+.modal-head > span:empty,
+.sheet-head > span:empty,
+.modal-head > span.head-spacer:empty {
+  display: none;
 }
 
 .chats-head button,
@@ -200,6 +237,8 @@ body.full-screen .view {
   color: var(--yaqin-link);
   display: grid;
   place-items: center;
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 .modal-head > span.head-spacer,
 .sheet-head > span {
@@ -218,35 +257,19 @@ body.full-screen .view {
   pointer-events: auto;
 }
 
-/* Space under floating head so first content peeks below pills, then scrolls under */
+/* Space under floating tab heads (list-sticky-pill pages keep their own spacing) */
 .events-feed-page,
 .chats-page,
 .groups-tab-page,
 .me-overview-page,
-.me-page,
-.settings-page,
-.filters-page,
-.create-event-page,
-.create-group-page,
-.search-page,
-.new-dm-page,
-.ticket-checkout-page,
-.ticket-page {
+.me-page {
   --float-head-clearance: calc(var(--yaqin-header-h) + 10px);
 }
 .events-feed-page > .chats-head + *,
 .chats-page > .chats-head + *,
 .groups-tab-page > .chats-head + *,
 .me-overview-page > .me-top + *,
-.me-page > .me-top + *,
-.settings-page > .filters-head + *,
-.filters-page > .filters-head + *,
-.create-event-page > .modal-head + *,
-.create-group-page > .modal-head + *,
-.search-page > .modal-head + *,
-.new-dm-page > .modal-head + *,
-.ticket-checkout-page > .sheet-head + *,
-.ticket-page > .sheet-head + * {
+.me-page > .me-top + * {
   margin-top: var(--float-head-clearance, calc(var(--yaqin-header-h) + 10px)) !important;
 }
 
