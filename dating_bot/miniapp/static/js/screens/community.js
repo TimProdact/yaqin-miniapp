@@ -1614,13 +1614,12 @@ export function createEventScreen(editId = null) {
     const refreshPlaceList = () => {
       const list = view.querySelector('#placeList');
       if (!list) return;
-      const filtered = filterOptions(PLACE_OPTIONS, sheetQuery);
-      list.innerHTML = filtered.map(item => `
+      list.innerHTML = PLACE_OPTIONS.map(item => `
         <button type="button" class="create-when-row ${place === item ? 'on' : ''}" data-place="${esc(item)}">
           <span>${esc(item)}</span>
           ${place === item ? '<i class="ti ti-check"></i>' : ''}
         </button>
-      `).join('') || '<p class="edit-sheet-empty">Ничего не найдено</p>';
+      `).join('');
       list.querySelectorAll('[data-place]').forEach(button => {
         button.onclick = () => {
           place = button.dataset.place;
@@ -1646,10 +1645,6 @@ export function createEventScreen(editId = null) {
       }
       search.oninput = () => {
         sheetQuery = search.value;
-        if (sheet === 'place') {
-          refreshPlaceList();
-          return;
-        }
         restoreFocus = true;
         render();
       };
