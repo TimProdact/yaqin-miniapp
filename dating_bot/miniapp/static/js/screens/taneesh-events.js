@@ -371,6 +371,7 @@ export function taneeshEventsScreen() {
   clearHeader();
   let dateFilter = 'any'; // any | today | tomorrow | weekend | week | pick
   let pickIso = '';
+  let searchOpen = false;
 
   const filters = [
     ['any', 'Любая'],
@@ -389,23 +390,32 @@ export function taneeshEventsScreen() {
         return Number.isNaN(d.getTime()) ? 'Дата' : `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
       })()
       : 'Дата';
+    const filterActive = dateFilter !== 'any';
 
     view.innerHTML = `
       <div class="events-feed-page">
-        <div class="list-sticky-pill">
+        <div class="list-sticky-pill ${searchOpen ? 'is-search-open' : ''}">
           <header class="chats-head">
             <h1>События</h1>
+            <div class="list-head-actions">
+              <button type="button" id="toggleEventFilters" aria-label="Фильтры" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
+                <i class="ti ti-search"></i>
+              </button>
+            </div>
           </header>
 
-          <div class="events-date-bar">
-            <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
-              ${filters.map(([id, label]) => `
-                <button type="button" class="${dateFilter === id ? 'on' : ''}" data-date-filter="${id}">
-                  ${id === 'pick' ? esc(pickLabel) : esc(label)}
-                </button>`).join('')}
-            </div>
-            <input type="date" id="eventsPickDate" value="${esc(pickIso)}" hidden>
-          </div>
+          ${searchOpen ? `
+            <div class="list-search-panel">
+              <div class="events-date-bar">
+                <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
+                  ${filters.map(([id, label]) => `
+                    <button type="button" class="${dateFilter === id ? 'on' : ''}" data-date-filter="${id}">
+                      ${id === 'pick' ? esc(pickLabel) : esc(label)}
+                    </button>`).join('')}
+                </div>
+                <input type="date" id="eventsPickDate" value="${esc(pickIso)}" hidden>
+              </div>
+            </div>` : ''}
         </div>
 
         <div class="events-feed">
@@ -418,6 +428,10 @@ export function taneeshEventsScreen() {
         </div>
       </div>`;
 
+    view.querySelector('#toggleEventFilters')?.addEventListener('click', () => {
+      searchOpen = !searchOpen;
+      render();
+    });
     view.querySelectorAll('[data-date-filter]').forEach(button => {
       button.addEventListener('click', () => {
         const next = button.dataset.dateFilter;
@@ -427,6 +441,7 @@ export function taneeshEventsScreen() {
           const onPicked = () => {
             pickIso = input.value || '';
             dateFilter = pickIso ? 'pick' : 'any';
+            searchOpen = true;
             input.removeEventListener('change', onPicked);
             render();
           };
@@ -440,6 +455,7 @@ export function taneeshEventsScreen() {
         }
         dateFilter = next;
         pickIso = '';
+        searchOpen = true;
         render();
       });
     });

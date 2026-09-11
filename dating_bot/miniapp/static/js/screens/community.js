@@ -187,37 +187,45 @@ export function groupsScreen() {
   clearHeader();
   let query = '';
   let filter = 'all'; // all | open | closed
+  let searchOpen = false;
 
   const render = () => {
     const term = query.trim().toLowerCase();
     const groups = listAllGroups()
       .filter(group => groupMatchesFilter(group, filter))
       .filter(group => groupMatchesQuery(group, term));
-    const mineCount = getUserGroups().length;
     const pills = [
       ['all', 'Все'],
       ['open', 'Открытые'],
       ['closed', 'Закрытые']
     ];
+    const filterActive = filter !== 'all' || Boolean(term);
 
     view.innerHTML = `
       <div class="groups-tab-page">
-        <div class="list-sticky-pill">
+        <div class="list-sticky-pill ${searchOpen ? 'is-search-open' : ''}">
           <header class="chats-head">
             <h1>Группы</h1>
+            <div class="list-head-actions">
+              <button type="button" id="toggleGroupSearch" aria-label="Поиск" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
+                <i class="ti ti-search"></i>
+              </button>
+            </div>
           </header>
 
-          <div class="search-box groups-search">
-            <i class="ti ti-search"></i>
-            <input id="groupSearch" type="search" placeholder="Поиск групп" value="${esc(query)}" enterkeyhint="search">
-            ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
-          </div>
-
-          <div class="chats-pills groups-pills" role="tablist">
-            ${pills.map(([id, label]) => `
-              <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
-            `).join('')}
-          </div>
+          ${searchOpen ? `
+            <div class="list-search-panel">
+              <div class="search-box groups-search">
+                <i class="ti ti-search"></i>
+                <input id="groupSearch" type="search" placeholder="Поиск групп" value="${esc(query)}" enterkeyhint="search">
+                ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
+              </div>
+              <div class="chats-pills groups-pills" role="tablist">
+                ${pills.map(([id, label]) => `
+                  <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
+                `).join('')}
+              </div>
+            </div>` : ''}
         </div>
 
         ${groups.length
@@ -249,6 +257,11 @@ export function groupsScreen() {
 
       </div>`;
 
+    view.querySelector('#toggleGroupSearch')?.addEventListener('click', () => {
+      searchOpen = !searchOpen;
+      render();
+      if (searchOpen) view.querySelector('#groupSearch')?.focus();
+    });
     const input = view.querySelector('#groupSearch');
     input?.addEventListener('input', () => {
       query = input.value;
@@ -268,6 +281,7 @@ export function groupsScreen() {
     view.querySelectorAll('[data-filter]').forEach(button => {
       button.onclick = () => {
         filter = button.dataset.filter;
+        searchOpen = true;
         render();
       };
     });

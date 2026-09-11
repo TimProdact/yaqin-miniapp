@@ -38,6 +38,7 @@ export function chatsScreen() {
   clearHeader();
   let segment = 'all'; // all | dm | groups | events
   let query = '';
+  let searchOpen = false;
   syncChatsBadge();
 
   const buildRows = () => {
@@ -110,25 +111,33 @@ export function chatsScreen() {
       ['groups', 'Группы'],
       ['events', 'События']
     ];
+    const filterActive = segment !== 'all' || Boolean(term);
 
     view.innerHTML = `
       <div class="chats-page">
-        <div class="list-sticky-pill">
+        <div class="list-sticky-pill ${searchOpen ? 'is-search-open' : ''}">
           <header class="chats-head">
             <h1>Чаты</h1>
+            <div class="list-head-actions">
+              <button type="button" id="toggleChatSearch" aria-label="Поиск" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
+                <i class="ti ti-search"></i>
+              </button>
+            </div>
           </header>
 
-          <div class="search-box chats-search">
-            <i class="ti ti-search"></i>
-            <input id="chatListSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
-            ${term ? '<button type="button" id="clearChatSearch" aria-label="Очистить">×</button>' : ''}
-          </div>
-
-          <div class="chats-pills" role="tablist">
-            ${pills.map(([id, label]) => `
-              <button type="button" class="${segment === id ? 'on' : ''}" data-segment="${id}">${label}</button>
-            `).join('')}
-          </div>
+          ${searchOpen ? `
+            <div class="list-search-panel">
+              <div class="search-box chats-search">
+                <i class="ti ti-search"></i>
+                <input id="chatListSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
+                ${term ? '<button type="button" id="clearChatSearch" aria-label="Очистить">×</button>' : ''}
+              </div>
+              <div class="chats-pills" role="tablist">
+                ${pills.map(([id, label]) => `
+                  <button type="button" class="${segment === id ? 'on' : ''}" data-segment="${id}">${label}</button>
+                `).join('')}
+              </div>
+            </div>` : ''}
         </div>
 
         ${rows.length ? `
@@ -160,6 +169,11 @@ export function chatsScreen() {
 
       </div>`;
 
+    view.querySelector('#toggleChatSearch')?.addEventListener('click', () => {
+      searchOpen = !searchOpen;
+      render();
+      if (searchOpen) view.querySelector('#chatListSearch')?.focus();
+    });
     const input = view.querySelector('#chatListSearch');
     input?.addEventListener('input', () => {
       query = input.value;
@@ -179,6 +193,7 @@ export function chatsScreen() {
     view.querySelectorAll('[data-segment]').forEach(button => {
       button.onclick = () => {
         segment = button.dataset.segment;
+        searchOpen = true;
         render();
       };
     });
