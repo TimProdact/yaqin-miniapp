@@ -283,15 +283,19 @@
 }
 .event-detail-view .person-head .taneesh-source {
   display: inline-block;
-  margin: 0 0 8px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.2;
 }
 .event-detail-view .person-head h1 {
-  font-size: var(--yaqin-fs-title);
+  font-size: 24px;
+  line-height: 1.12;
 }
 .event-detail-price {
-  margin: 8px 0 0;
-  font-size: 15px;
+  margin: 0;
+  font-size: 14px;
   font-weight: 700;
+  line-height: 1.2;
   color: var(--yaqin-yellow);
 }
 .event-want-btn.on {

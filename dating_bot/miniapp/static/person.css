@@ -85,32 +85,43 @@ body.sheet-view .view {
 }
 .person-head-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
+  min-height: 72px;
 }
 .person-head-copy {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  max-height: 72px;
 }
 .person-head h1 {
   margin: 0;
   max-width: none;
   font-size: var(--yaqin-fs-title);
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--yaqin-text);
 }
+.person-head-row:has(.hero-wave) .person-head-copy h1 {
+  font-size: 24px;
+  line-height: 1.12;
+}
 .person-meta {
-  margin: 8px 0 0;
-  font-size: 16px;
-  line-height: 1.25;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.2;
   color: var(--yaqin-text-secondary);
 }
 .person-wave-hint {
-  margin: 8px 0 0;
-  font-size: 14px;
+  margin: 0;
+  font-size: 13px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--yaqin-yellow);
 }
 .person-bio {
@@ -125,7 +136,7 @@ body.sheet-view .view {
   position: relative;
   top: auto;
   right: auto;
-  flex: 0 0 auto;
+  flex: 0 0 72px;
   width: 72px;
   height: 72px;
   border: 0;
@@ -136,6 +147,7 @@ body.sheet-view .view {
   display: grid;
   place-items: center;
   box-shadow: none;
+  align-self: center;
 }
 .hero-wave i {
   stroke-width: 1.6;
