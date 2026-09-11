@@ -22,7 +22,13 @@ body[data-route='edit-event'] .view {
 .create-event-page {
   min-height: 100%;
   background: var(--yaqin-bg);
-  padding: 4px 0 calc(100px + env(safe-area-inset-bottom, 0px));
+  padding: 4px var(--yaqin-gutter) calc(100px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+.create-group-page > .filters-head,
+.create-event-page > .filters-head {
+  margin-left: calc(var(--yaqin-gutter) * -1);
+  margin-right: calc(var(--yaqin-gutter) * -1);
 }
 .create-event-cover {
   width: min(100%, 200px);
