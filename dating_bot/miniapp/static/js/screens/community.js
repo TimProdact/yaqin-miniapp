@@ -324,13 +324,39 @@ export function createGroupScreen(editId = null) {
     return;
   }
 
+  const defaultAbout = pub => (pub ? 'Открытая группа в Yaqin' : 'Закрытая группа в Yaqin');
+
   let name = isEdit ? (existing.title || '') : '';
   let cover = isEdit ? (existing.photo || null) : null;
   let coverIndex = 0;
   let isPublic = isEdit ? isGroupPublic(existing) : true;
+  let about = isEdit ? (existing.about || '') : '';
+  let sheet = null;
+  let draftText = '';
+
+  const preview = (text, empty) => {
+    const value = String(text || '').trim();
+    if (!value) return empty;
+    return value.length > 42 ? `${value.slice(0, 42)}…` : value;
+  };
+
+  const closeSheet = () => {
+    sheet = null;
+    draftText = '';
+    render();
+  };
+
+  const sheetHead = (heading, sub) => `
+    <header class="edit-sheet-head">
+      <button type="button" class="edit-sheet-close" id="closeSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+      <div class="edit-sheet-titles"><h2>${esc(heading)}</h2><p>${esc(sub)}</p></div>
+      <span class="edit-sheet-spacer"></span>
+    </header>`;
 
   const render = () => {
     const canCreate = name.trim().length > 1;
+    document.body.classList.toggle('edit-sheet-open', Boolean(sheet));
+
     view.innerHTML = `
       <div class="create-group-page">
         <header class="filters-head">
@@ -344,6 +370,14 @@ export function createGroupScreen(editId = null) {
             <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
           </div>
           <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}" maxlength="60" autocomplete="off">
+        </div>
+
+        <div class="create-field-rows">
+          <button class="settings-row" type="button" data-sheet="description">
+            <span class="settings-icon purple square"><i class="ti ti-align-left"></i></span>
+            <span>Описание<br><small>${esc(preview(about, 'Добавить'))}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
         </div>
 
         <div class="create-entry-panel">
@@ -361,6 +395,17 @@ export function createGroupScreen(editId = null) {
         <div class="create-sticky-cta">
           <button type="button" class="create-submit ${canCreate ? 'on' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>${isEdit ? 'Сохранить' : 'Создать'}</button>
         </div>
+
+        ${sheet === 'description' ? `
+          <div class="edit-sheet-scrim" id="sheetScrim"></div>
+          <div class="edit-sheet edit-sheet--text create-when-sheet" role="dialog" aria-modal="true">
+            ${sheetHead('Описание', 'О чём группа')}
+            <textarea class="create-sheet-textarea" id="descInput" maxlength="400" rows="6" placeholder="Коротко о группе, правилах, для кого она…">${esc(draftText)}</textarea>
+            <div class="edit-sheet-foot">
+              ${draftText ? '<button type="button" class="edit-sheet-clear-field" id="clearDesc">Очистить</button>' : ''}
+              <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
+            </div>
+          </div>` : ''}
       </div>`;
 
     view.querySelector('#groupName').oninput = event => {
@@ -380,16 +425,52 @@ export function createGroupScreen(editId = null) {
         render();
       };
     });
+    view.querySelectorAll('[data-sheet]').forEach(button => {
+      button.onclick = () => {
+        sheet = button.dataset.sheet;
+        draftText = about;
+        render();
+      };
+    });
+    view.querySelector('#sheetScrim')?.addEventListener('click', closeSheet);
+    view.querySelector('#closeSheet')?.addEventListener('click', closeSheet);
+    view.querySelector('#clearDesc')?.addEventListener('click', () => {
+      draftText = '';
+      const input = view.querySelector('#descInput');
+      if (input) input.value = '';
+      render();
+      view.querySelector('#descInput')?.focus();
+    });
+    view.querySelector('#descInput')?.addEventListener('input', event => {
+      draftText = event.target.value;
+      const clear = view.querySelector('#clearDesc');
+      if (clear) clear.hidden = !draftText.trim();
+      else if (draftText.trim()) render();
+    });
+    view.querySelector('#doneSheet')?.addEventListener('click', () => {
+      about = (view.querySelector('#descInput')?.value || draftText || '').trim();
+      closeSheet();
+    });
+    if (sheet === 'description') {
+      const input = view.querySelector('#descInput');
+      if (input) {
+        input.focus();
+        const len = input.value.length;
+        input.setSelectionRange(len, len);
+      }
+    }
+
     view.querySelector('#createGroupBtn').onclick = () => {
       if (!name.trim()) return;
       const profile = getState().profile || defaultProfile;
       const state = getState();
+      const aboutText = about.trim() || defaultAbout(isPublic);
 
       if (isEdit) {
         const updated = {
           ...existing,
           title: name.trim(),
-          about: isPublic ? 'Открытая группа в Yaqin' : 'Закрытая группа в Yaqin',
+          about: aboutText,
           photo: cover || existing.photo || nextCover(0),
           isPublic,
           updatedAt: new Date().toISOString()
@@ -407,7 +488,7 @@ export function createGroupScreen(editId = null) {
       const group = {
         id: `g-${Date.now()}`,
         title: name.trim(),
-        about: isPublic ? 'Открытая группа в Yaqin' : 'Закрытая группа в Yaqin',
+        about: aboutText,
         city: 'Ташкент',
         photo: cover || nextCover(0),
         isPublic,
