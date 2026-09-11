@@ -375,6 +375,8 @@ export function taneeshEventsScreen() {
   let dateFilter = 'any'; // any | today | tomorrow | weekend | week | pick
   let pickIso = '';
   let searchOpen = false;
+  let query = '';
+  let restoreFocus = false;
 
   const filters = [
     ['any', 'Любая'],
@@ -385,15 +387,32 @@ export function taneeshEventsScreen() {
     ['pick', 'Дата']
   ];
 
+  const matchesQuery = (event, term) => {
+    if (!term) return true;
+    const hay = [
+      event.title,
+      event.place,
+      event.address,
+      event.when,
+      event.host,
+      event.group,
+      ...(Array.isArray(event.interests) ? event.interests : [])
+    ].join(' ').toLowerCase();
+    return hay.includes(term);
+  };
+
   const render = () => {
-    const feed = allEvents().filter(event => matchesDateFilter(event, dateFilter, pickIso));
+    const term = query.trim().toLowerCase();
+    const feed = allEvents()
+      .filter(event => matchesDateFilter(event, dateFilter, pickIso))
+      .filter(event => matchesQuery(event, term));
     const pickLabel = pickIso
       ? (() => {
         const d = new Date(`${pickIso}T12:00:00`);
         return Number.isNaN(d.getTime()) ? 'Дата' : `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
       })()
       : 'Дата';
-    const filterActive = dateFilter !== 'any';
+    const filterActive = dateFilter !== 'any' || Boolean(term);
 
     view.innerHTML = `
       <div class="events-feed-page">
@@ -401,7 +420,7 @@ export function taneeshEventsScreen() {
           <header class="chats-head">
             <h1>События</h1>
             <div class="list-head-actions">
-              <button type="button" id="toggleEventFilters" aria-label="${searchOpen ? 'Закрыть фильтры' : 'Фильтры'}" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
+              <button type="button" id="toggleEventSearch" aria-label="${searchOpen ? 'Закрыть поиск' : 'Поиск'}" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
                 <i class="ti ${searchOpen ? 'ti-x' : 'ti-search'}"></i>
               </button>
             </div>
@@ -409,6 +428,11 @@ export function taneeshEventsScreen() {
 
           ${searchOpen ? `
             <div class="list-search-panel">
+              <div class="search-box chats-search">
+                <i class="ti ti-search"></i>
+                <input id="eventListSearch" type="search" placeholder="Название, место, интерес…" value="${esc(query)}" enterkeyhint="search" autocomplete="off">
+                ${term ? '<button type="button" id="clearEventSearch" aria-label="Очистить">×</button>' : ''}
+              </div>
               <div class="events-date-bar">
                 <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
                   ${filters.map(([id, label]) => `
@@ -425,34 +449,66 @@ export function taneeshEventsScreen() {
           ${feed.length
             ? feed.map(eventCardHtml).join('')
             : `<div class="events-feed-empty">
-                <p>Нет событий на эту дату</p>
-                <button type="button" class="empty-primary" data-date-filter="any">Показать все</button>
+                <p>${term ? 'Ничего не найдено' : 'Нет событий на эту дату'}</p>
+                <button type="button" class="empty-primary" data-date-filter="any">${term ? 'Сбросить поиск' : 'Показать все'}</button>
               </div>`}
         </div>
       </div>`;
 
-    view.querySelector('#toggleEventFilters')?.addEventListener('click', () => {
+    view.querySelector('#toggleEventSearch')?.addEventListener('click', () => {
       searchOpen = !searchOpen;
+      if (!searchOpen) query = '';
+      restoreFocus = searchOpen;
       render();
     });
+
+    const input = view.querySelector('#eventListSearch');
+    if (input) {
+      if (restoreFocus) {
+        input.focus();
+        const len = input.value.length;
+        input.setSelectionRange(len, len);
+        restoreFocus = false;
+      }
+      input.addEventListener('input', () => {
+        query = input.value;
+        restoreFocus = true;
+        render();
+      });
+    }
+    view.querySelector('#clearEventSearch')?.addEventListener('click', () => {
+      query = '';
+      restoreFocus = true;
+      render();
+    });
+
     view.querySelectorAll('[data-date-filter]').forEach(button => {
       button.addEventListener('click', () => {
         const next = button.dataset.dateFilter;
+        if (next === 'any' && term) {
+          query = '';
+          dateFilter = 'any';
+          pickIso = '';
+          searchOpen = true;
+          restoreFocus = true;
+          render();
+          return;
+        }
         if (next === 'pick') {
-          const input = view.querySelector('#eventsPickDate');
-          if (!input) return;
+          const dateInput = view.querySelector('#eventsPickDate');
+          if (!dateInput) return;
           const onPicked = () => {
-            pickIso = input.value || '';
+            pickIso = dateInput.value || '';
             dateFilter = pickIso ? 'pick' : 'any';
             searchOpen = true;
-            input.removeEventListener('change', onPicked);
+            dateInput.removeEventListener('change', onPicked);
             render();
           };
-          input.addEventListener('change', onPicked);
-          if (typeof input.showPicker === 'function') {
-            try { input.showPicker(); } catch (_) { input.click(); }
+          dateInput.addEventListener('change', onPicked);
+          if (typeof dateInput.showPicker === 'function') {
+            try { dateInput.showPicker(); } catch (_) { dateInput.click(); }
           } else {
-            input.click();
+            dateInput.click();
           }
           return;
         }
