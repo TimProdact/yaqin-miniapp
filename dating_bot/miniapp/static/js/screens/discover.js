@@ -1,4 +1,4 @@
-import { view, esc, clearHeader, showError, showPlaceholder } from '../dom.js';
+import { view, esc, setDiscoverHeader, clearHeader, showDiscoverLoading, showError, showPlaceholder } from '../dom.js';
 import { isCurrentRender, navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
@@ -26,24 +26,10 @@ function findPerson(id) {
   return getPersonById(id) || lastShown[0];
 }
 
-function peopleActionsHtml() {
-  const city = getState().filters?.city || 'Ташкент';
-  return `
-    <div class="people-float-actions people-head-actions">
-      <button type="button" class="people-city-btn" data-action="city">${esc(city)} <i class="ti ti-chevron-down"></i></button>
-      <button type="button" data-action="filters" aria-label="Фильтры"><i class="ti ti-adjustments-horizontal"></i></button>
-    </div>`;
-}
-
-function peoplePage(inner) {
-  return `<div class="people-page">${peopleActionsHtml()}${inner}</div>`;
-}
-
 function renderEmptyState(kind = 'exhausted') {
   const isFilters = kind === 'filters';
-  view.innerHTML = peoplePage(`
+  view.innerHTML = `
     <div class="discover-empty">
-      <h1 class="people-feed-title">Люди</h1>
       <div class="empty-card">
         <div class="empty-badge"><i class="ti ti-users"></i></div>
         <h2>${isFilters ? 'Никого не нашлось' : 'Вы посмотрели всех новых'}</h2>
@@ -54,7 +40,7 @@ function renderEmptyState(kind = 'exhausted') {
           ${isFilters ? 'Изменить фильтры' : 'Показать пропущенных'}
         </button>
       </div>
-    </div>`);
+    </div>`;
 }
 
 function cardMarkup(person) {
@@ -104,31 +90,8 @@ function fitCardChips(root = view) {
 }
 
 export async function peopleScreen(_id, token) {
-  clearHeader();
-  view.innerHTML = peoplePage(`
-    <div class="swipe-stage discover-loading">
-      <h1 class="people-feed-title">Люди</h1>
-      <div class="profile-card skeleton-card">
-        <div class="skeleton-top">
-          <span class="sk sk-name"></span>
-          <span class="sk sk-meta"></span>
-        </div>
-        <div class="skeleton-spinner"></div>
-        <div class="skeleton-bottom">
-          <div class="skeleton-bottom-copy">
-            <span class="sk sk-line"></span>
-            <span class="sk sk-line short"></span>
-            <div class="skeleton-chips">
-              <span class="sk sk-chip"></span>
-              <span class="sk sk-chip wide"></span>
-              <span class="sk sk-chip"></span>
-              <span class="sk sk-chip mid"></span>
-            </div>
-          </div>
-          <span class="skeleton-wave" aria-hidden="true"></span>
-        </div>
-      </div>
-    </div>`);
+  setDiscoverHeader(getState().filters?.city || 'Ташкент');
+  showDiscoverLoading();
 
   let candidates;
   try {
@@ -152,11 +115,10 @@ export async function peopleScreen(_id, token) {
     return;
   }
 
-  view.innerHTML = peoplePage(`
+  view.innerHTML = `
     <div class="swipe-stage" role="feed" aria-label="Анкеты">
       ${candidates.map((person, index) => `
-        <article class="profile-card-slot ${index === 0 ? 'has-title' : ''} ${index < candidates.length - 1 ? 'has-peek' : ''}" data-index="${index}">
-          ${index === 0 ? '<h1 class="people-feed-title">Люди</h1>' : ''}
+        <article class="profile-card-slot ${index < candidates.length - 1 ? 'has-peek' : ''}" data-index="${index}">
           ${cardMarkup(person)}
         </article>
       `).join('')}
@@ -170,7 +132,7 @@ export async function peopleScreen(_id, token) {
           </div>
         </div>
       </article>
-    </div>`);
+    </div>`;
 
   enableSwipe(decide, { onTap: id => navigate('person', Number(id)) });
   requestAnimationFrame(() => fitCardChips());

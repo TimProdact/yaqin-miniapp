@@ -1,101 +1,59 @@
 /* Лента людей. Метрики сняты с design/bff-ios-jan-2026/04-discover/card--040.png (393pt). */
 
+.app-header.discover-header {
+  height: var(--yaqin-header-h);
+  min-height: var(--yaqin-header-h);
+  padding: 0 var(--yaqin-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.discover-header .brand {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--yaqin-text);
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+}
+.discover-header .city {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  color: var(--yaqin-text);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.discover-header .city i {
+  font-size: 17px;
+  stroke-width: 2.4;
+}
+.discover-header .filters {
+  border: 0;
+  background: none;
+  color: var(--yaqin-text);
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+}
+
 body[data-route='people'] .view {
-  padding: 0 !important;
+  padding: 0 var(--yaqin-gutter) !important;
   overflow: hidden !important;
   position: relative;
 }
 
-.people-page {
-  height: 100%;
-  position: relative;
-  padding: 0 var(--yaqin-gutter);
-  box-sizing: border-box;
-}
-
-/* Город + фильтры — всегда сверху; title «Люди» скроллится с первой карточкой */
-.people-float-actions {
-  position: fixed;
-  top: calc(var(--yaqin-safe-top) + 6px);
-  right: max(var(--yaqin-gutter), calc(50% - 221px + var(--yaqin-gutter)));
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: auto;
-}
-
-.people-head-actions .people-city-btn {
-  width: auto !important;
-  max-width: min(46vw, 180px);
-  height: 40px;
-  padding: 0 12px 0 14px !important;
-  border-radius: 999px !important;
-  flex: 0 1 auto !important;
-  display: inline-flex !important;
-  align-items: center;
-  gap: 4px;
-  font-size: 14px !important;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
-  color: var(--yaqin-text);
-  border: 0;
-}
-.people-head-actions .people-city-btn i {
-  font-size: 16px;
-  flex: 0 0 auto;
-}
-.people-float-actions > button:not(.people-city-btn) {
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
-  color: var(--yaqin-text);
-  font-size: 22px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 40px;
-}
-
-.people-feed-title {
-  flex: 0 0 auto;
-  margin: 0 0 10px;
-  padding: 0;
-  border: 0;
-  background: none;
-  box-shadow: none;
-  font-size: var(--yaqin-fs-title);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--yaqin-text);
-}
-
-.people-page > .swipe-stage,
-.people-page > .discover-empty {
+.swipe-stage {
   position: absolute;
-  left: var(--yaqin-gutter);
-  right: var(--yaqin-gutter);
-  top: 0;
-  bottom: 0;
+  inset: 0;
   height: auto;
   min-height: 0;
-  padding-top: calc(var(--yaqin-safe-top) + 52px);
-  box-sizing: border-box;
-}
-
-.swipe-stage {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -108,15 +66,6 @@ body[data-route='people'] .view {
   display: none;
 }
 
-.swipe-stage.discover-loading {
-  display: flex;
-  flex-direction: column;
-}
-.swipe-stage.discover-loading .profile-card {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
 .profile-card-slot {
   position: relative;
   /* Чуть короче экрана — снизу торчит верх следующей карточки */
@@ -126,15 +75,6 @@ body[data-route='people'] .view {
   scroll-snap-stop: always;
   box-sizing: border-box;
   padding: 0 0 8px;
-}
-.profile-card-slot.has-title {
-  display: flex;
-  flex-direction: column;
-}
-.profile-card-slot.has-title .profile-card {
-  flex: 1 1 auto;
-  min-height: 0;
-  height: auto;
 }
 .profile-card-slot.discover-end-slot {
   height: 100%;

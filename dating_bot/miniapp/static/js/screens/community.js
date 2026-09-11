@@ -202,20 +202,22 @@ export function groupsScreen() {
 
     view.innerHTML = `
       <div class="groups-tab-page">
-        <header class="chats-head">
-          <h1>Группы</h1>
-        </header>
+        <div class="list-sticky-top">
+          <header class="chats-head">
+            <h1>Группы</h1>
+          </header>
 
-        <div class="search-box groups-search">
-          <i class="ti ti-search"></i>
-          <input id="groupSearch" type="search" placeholder="Поиск групп" value="${esc(query)}" enterkeyhint="search">
-          ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
-        </div>
+          <div class="search-box groups-search">
+            <i class="ti ti-search"></i>
+            <input id="groupSearch" type="search" placeholder="Поиск групп" value="${esc(query)}" enterkeyhint="search">
+            ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
+          </div>
 
-        <div class="chats-pills groups-pills" role="tablist">
-          ${pills.map(([id, label]) => `
-            <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
-          `).join('')}
+          <div class="chats-pills groups-pills" role="tablist">
+            ${pills.map(([id, label]) => `
+              <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
+            `).join('')}
+          </div>
         </div>
 
         ${groups.length
