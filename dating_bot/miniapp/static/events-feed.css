@@ -3,7 +3,7 @@
 .events-feed-page {
   min-height: 100%;
   background: var(--yaqin-bg);
-  padding: var(--yaqin-space-2) var(--yaqin-gutter) 120px;
+  padding: var(--yaqin-space-2) var(--yaqin-gutter) 0;
   color: var(--yaqin-text);
 }
 
@@ -82,6 +82,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: start;
+  align-content: start;
+  grid-auto-rows: max-content;
 }
 
 /* Фото событий всегда 4:5 (вертикаль) */

@@ -317,6 +317,8 @@ body[data-route='me'] .view {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* padding уезжает во внутренний скролл — иначе мёртвая зона под списком */
+  padding-bottom: 0 !important;
 }
 .chats-page,
 .groups-tab-page,
@@ -328,25 +330,40 @@ body[data-route='me'] .view {
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
+  /* нижний inset только у scroll-ребёнка */
+  padding-bottom: 0 !important;
 }
 .chats-page > .list-sticky-pill + *,
 .groups-tab-page > .list-sticky-pill + *,
 .events-feed-page > .list-sticky-pill + *,
 .me-overview-page > .page-scroll,
 .page-scroll {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   margin-top: 0 !important;
+  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 28px);
 }
 .me-overview-page > .page-scroll {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 24px;
+}
+
+/* Сетка афиши не сжимать карточки внутри flex-скролла */
+.events-feed-page > .events-feed {
+  align-content: start;
+  height: auto;
+}
+.events-feed-page .taneesh-event-card {
+  height: auto;
+  align-self: start;
+}
+.events-feed-page .event-photo {
+  flex-shrink: 0;
 }
 
 /* Shared primary pill CTA */

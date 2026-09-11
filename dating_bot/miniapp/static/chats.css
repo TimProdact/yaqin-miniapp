@@ -5,7 +5,7 @@
 .settings-page {
   min-height: 100%;
   background: var(--yaqin-bg);
-  padding: var(--yaqin-space-2) var(--yaqin-gutter) 120px;
+  padding: var(--yaqin-space-2) var(--yaqin-gutter) 0;
   position: relative;
   color: var(--yaqin-text);
 }
@@ -1441,7 +1441,7 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
 .groups-tab-page {
   min-height: 100%;
   background: var(--yaqin-bg);
-  padding: var(--yaqin-space-2) var(--yaqin-gutter) 120px;
+  padding: var(--yaqin-space-2) var(--yaqin-gutter) 0;
   position: relative;
   color: var(--yaqin-text);
 }
