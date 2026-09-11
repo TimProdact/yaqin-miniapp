@@ -273,16 +273,17 @@ body.full-screen .view {
   margin-top: var(--float-head-clearance, calc(var(--yaqin-header-h) + 10px)) !important;
 }
 
-/* Page chrome: прозрачный sticky-блок, без заливки */
+/* Page chrome: без bleed — иначе overflow:hidden + focus в поиске уезжают в scrollLeft */
 .list-sticky-pill {
   position: relative;
   top: auto;
   z-index: 21;
   flex: 0 0 auto;
   box-sizing: border-box;
-  width: calc(100% + (var(--yaqin-gutter) * 2));
-  margin: 0 calc(var(--yaqin-gutter) * -1) 12px;
-  padding: 10px 16px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 0;
   border-radius: 0;
   background: transparent !important;
   backdrop-filter: none;
@@ -291,10 +292,10 @@ body.full-screen .view {
   border: 0 !important;
 }
 .list-sticky-pill.is-search-open {
-  padding: 10px 16px 14px;
+  padding: 10px 0 14px;
 }
 .list-sticky-pill--compact {
-  padding: 10px 16px;
+  padding: 10px 0;
 }
 .list-sticky-pill .chats-head,
 .list-sticky-pill .me-top {
@@ -376,12 +377,15 @@ body.full-screen .view {
   display: grid;
   gap: 10px;
   min-width: 0;
-  overflow: visible;
+  max-width: 100%;
+  overflow: hidden;
 }
 .list-search-panel .chats-pills,
 .list-search-panel .events-date-pills {
   margin: 0 !important;
   padding-bottom: 2px;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
@@ -427,9 +431,12 @@ body[data-route='me'] .view {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overscroll-behavior-x: none;
   box-sizing: border-box;
   /* нижний inset только у scroll-ребёнка */
   padding-bottom: 0 !important;
+  max-width: 100%;
+  min-width: 0;
 }
 .chats-page > .list-sticky-pill + *,
 .groups-tab-page > .list-sticky-pill + *,

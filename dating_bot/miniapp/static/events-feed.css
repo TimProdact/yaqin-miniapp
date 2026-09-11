@@ -12,10 +12,10 @@
 }
 
 .events-date-bar {
-  margin-left: calc(var(--yaqin-gutter) * -1);
-  margin-right: calc(var(--yaqin-gutter) * -1);
-  padding: 0 var(--yaqin-gutter) 10px;
+  margin: 0;
+  padding: 0 0 10px;
   box-sizing: border-box;
+  max-width: 100%;
 }
 .events-date-pills {
   margin: 0;
@@ -31,8 +31,7 @@
   box-shadow: none;
 }
 .events-feed-empty {
-  column-span: all;
-  break-inside: avoid;
+  grid-column: 1 / -1;
   display: grid;
   gap: 14px;
   justify-items: start;
@@ -79,18 +78,22 @@
 }
 
 .events-feed {
-  columns: 2;
-  column-gap: 12px;
-  column-fill: balance;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-content: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 .events-feed > .taneesh-event-card {
-  break-inside: avoid;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  display: inline-block;
-  width: 100%;
-  margin: 0 0 12px;
-  vertical-align: top;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  align-self: start;
 }
 
 /* Фото событий всегда 4:5 (вертикаль) */

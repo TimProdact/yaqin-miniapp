@@ -465,11 +465,13 @@ export function taneeshEventsScreen() {
     const input = view.querySelector('#eventListSearch');
     if (input) {
       if (restoreFocus) {
-        input.focus();
+        input.focus({ preventScroll: true });
         const len = input.value.length;
         input.setSelectionRange(len, len);
         restoreFocus = false;
       }
+      const page = view.querySelector('.events-feed-page');
+      if (page) page.scrollLeft = 0;
       input.addEventListener('input', () => {
         query = input.value;
         restoreFocus = true;

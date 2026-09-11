@@ -172,7 +172,11 @@ export function chatsScreen() {
     view.querySelector('#toggleChatSearch')?.addEventListener('click', () => {
       searchOpen = !searchOpen;
       render();
-      if (searchOpen) view.querySelector('#chatListSearch')?.focus();
+      if (searchOpen) {
+        view.querySelector('#chatListSearch')?.focus({ preventScroll: true });
+        const page = view.querySelector('.chats-page');
+        if (page) page.scrollLeft = 0;
+      }
     });
     const input = view.querySelector('#chatListSearch');
     input?.addEventListener('input', () => {
@@ -180,15 +184,19 @@ export function chatsScreen() {
       render();
       const next = view.querySelector('#chatListSearch');
       if (next) {
-        next.focus();
+        next.focus({ preventScroll: true });
         const pos = query.length;
         next.setSelectionRange(pos, pos);
       }
+      const page = view.querySelector('.chats-page');
+      if (page) page.scrollLeft = 0;
     });
     view.querySelector('#clearChatSearch')?.addEventListener('click', () => {
       query = '';
       render();
-      view.querySelector('#chatListSearch')?.focus();
+      view.querySelector('#chatListSearch')?.focus({ preventScroll: true });
+      const page = view.querySelector('.chats-page');
+      if (page) page.scrollLeft = 0;
     });
     view.querySelectorAll('[data-segment]').forEach(button => {
       button.onclick = () => {
