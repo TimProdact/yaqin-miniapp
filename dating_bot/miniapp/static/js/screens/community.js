@@ -1089,21 +1089,7 @@ export function createEventScreen(editId = null) {
     return { iso: todayIso(), time };
   };
   const today = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
-  const inDays = n => {
-    const d = new Date();
-    d.setDate(d.getDate() + n);
-    return d;
-  };
-  const WHEN_OPTIONS = [
-    whenSlot(today, '19:00'),
-    whenSlot(tomorrow, '11:00'),
-    whenSlot(inDays(3), '10:00'),
-    whenSlot(inDays(4), '11:00'),
-    whenSlot(inDays(7), '19:30'),
-    whenSlot(inDays(8), '16:00')
-  ];
+  const DEFAULT_WHEN = whenSlot(today, '19:00');
   const PLACE_OPTIONS = [
     'Кофейня в центре',
     'Парк Ашхабад',
@@ -1136,29 +1122,21 @@ export function createEventScreen(editId = null) {
   })();
   let description = isEdit ? (existing.description || '') : '';
   let interests = isEdit ? [...(existing.interests || [])] : [];
-  let whenIdx = 3;
-  let selectedSlot = WHEN_OPTIONS[whenIdx];
+  let selectedSlot = DEFAULT_WHEN;
   if (isEdit && existing.when) {
-    const found = WHEN_OPTIONS.findIndex(option => option.when === existing.when);
-    if (found >= 0) {
-      whenIdx = found;
-      selectedSlot = WHEN_OPTIONS[found];
-    } else {
-      const parts = partsFromSlot({
-        when: existing.when,
-        day: existing.day,
-        month: existing.month
-      });
-      selectedSlot = {
-        ...slotFromParts(parts.iso, parts.time),
-        when: existing.when,
-        day: existing.day || parts.iso.split('-')[2]?.replace(/^0/, '') || '',
-        month: existing.month || ''
-      };
-      if (!selectedSlot.day || !selectedSlot.month) {
-        selectedSlot = slotFromParts(parts.iso, parts.time);
-      }
-      whenIdx = -1;
+    const parts = partsFromSlot({
+      when: existing.when,
+      day: existing.day,
+      month: existing.month
+    });
+    selectedSlot = {
+      ...slotFromParts(parts.iso, parts.time),
+      when: existing.when,
+      day: existing.day || parts.iso.split('-')[2]?.replace(/^0/, '') || '',
+      month: existing.month || ''
+    };
+    if (!selectedSlot.day || !selectedSlot.month) {
+      selectedSlot = slotFromParts(parts.iso, parts.time);
     }
   }
   let cover = isEdit ? (existing.photo || null) : null;
@@ -1186,7 +1164,7 @@ export function createEventScreen(editId = null) {
   let placeMapApi = null;
   let placeGeoBusy = false;
 
-  const whenOf = () => selectedSlot || WHEN_OPTIONS[0];
+  const whenOf = () => selectedSlot || DEFAULT_WHEN;
   const preview = (text, empty) => {
     const value = String(text || '').trim();
     if (!value) return empty;
@@ -1229,15 +1207,6 @@ export function createEventScreen(editId = null) {
               Время
               <input id="whenTime" type="time" value="${esc(whenDraft.time)}" required>
             </label>
-          </div>
-          <p class="create-when-quick">Быстрый выбор</p>
-          <div class="create-when-list">
-            ${WHEN_OPTIONS.map((option, index) => `
-              <button type="button" class="create-when-row ${index === whenIdx ? 'on' : ''}" data-when="${index}">
-                <span>${esc(option.when)}</span>
-                ${index === whenIdx ? '<i class="ti ti-check"></i>' : ''}
-              </button>
-            `).join('')}
           </div>
           <div class="edit-sheet-foot">
             <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
@@ -1569,7 +1538,6 @@ export function createEventScreen(editId = null) {
         const time = view.querySelector('#whenTime')?.value || whenDraft.time || '19:00';
         selectedSlot = slotFromParts(iso, time);
         whenDraft = { iso: selectedSlot.iso, time: selectedSlot.time };
-        whenIdx = WHEN_OPTIONS.findIndex(option => option.iso === selectedSlot.iso && option.time === selectedSlot.time);
         closeSheet();
         return;
       }
@@ -1600,7 +1568,6 @@ export function createEventScreen(editId = null) {
           iso: whenDateInput.value || whenDraft.iso,
           time: whenTimeInput?.value || whenDraft.time
         };
-        whenIdx = -1;
       };
     }
     if (whenTimeInput) {
@@ -1609,18 +1576,9 @@ export function createEventScreen(editId = null) {
           iso: whenDateInput?.value || whenDraft.iso,
           time: whenTimeInput.value || whenDraft.time
         };
-        whenIdx = -1;
       };
     }
 
-    view.querySelectorAll('[data-when]').forEach(button => {
-      button.onclick = () => {
-        whenIdx = Number(button.dataset.when);
-        selectedSlot = WHEN_OPTIONS[whenIdx] || WHEN_OPTIONS[0];
-        whenDraft = partsFromSlot(selectedSlot);
-        closeSheet();
-      };
-    });
     view.querySelectorAll('[data-place]').forEach(button => {
       button.onclick = () => {
         place = button.dataset.place;
