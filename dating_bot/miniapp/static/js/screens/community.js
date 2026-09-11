@@ -1215,7 +1215,6 @@ export function createEventScreen(editId = null) {
     }
 
     if (sheet === 'place') {
-      const filtered = filterOptions(PLACE_OPTIONS, sheetQuery);
       const customValue = PLACE_OPTIONS.includes(place) ? '' : place;
       return `
         <div class="edit-sheet-scrim" id="sheetScrim"></div>
@@ -1228,12 +1227,8 @@ export function createEventScreen(editId = null) {
               <i class="ti ti-current-location"></i> Моё местоположение
             </button>
           </div>
-          <label class="edit-sheet-search">
-            <i class="ti ti-search"></i>
-            <input id="sheetSearch" type="search" placeholder="Поиск в списке" value="${esc(sheetQuery)}" autocomplete="off">
-          </label>
           <div class="create-when-list" id="placeList">
-            ${filtered.map(item => `
+            ${PLACE_OPTIONS.map(item => `
               <button type="button" class="create-when-row ${place === item ? 'on' : ''}" data-place="${esc(item)}">
                 <span>${esc(item)}</span>
                 ${place === item ? '<i class="ti ti-check"></i>' : ''}
