@@ -259,7 +259,7 @@ body.full-screen .view {
   box-sizing: border-box;
   width: calc(100% + (var(--yaqin-gutter) * 2));
   margin: 0 calc(var(--yaqin-gutter) * -1) 12px;
-  padding: 8px 12px;
+  padding: 10px 16px;
   border-radius: var(--yaqin-radius-xl);
   background: color-mix(in srgb, var(--yaqin-surface-raised) 52%, transparent);
   backdrop-filter: blur(28px) saturate(1.35);
@@ -267,10 +267,10 @@ body.full-screen .view {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--yaqin-bg-subtle) 55%, transparent);
 }
 .list-sticky-pill.is-search-open {
-  padding: 8px 12px 12px;
+  padding: 10px 16px 14px;
 }
 .list-sticky-pill--compact {
-  padding: 6px 10px;
+  padding: 10px 16px;
 }
 .list-sticky-pill .chats-head,
 .list-sticky-pill .me-top {
@@ -279,16 +279,33 @@ body.full-screen .view {
   z-index: auto;
   margin: 0;
   height: auto;
-  min-height: 40px;
+  min-height: 0;
   padding: 0;
   pointer-events: none;
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .list-sticky-pill .chats-head > *,
 .list-sticky-pill .me-top > * {
   pointer-events: auto;
+}
+.list-sticky-pill .chats-head h1,
+.list-sticky-pill .me-top h1 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-size: var(--yaqin-fs-title-sm);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 .list-head-actions {
   display: flex;
@@ -305,12 +322,12 @@ body.full-screen .view {
   height: 40px;
   border: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 70%, transparent) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--yaqin-bg-subtle) 55%, transparent) !important;
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none !important;
   color: var(--yaqin-text) !important;
-  font-size: 20px;
+  font-size: 22px;
   display: grid !important;
   place-items: center;
   flex: 0 0 40px;
@@ -319,19 +336,17 @@ body.full-screen .view {
 }
 .list-head-actions button.on {
   color: var(--yaqin-text) !important;
-  background: color-mix(in srgb, var(--yaqin-ink) 14%, var(--yaqin-surface-raised)) !important;
+  background: transparent !important;
 }
 .list-sticky-pill .chats-head {
-  display: flex !important;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
   margin-bottom: 0;
 }
-.list-sticky-pill .chats-head h1 {
-  flex: 1 1 auto;
-  min-width: 0;
+.list-sticky-pill.is-search-open .chats-head {
+  margin-bottom: 10px;
+}
+.list-sticky-pill--compact .me-top,
+.list-sticky-pill--compact .chats-head {
+  margin-bottom: 0;
 }
 .list-search-panel {
   display: grid;

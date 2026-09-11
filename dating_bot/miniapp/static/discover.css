@@ -10,12 +10,12 @@ body[data-route='people'] #header {
 }
 body[data-route='people'] .app-header.discover-header {
   height: auto;
-  min-height: var(--yaqin-header-h);
-  padding: 8px 14px;
+  min-height: 0;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   box-sizing: border-box;
   width: 100%;
   border-radius: var(--yaqin-radius-xl);

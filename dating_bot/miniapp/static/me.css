@@ -86,7 +86,6 @@ body.profile-open .view {
   min-height: 0;
 }
 .me-overview-page > .list-sticky-pill {
-  /* chrome вне скролла — layout.css */
   margin-bottom: 8px;
 }
 .settings-page .filters-head {
