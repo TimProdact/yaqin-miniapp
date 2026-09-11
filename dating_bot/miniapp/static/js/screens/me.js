@@ -42,9 +42,6 @@ export function meTopHtml() {
     <div class="list-sticky-pill list-sticky-pill--compact">
       <div class="me-top">
         <h1>Профиль</h1>
-        <div>
-          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
-        </div>
       </div>
     </div>`;
 }
@@ -71,14 +68,113 @@ function mountSheet(markup, className = 'settings-overlay') {
   return overlay;
 }
 
-function sectionHead(title, action, actionLabel = 'Все') {
+function hubRow({ hub, icon, tone, title, meta }) {
   return `
-    <div class="me-section-head">
-      <div>
-        <h3>${esc(title)}</h3>
+    <button type="button" class="me-hub-row" data-hub="${esc(hub)}">
+      <span class="me-hub-icon ${esc(tone)}"><i class="ti ${esc(icon)}"></i></span>
+      <span class="me-hub-copy">
+        <strong>${esc(title)}</strong>
+        ${meta ? `<small>${esc(meta)}</small>` : ''}
+      </span>
+      <i class="ti ti-chevron-right" aria-hidden="true"></i>
+    </button>`;
+}
+
+function countLabel(n, one, few, many) {
+  const abs = Math.abs(n) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return `${n} ${many}`;
+  if (last === 1) return `${n} ${one}`;
+  if (last >= 2 && last <= 4) return `${n} ${few}`;
+  return `${n} ${many}`;
+}
+
+function openProfileHub(kind) {
+  const tickets = listTickets();
+  const events = getUserEvents();
+  const groups = getOwnedGroups();
+
+  const configs = {
+    tickets: {
+      title: 'Мои билеты',
+      cta: tickets.length ? 'К афише' : 'Открыть афишу',
+      ctaAction: 'events',
+      body: tickets.length
+        ? `<div class="me-hub-list">${tickets.map(ticket => `
+            <button type="button" class="me-mini-row" data-action="ticket" data-id="${esc(ticket.id)}">
+              <img src="${esc(ticket.photo)}" alt="">
+              <div>
+                <strong>${esc(ticket.title)}</strong>
+                <span>${esc(ticket.when || '')}${ticket.place ? ` · ${esc(ticket.place)}` : ''}</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`).join('')}</div>`
+        : `<div class="me-hub-empty">
+            <div class="empty-badge"><i class="ti ti-ticket"></i></div>
+            <h2>Пока нет билетов</h2>
+            <p>Билеты появятся после покупки на афише.</p>
+          </div>`
+    },
+    events: {
+      title: 'Мои события',
+      cta: 'Добавить событие',
+      ctaAction: 'create-event',
+      body: events.length
+        ? `<div class="me-hub-list">${events.map(event => `
+            <button type="button" class="me-mini-row" data-action="event" data-id="${esc(event.id)}">
+              <img src="${esc(event.photo)}" alt="">
+              <div>
+                <strong>${esc(event.title)}</strong>
+                <span>${esc(event.when)} · ${esc(event.place)}</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`).join('')}</div>`
+        : `<div class="me-hub-empty">
+            <div class="empty-badge yellow"><i class="ti ti-calendar-event"></i></div>
+            <h2>Пока нет событий</h2>
+            <p>Создайте своё событие или отметьтесь на афише.</p>
+          </div>`
+    },
+    groups: {
+      title: 'Мои группы',
+      cta: 'Добавить группу',
+      ctaAction: 'create-group',
+      body: groups.length
+        ? `<div class="me-hub-list">${groups.map(group => {
+            const open = group.isPublic !== false;
+            return `
+            <button type="button" class="me-mini-row" data-action="group" data-id="${esc(group.id)}">
+              <img src="${esc(group.photo)}" alt="">
+              <div>
+                <strong>${esc(group.title)}</strong>
+                <span>Организатор · ${open ? 'открытая' : 'закрытая'} · ${group.members || 1} участниц</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`;
+          }).join('')}</div>`
+        : `<div class="me-hub-empty">
+            <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
+            <h2>Пока нет групп</h2>
+            <p>Создайте группу для своих встреч и чатов.</p>
+          </div>`
+    }
+  };
+
+  const config = configs[kind];
+  if (!config) return;
+
+  mountSheet(`
+    <div class="me-hub-sheet" role="dialog" aria-label="${esc(config.title)}">
+      <header class="sheet-head">
+        <button type="button" data-action="close-sheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+        <h1>${esc(config.title)}</h1>
+        <span></span>
+      </header>
+      <div class="me-hub-sheet-body">${config.body}</div>
+      <div class="me-hub-sheet-cta">
+        <button type="button" class="empty-primary" data-action="${esc(config.ctaAction)}">${esc(config.cta)}</button>
       </div>
-      ${action ? `<button type="button" class="me-section-all" data-action="${esc(action)}">${esc(actionLabel)} <i class="ti ti-chevron-right"></i></button>` : ''}
-    </div>`;
+    </div>`, 'settings-overlay me-hub-overlay');
 }
 
 export async function meScreen(_id, token) {
@@ -104,13 +200,10 @@ export async function meScreen(_id, token) {
   const heroPhoto = photos[0] || profile.photo;
   const verify = resolveView(verification);
   const fill = profileFillPercent(profile);
-  const tickets = listTickets().slice(0, 6);
-  const eventsAll = getUserEvents();
-  const events = eventsAll.slice(0, 2);
-  const groupsAll = getOwnedGroups();
-  const groups = groupsAll.slice(0, 2);
+  const tickets = listTickets();
+  const events = getUserEvents();
+  const groups = getOwnedGroups();
   const privacy = getState().privacy || { showOnline: true, showInFeed: true };
-  const nextTicket = tickets[0];
 
   view.innerHTML = `
     <div class="me-page me-overview-page">
@@ -137,68 +230,41 @@ export async function meScreen(_id, token) {
         ${profile.bio ? `<p class="me-overview-bio">${esc(profile.bio)}</p>` : ''}
       </section>
 
-      <section class="me-panel">
-        ${sectionHead('Мои билеты')}
-        ${nextTicket ? `<p class="me-block-lead">Ближайший · ${esc(nextTicket.when || '')}</p>` : ''}
-        ${tickets.length ? `
-          <div class="me-rail" role="list">
-            ${tickets.map(ticket => `
-              <button type="button" class="me-ticket-card" data-action="ticket" data-id="${esc(ticket.id)}" role="listitem">
-                <div class="me-ticket-photo"><img src="${esc(ticket.photo)}" alt=""></div>
-                <div class="me-ticket-body">
-                  <strong>${esc(ticket.title)}</strong>
-                  <span>${esc(ticket.when || '')}</span>
-                  <span>${esc(ticket.place || '')}</span>
-                </div>
-              </button>`).join('')}
-          </div>` : `
-          <button type="button" class="me-empty-card" data-action="events">
-            <i class="ti ti-ticket"></i>
-            <span>Пока нет билетов — откройте афишу</span>
-          </button>`}
-      </section>
-
-      <section class="me-panel">
-        ${sectionHead('Мои события', eventsAll.length > 2 ? 'events' : null)}
-        ${events.length ? `
-          <div class="me-mini-list">
-            ${events.map(event => `
-              <button type="button" class="me-mini-row" data-action="event" data-id="${esc(event.id)}">
-                <img src="${esc(event.photo)}" alt="">
-                <div>
-                  <strong>${esc(event.title)}</strong>
-                  <span>${esc(event.when)} · ${esc(event.place)}</span>
-                </div>
-                <i class="ti ti-chevron-right"></i>
-              </button>`).join('')}
-          </div>` : ''}
-        <button type="button" class="me-add-card" data-action="create-event">
-          <i class="ti ti-calendar-plus"></i>
-          <span>Добавить событие</span>
-        </button>
-      </section>
-
-      <section class="me-panel">
-        ${sectionHead('Мои группы', null)}
-        ${groups.length ? `
-          <div class="me-mini-list">
-            ${groups.map(group => {
-              const open = group.isPublic !== false;
-              return `
-              <button type="button" class="me-mini-row" data-action="group" data-id="${esc(group.id)}">
-                <img src="${esc(group.photo)}" alt="">
-                <div>
-                  <strong>${esc(group.title)}</strong>
-                  <span>Организатор · ${open ? 'открытая' : 'закрытая'} · ${group.members || 1} участниц</span>
-                </div>
-                <i class="ti ti-settings"></i>
-              </button>`;
-            }).join('')}
-          </div>` : ''}
-        <button type="button" class="me-add-card" data-action="create-group">
-          <i class="ti ti-user-plus"></i>
-          <span>Добавить группу</span>
-        </button>
+      <section class="me-hub-block" aria-label="Разделы профиля">
+        ${hubRow({
+          hub: 'tickets',
+          icon: 'ti-ticket',
+          tone: 'orange',
+          title: 'Мои билеты',
+          meta: tickets.length
+            ? countLabel(tickets.length, 'билет', 'билета', 'билетов')
+            : 'Пока пусто'
+        })}
+        ${hubRow({
+          hub: 'events',
+          icon: 'ti-calendar-event',
+          tone: 'blue',
+          title: 'Мои события',
+          meta: events.length
+            ? countLabel(events.length, 'событие', 'события', 'событий')
+            : 'Создать событие'
+        })}
+        ${hubRow({
+          hub: 'groups',
+          icon: 'ti-users',
+          tone: 'purple',
+          title: 'Мои группы',
+          meta: groups.length
+            ? countLabel(groups.length, 'группа', 'группы', 'групп')
+            : 'Создать группу'
+        })}
+        ${hubRow({
+          hub: 'settings',
+          icon: 'ti-settings',
+          tone: 'gray',
+          title: 'Настройки',
+          meta: 'Аккаунт и приложение'
+        })}
       </section>
 
       <section class="me-panel me-panel-util">
@@ -222,6 +288,17 @@ export async function meScreen(_id, token) {
       </section>
       </div>
     </div>`;
+
+  view.querySelectorAll('[data-hub]').forEach(button => {
+    button.addEventListener('click', () => {
+      const hub = button.dataset.hub;
+      if (hub === 'settings') {
+        navigate('settings');
+        return;
+      }
+      openProfileHub(hub);
+    });
+  });
 
   view.querySelector('#showInFeed')?.addEventListener('change', event => {
     saveState({
