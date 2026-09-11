@@ -248,11 +248,12 @@ body.full-screen .view {
   margin-top: var(--float-head-clearance, calc(var(--yaqin-header-h) + 10px)) !important;
 }
 
-/* Sticky glass pill: title + search + filters, full page width */
+/* Glass pill chrome: вне скролла — контент не уходит под него */
 .list-sticky-pill {
-  position: sticky;
-  top: 0;
+  position: relative;
+  top: auto;
   z-index: 21;
+  flex: 0 0 auto;
   box-sizing: border-box;
   width: calc(100% + (var(--yaqin-gutter) * 2));
   margin: 0 calc(var(--yaqin-gutter) * -1) 12px;
@@ -306,12 +307,46 @@ body.full-screen .view {
 .list-sticky-pill .groups-pills {
   margin: 0 !important;
 }
+
+/* Вкладки: скролл только у списка под chrome */
+body[data-route='chats'] .view,
+body[data-route='groups'] .view,
+body[data-route='events'] .view,
+body[data-route='me'] .view {
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.chats-page,
+.groups-tab-page,
+.events-feed-page,
+.me-overview-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
 .chats-page > .list-sticky-pill + *,
 .groups-tab-page > .list-sticky-pill + *,
 .events-feed-page > .list-sticky-pill + *,
-.me-overview-page > .list-sticky-pill + *,
-.me-page > .list-sticky-pill + * {
+.me-overview-page > .page-scroll,
+.page-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   margin-top: 0 !important;
+}
+.me-overview-page > .page-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
 }
 
 /* Shared primary pill CTA */

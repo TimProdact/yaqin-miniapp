@@ -1,12 +1,28 @@
 /* Лента людей. Метрики сняты с design/bff-ios-jan-2026/04-discover/card--040.png (393pt). */
 
-.app-header.discover-header {
-  height: var(--yaqin-header-h);
-  min-height: var(--yaqin-header-h);
+/* Glass pill вне скролла: всегда на месте, карточки не уходят под него */
+body[data-route='people'] #header {
+  flex: 0 0 auto;
+  z-index: 22;
   padding: 0 var(--yaqin-gutter);
+  margin: 0 0 8px;
+  background: transparent;
+}
+body[data-route='people'] .app-header.discover-header {
+  height: auto;
+  min-height: var(--yaqin-header-h);
+  padding: 8px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  border-radius: var(--yaqin-radius-xl);
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 52%, transparent);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--yaqin-bg-subtle) 55%, transparent);
 }
 .discover-header .brand {
   font-size: 26px;
@@ -16,10 +32,12 @@
   height: 40px;
   display: grid;
   place-items: center;
+  flex: 0 0 40px;
 }
 .discover-header .city {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   border: 0;
   background: none;
@@ -27,6 +45,8 @@
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.01em;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .discover-header .city i {
   font-size: 17px;
@@ -41,12 +61,15 @@
   font-size: 22px;
   display: grid;
   place-items: center;
+  flex: 0 0 40px;
 }
 
 body[data-route='people'] .view {
   padding: 0 var(--yaqin-gutter) !important;
   overflow: hidden !important;
   position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
 .swipe-stage {

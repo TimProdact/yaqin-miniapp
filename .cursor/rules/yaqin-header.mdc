@@ -8,27 +8,21 @@ alwaysApply: false
 
 Контракт из `design/DESIGN-SYSTEM.md` + Telegram BackButton.
 
-## List tabs chrome (`.list-sticky-pill`)
+## List / People chrome (glass pill)
 
-На вкладках Чаты / Группы / События / Профиль:
+На вкладках **Люди / Чаты / Группы / События / Профиль**:
 
-- Title (+ поиск + фильтры) в **одном sticky-блоке** на всю ширину страницы.
-- Формат **pill**: `border-radius: var(--yaqin-radius-xl)`, полупрозрачный фон + `backdrop-filter: blur`.
-- Скроллится только список / контент под блоком.
-- Внутри title и icon-кнопки — plain (без отдельных pill-обводок).
-
-Реализация: обёртка `.list-sticky-pill` в markup + стили в `layout.css`.
+- Chrome — **glass pill** (`border-radius: var(--yaqin-radius-xl)`, полупрозрачный фон + blur).
+- **Вне скролла** (flex sibling / `#header`), не `position: sticky` поверх контента.
+- Контент **не уходит под** хедер: скроллится только список / `.swipe-stage` / `.page-scroll` ниже.
+- Люди: `#header` + `setDiscoverHeader` (цветок · город · фильтры).
+- Чаты/Группы/События: `.list-sticky-pill` (title + поиск + фильтры).
+- Профиль: `.list-sticky-pill--compact` + `.page-scroll`.
 
 ## Other page headers (`.filters-head`, `.modal-head`, `.sheet-head`)
 
 - Sticky / float-head по необходимости экрана.
-- Title и кнопки без лишнего фона, если не в `.list-sticky-pill`.
 - Не дублировать «✕ Закрыть» в UI при системном Telegram Back.
-
-## Люди (discover)
-
-- Хедер через `#header` + `setDiscoverHeader(city)`.
-- В `.view` — `.swipe-stage` со snap по одной карточке.
 
 ## Conversation header (`.chat-top`)
 

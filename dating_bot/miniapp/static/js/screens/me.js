@@ -115,6 +115,7 @@ export async function meScreen(_id, token) {
   view.innerHTML = `
     <div class="me-page me-overview-page">
       ${meTopHtml()}
+      <div class="page-scroll">
 
       <section class="me-panel me-panel-identity">
         <div class="me-identity">
@@ -219,6 +220,7 @@ export async function meScreen(_id, token) {
           </button>
         </div>
       </section>
+      </div>
     </div>`;
 
   view.querySelector('#showInFeed')?.addEventListener('change', event => {
