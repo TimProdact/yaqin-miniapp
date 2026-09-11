@@ -833,13 +833,62 @@ export function createEventScreen(editId = null) {
   clearHeader();
   const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
   const WEEKDAYS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-  const whenSlot = (date, timeLabel, label) => {
-    const slot = new Date(date.getTime());
+  const pad2 = value => String(value).padStart(2, '0');
+  const toIsoDate = date => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  const todayIso = () => toIsoDate(new Date());
+  const labelForDate = date => {
+    const startToday = new Date();
+    startToday.setHours(0, 0, 0, 0);
+    const startSlot = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diffDays = Math.round((startSlot - startToday) / 86400000);
+    if (diffDays === 0) return 'Сегодня';
+    if (diffDays === 1) return 'Завтра';
+    return `${WEEKDAYS[date.getDay()]}, ${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`;
+  };
+  const whenSlot = (date, timeLabel) => {
+    const slot = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const time = String(timeLabel || '19:00');
     return {
-      when: `${label || `${WEEKDAYS[slot.getDay()]}, ${slot.getDate()} ${MONTHS_SHORT[slot.getMonth()]}`} · ${timeLabel}`,
+      when: `${labelForDate(slot)} · ${time}`,
       day: String(slot.getDate()),
-      month: MONTHS_SHORT[slot.getMonth()]
+      month: MONTHS_SHORT[slot.getMonth()],
+      iso: toIsoDate(slot),
+      time
     };
+  };
+  const slotFromParts = (iso, time) => {
+    const [year, month, day] = String(iso || '').split('-').map(Number);
+    const date = Number.isFinite(year) && Number.isFinite(month) && Number.isFinite(day)
+      ? new Date(year, month - 1, day)
+      : new Date();
+    if (Number.isNaN(date.getTime())) return whenSlot(new Date(), time || '19:00');
+    return whenSlot(date, time || '19:00');
+  };
+  const partsFromSlot = slot => {
+    if (slot?.iso && slot?.time) return { iso: slot.iso, time: slot.time };
+    const whenText = String(slot?.when || '');
+    const timeMatch = whenText.match(/(\d{1,2}):(\d{2})/);
+    const time = timeMatch ? `${pad2(Number(timeMatch[1]))}:${timeMatch[2]}` : '19:00';
+    const monthKey = String(slot?.month || '').toLowerCase();
+    const dayNum = Number(slot?.day);
+    const monthIdx = MONTHS_SHORT.indexOf(monthKey);
+    if (Number.isFinite(dayNum) && monthIdx >= 0) {
+      return { iso: toIsoDate(new Date(new Date().getFullYear(), monthIdx, dayNum)), time };
+    }
+    const dateMatch = whenText.match(/(\d{1,2})\s+([а-яё]{3})/i);
+    if (dateMatch) {
+      const idx = MONTHS_SHORT.indexOf(dateMatch[2].toLowerCase());
+      if (idx >= 0) {
+        return { iso: toIsoDate(new Date(new Date().getFullYear(), idx, Number(dateMatch[1]))), time };
+      }
+    }
+    if (/сегодня/i.test(whenText)) return { iso: todayIso(), time };
+    if (/завтра/i.test(whenText)) {
+      const next = new Date();
+      next.setDate(next.getDate() + 1);
+      return { iso: toIsoDate(next), time };
+    }
+    return { iso: todayIso(), time };
   };
   const today = new Date();
   const tomorrow = new Date();
@@ -850,8 +899,8 @@ export function createEventScreen(editId = null) {
     return d;
   };
   const WHEN_OPTIONS = [
-    whenSlot(today, '19:00', 'Сегодня'),
-    whenSlot(tomorrow, '11:00', 'Завтра'),
+    whenSlot(today, '19:00'),
+    whenSlot(tomorrow, '11:00'),
     whenSlot(inDays(3), '10:00'),
     whenSlot(inDays(4), '11:00'),
     whenSlot(inDays(7), '19:30'),
@@ -884,16 +933,28 @@ export function createEventScreen(editId = null) {
   let description = isEdit ? (existing.description || '') : '';
   let interests = isEdit ? [...(existing.interests || [])] : [];
   let whenIdx = 3;
+  let selectedSlot = WHEN_OPTIONS[whenIdx];
   if (isEdit && existing.when) {
     const found = WHEN_OPTIONS.findIndex(option => option.when === existing.when);
-    if (found >= 0) whenIdx = found;
-    else {
-      WHEN_OPTIONS.unshift({
+    if (found >= 0) {
+      whenIdx = found;
+      selectedSlot = WHEN_OPTIONS[found];
+    } else {
+      const parts = partsFromSlot({
         when: existing.when,
-        day: existing.day || '',
-        month: existing.month || ''
+        day: existing.day,
+        month: existing.month
       });
-      whenIdx = 0;
+      selectedSlot = {
+        ...slotFromParts(parts.iso, parts.time),
+        when: existing.when,
+        day: existing.day || parts.iso.split('-')[2]?.replace(/^0/, '') || '',
+        month: existing.month || ''
+      };
+      if (!selectedSlot.day || !selectedSlot.month) {
+        selectedSlot = slotFromParts(parts.iso, parts.time);
+      }
+      whenIdx = -1;
     }
   }
   let cover = isEdit ? (existing.photo || null) : null;
@@ -917,8 +978,9 @@ export function createEventScreen(editId = null) {
   let sheetQuery = '';
   let draftText = '';
   let restoreFocus = false;
+  let whenDraft = partsFromSlot(selectedSlot);
 
-  const whenOf = () => WHEN_OPTIONS[whenIdx] || WHEN_OPTIONS[0];
+  const whenOf = () => selectedSlot || WHEN_OPTIONS[0];
   const preview = (text, empty) => {
     const value = String(text || '').trim();
     if (!value) return empty;
@@ -945,7 +1007,18 @@ export function createEventScreen(editId = null) {
       return `
         <div class="edit-sheet-scrim" id="sheetScrim"></div>
         <div class="edit-sheet edit-sheet--picker create-when-sheet" role="dialog" aria-modal="true">
-          ${sheetHead('Когда', 'Выберите дату и время')}
+          ${sheetHead('Когда', 'Дата и время события')}
+          <div class="create-when-custom">
+            <label>
+              Дата
+              <input id="whenDate" type="date" min="${esc(todayIso())}" value="${esc(whenDraft.iso)}" required>
+            </label>
+            <label>
+              Время
+              <input id="whenTime" type="time" value="${esc(whenDraft.time)}" required>
+            </label>
+          </div>
+          <p class="create-when-quick">Быстрый выбор</p>
           <div class="create-when-list">
             ${WHEN_OPTIONS.map((option, index) => `
               <button type="button" class="create-when-row ${index === whenIdx ? 'on' : ''}" data-when="${index}">
@@ -953,6 +1026,9 @@ export function createEventScreen(editId = null) {
                 ${index === whenIdx ? '<i class="ti ti-check"></i>' : ''}
               </button>
             `).join('')}
+          </div>
+          <div class="edit-sheet-foot">
+            <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
           </div>
         </div>`;
     }
@@ -1070,6 +1146,7 @@ export function createEventScreen(editId = null) {
         || (ticketMode === 'door' && doorSum > 0)
         || (ticketMode === 'paid' && paidSum > 0));
     const when = whenOf();
+    document.body.classList.toggle('edit-sheet-open', Boolean(sheet));
 
     view.innerHTML = `
       <div class="create-event-page">
@@ -1230,6 +1307,7 @@ export function createEventScreen(editId = null) {
         sheetQuery = '';
         if (sheet === 'description') draftText = description;
         if (sheet === 'address') draftText = address;
+        if (sheet === 'when') whenDraft = partsFromSlot(whenOf());
         render();
       };
     });
@@ -1266,6 +1344,15 @@ export function createEventScreen(editId = null) {
     view.querySelector('#sheetScrim')?.addEventListener('click', closeSheet);
     view.querySelector('#closeSheet')?.addEventListener('click', closeSheet);
     view.querySelector('#doneSheet')?.addEventListener('click', () => {
+      if (sheet === 'when') {
+        const iso = view.querySelector('#whenDate')?.value || whenDraft.iso || todayIso();
+        const time = view.querySelector('#whenTime')?.value || whenDraft.time || '19:00';
+        selectedSlot = slotFromParts(iso, time);
+        whenDraft = { iso: selectedSlot.iso, time: selectedSlot.time };
+        whenIdx = WHEN_OPTIONS.findIndex(option => option.iso === selectedSlot.iso && option.time === selectedSlot.time);
+        closeSheet();
+        return;
+      }
       if (sheet === 'place') {
         const custom = view.querySelector('#placeCustom')?.value?.trim() || '';
         if (custom) place = custom;
@@ -1283,9 +1370,32 @@ export function createEventScreen(editId = null) {
       closeSheet();
     });
 
+    const whenDateInput = view.querySelector('#whenDate');
+    const whenTimeInput = view.querySelector('#whenTime');
+    if (whenDateInput) {
+      whenDateInput.oninput = () => {
+        whenDraft = {
+          iso: whenDateInput.value || whenDraft.iso,
+          time: whenTimeInput?.value || whenDraft.time
+        };
+        whenIdx = -1;
+      };
+    }
+    if (whenTimeInput) {
+      whenTimeInput.oninput = () => {
+        whenDraft = {
+          iso: whenDateInput?.value || whenDraft.iso,
+          time: whenTimeInput.value || whenDraft.time
+        };
+        whenIdx = -1;
+      };
+    }
+
     view.querySelectorAll('[data-when]').forEach(button => {
       button.onclick = () => {
         whenIdx = Number(button.dataset.when);
+        selectedSlot = WHEN_OPTIONS[whenIdx] || WHEN_OPTIONS[0];
+        whenDraft = partsFromSlot(selectedSlot);
         closeSheet();
       };
     });

@@ -1,13 +1,21 @@
 /* Создание группы/события — BFF create-group--071, без hub/rooms/posts */
 
 body[data-route='create-group'] .nav,
-body[data-route='create-event'] .nav {
+body[data-route='edit-group'] .nav,
+body[data-route='create-event'] .nav,
+body[data-route='edit-event'] .nav {
   display: none;
 }
 body[data-route='create-group'] .view,
-body[data-route='create-event'] .view {
+body[data-route='edit-group'] .view,
+body[data-route='create-event'] .view,
+body[data-route='edit-event'] .view {
   padding: 0 !important;
   background: var(--yaqin-bg);
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .create-group-page,
@@ -257,11 +265,56 @@ body[data-route='create-event'] .view {
   outline: 0;
   box-sizing: border-box;
 }
+.create-when-custom {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 10px;
+  margin: 0 0 14px;
+  flex-shrink: 0;
+}
+.create-when-custom label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--yaqin-text-tertiary);
+}
+.create-when-custom input {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px;
+  outline: 0;
+  box-sizing: border-box;
+  color-scheme: dark light;
+}
+.create-when-quick {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--yaqin-text-tertiary);
+  flex-shrink: 0;
+}
 .create-when-sheet .create-when-list {
   display: grid;
   gap: 6px;
   overflow-y: auto;
-  padding-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: 12px;
+  flex: 1;
+  min-height: 0;
 }
 .create-when-row {
   display: flex;
@@ -306,7 +359,10 @@ body[data-route='create-event'] .view {
   box-sizing: border-box;
   background: linear-gradient(180deg, transparent, var(--yaqin-bg) 28%);
   z-index: 20;
-  box-sizing: border-box;
+  pointer-events: none;
+}
+.create-sticky-cta .create-submit {
+  pointer-events: auto;
 }
 .create-submit {
   width: 100%;

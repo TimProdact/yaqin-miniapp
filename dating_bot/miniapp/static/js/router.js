@@ -97,7 +97,13 @@ export function render() {
     document.body.classList.toggle('full-screen', FULL_SCREEN_ROUTES.has(currentRoute));
     document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
     document.body.classList.toggle('sheet-view', SHEET_ROUTES.has(currentRoute));
-    if (currentRoute !== 'edit') document.body.classList.remove('edit-sheet-open');
+    if (currentRoute !== 'edit'
+      && currentRoute !== 'create-event'
+      && currentRoute !== 'edit-event'
+      && currentRoute !== 'create-group'
+      && currentRoute !== 'edit-group') {
+      document.body.classList.remove('edit-sheet-open');
+    }
     syncNav();
     const isTab = TAB_ROUTES.has(currentRoute);
     syncTelegramBackButton({

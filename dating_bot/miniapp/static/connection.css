@@ -7,6 +7,13 @@ body.full-screen .nav {
 body.full-screen .view {
   height: calc(100dvh - var(--yaqin-safe-top, env(safe-area-inset-top, 0px)));
   padding: 0;
+}
+/* Только экраны без собственного скролла (мэтч и т.п.) */
+body[data-route='connected'].full-screen .view,
+body[data-route='chat'].full-screen .view,
+body[data-route='group-chat'].full-screen .view,
+body[data-route='onboarding'].full-screen .view,
+body[data-route='verify'].full-screen .view {
   overflow: hidden;
 }
 
