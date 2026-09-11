@@ -9,8 +9,7 @@ body[data-route='group'] {
 body.sheet-view .app {
   padding-top: 0;
 }
-body.sheet-view .app-header,
-body.sheet-view .nav {
+body.sheet-view .app-header {
   display: none;
 }
 body.sheet-view .view {

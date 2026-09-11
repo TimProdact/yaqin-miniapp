@@ -76,12 +76,14 @@ html[data-theme='system'] .nav {
   place-items: center;
 }
 
-/* Место под плавающий pill + safe area */
-body:not(.full-screen) .view {
+/* Место под плавающий pill + safe area — только на вкладках */
+body.tab-shell:not(.full-screen) .view {
   padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 20px);
 }
 
-/* nav.css ставит display:grid !important — без этого поле ввода в чате перекрывается таббаром */
-body.full-screen .nav {
+/* Таббар только на главных вкладках; внутренние экраны — назад + sticky CTA */
+body:not(.tab-shell) .nav,
+body.full-screen .nav,
+body.sheet-view .nav {
   display: none !important;
 }

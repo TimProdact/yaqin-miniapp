@@ -94,6 +94,7 @@ export function goBack() {
 export function render() {
   try {
     document.body.dataset.route = currentRoute;
+    document.body.classList.toggle('tab-shell', TAB_ROUTES.has(currentRoute));
     document.body.classList.toggle('full-screen', FULL_SCREEN_ROUTES.has(currentRoute));
     document.body.classList.toggle('profile-open', PROFILE_OPEN_ROUTES.has(currentRoute));
     document.body.classList.toggle('sheet-view', SHEET_ROUTES.has(currentRoute));

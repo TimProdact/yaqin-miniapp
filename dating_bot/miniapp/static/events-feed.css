@@ -310,7 +310,11 @@
   z-index: 40;
   display: grid;
   gap: 8px;
-  padding: 12px var(--person-gutter, 20px) calc(12px + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 12px var(--person-gutter, var(--yaqin-gutter)) calc(16px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, transparent, var(--yaqin-bg) 36%);
   pointer-events: none;
 }
@@ -318,7 +322,10 @@
   pointer-events: auto;
 }
 .event-detail-view {
-  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+}
+.event-detail-view:has(.sticky-page-cta > :nth-child(2)) {
+  padding-bottom: calc(168px + env(safe-area-inset-bottom, 0px));
 }
 .sticky-page-cta .taneesh-buy-block {
   width: 100%;
@@ -686,7 +693,7 @@
   min-height: 100%;
   background: var(--yaqin-bg);
   color: var(--yaqin-text);
-  padding: 0 var(--yaqin-gutter) 40px;
+  padding: 0 var(--yaqin-gutter) calc(112px + env(safe-area-inset-bottom, 0px));
 }
 .ticket-checkout-page .sheet-head,
 .ticket-page .sheet-head,

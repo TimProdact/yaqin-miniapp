@@ -73,7 +73,7 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-body:not(.full-screen) .view {
+body.tab-shell:not(.full-screen) .view {
   padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 20px);
 }
 body.profile-open .view {

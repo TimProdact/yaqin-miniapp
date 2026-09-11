@@ -861,13 +861,15 @@ export function ticketCheckoutScreen(eventId) {
 
       <p class="ticket-checkout-note">${esc(modeNote)}</p>
 
-      <button type="button" class="taneesh-buy-block" id="payTicket">
-        ${total
-          ? `${isLive ? 'Оплатить' : 'Получить QR'} ${money(total)}`
-          : door
-            ? 'Забронировать и получить QR'
-            : 'Записаться и получить QR'}
-      </button>
+      <div class="sticky-page-cta">
+        <button type="button" class="taneesh-buy-block" id="payTicket">
+          ${total
+            ? `${isLive ? 'Оплатить' : 'Получить QR'} ${money(total)}`
+            : door
+              ? 'Забронировать и получить QR'
+              : 'Записаться и получить QR'}
+        </button>
+      </div>
     </div>`;
 
   view.querySelector('#payTicket').onclick = () => {
@@ -949,6 +951,8 @@ export function ticketScreen(ticketId) {
         </div>
       </div>
 
-      <button type="button" class="taneesh-chip block" data-action="me">В профиль</button>
+      <div class="sticky-page-cta">
+        <button type="button" class="taneesh-buy-block" data-action="me">В профиль</button>
+      </div>
     </div>`;
 }
