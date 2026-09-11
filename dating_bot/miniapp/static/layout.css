@@ -11,7 +11,8 @@ html, body {
   max-width: 100%;
   height: 100dvh;
   min-height: 100dvh;
-  padding-top: var(--yaqin-safe-top);
+  /* Контент уходит под status bar / Telegram chrome */
+  padding-top: 0;
   display: flex;
   flex-direction: column;
   margin: 0 auto;
@@ -93,20 +94,26 @@ body.full-screen .view {
 .gchat-top,
 .sheet-head,
 .picker-head,
-.chat-top,
 .screen-head {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: transparent;
+  position: relative;
+  z-index: 2;
+  background: transparent !important;
   color: var(--yaqin-text);
   flex-shrink: 0;
   box-sizing: border-box;
-  min-height: var(--yaqin-header-h);
-  height: var(--yaqin-header-h);
+  min-height: calc(var(--yaqin-safe-top) + var(--yaqin-header-h));
+  height: auto;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
-/* List / modal headers: floating pills, content scrolls underneath */
+.chat-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* List / modal: title scrolls with content; only action buttons stay on screen */
 .chats-head,
 .me-top,
 .filters-head,
@@ -116,11 +123,8 @@ body.full-screen .view {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin: 0 calc(var(--yaqin-gutter) * -1) calc(-1 * var(--yaqin-header-h));
-  padding: 6px var(--yaqin-gutter);
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
+  margin: 0;
+  padding: calc(var(--yaqin-safe-top) + 6px) var(--yaqin-gutter) 10px;
   pointer-events: none;
 }
 .chats-head > *,
@@ -136,16 +140,16 @@ body.full-screen .view {
 .filters-head h1,
 .modal-head h1,
 .sheet-head h1 {
-  flex: 0 1 auto;
-  width: fit-content;
-  max-width: min(72vw, 260px);
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
   margin: 0;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  padding: 0;
+  border-radius: 0;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
   font-size: var(--yaqin-fs-title);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -154,6 +158,7 @@ body.full-screen .view {
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
+  color: var(--yaqin-text);
 }
 .filters-head h1,
 .modal-head h1,
@@ -161,12 +166,63 @@ body.full-screen .view {
   font-size: var(--yaqin-fs-modal);
 }
 
+/* Floating action / back — remain under safe area while title scrolls away */
+.events-head-actions,
+.people-head-actions,
+.chats-head > button,
+.me-top > button,
+.me-top > div,
+.filters-head > button,
+.modal-head > button:not(.head-action),
+.sheet-head > button,
+.modal-head .head-action {
+  position: fixed;
+  top: calc(var(--yaqin-safe-top) + 6px);
+  z-index: 40;
+  pointer-events: auto;
+}
+
+.events-head-actions,
+.people-head-actions,
+.chats-head > button,
+.me-top > button,
+.me-top > div,
+.modal-head .head-action,
+.filters-head > button:last-of-type:not(:first-of-type),
+.sheet-head > button:last-of-type:not(:first-of-type) {
+  right: max(var(--yaqin-gutter), calc(50% - 221px + var(--yaqin-gutter)));
+  left: auto;
+}
+
+.filters-head > button:first-of-type,
+.modal-head > button:first-of-type,
+.sheet-head > button:first-of-type {
+  left: max(var(--yaqin-gutter), calc(50% - 221px + var(--yaqin-gutter)));
+  right: auto;
+}
+
+/* When modal has only back (no right action), last-of-type = first — keep left */
+.filters-head > button:only-of-type,
+.modal-head > button:only-of-type,
+.sheet-head > button:only-of-type {
+  left: max(var(--yaqin-gutter), calc(50% - 221px + var(--yaqin-gutter)));
+  right: auto;
+}
+
+.events-head-actions,
+.people-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .chats-head button,
 .me-top button,
 .filters-head button,
 .modal-head > button:not(.head-action),
 .sheet-head button,
-.events-head-actions button {
+.events-head-actions button,
+.people-head-actions button:not(.people-city-btn) {
   width: 40px;
   height: 40px;
   border: 0;
@@ -181,6 +237,16 @@ body.full-screen .view {
   place-items: center;
   flex: 0 0 40px;
 }
+
+.people-head-actions .people-city-btn {
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  border: 0;
+}
+
 .modal-head .head-action {
   height: 40px;
   min-width: 56px;
@@ -197,14 +263,19 @@ body.full-screen .view {
   display: grid;
   place-items: center;
 }
+
+/* Flow spacers so title doesn't sit under fixed buttons */
 .modal-head > span.head-spacer,
-.sheet-head > span {
+.sheet-head > span,
+.modal-head > span:last-child,
+.filters-head > span {
   width: 40px;
   height: 40px;
   flex: 0 0 40px;
   background: transparent !important;
   box-shadow: none !important;
   pointer-events: none;
+  visibility: hidden;
 }
 
 .events-head-actions {
@@ -214,22 +285,22 @@ body.full-screen .view {
   pointer-events: auto;
 }
 
-/* Space under floating head so first content peeks below pills, then scrolls under */
-.events-feed-page,
-.chats-page,
-.groups-tab-page,
-.me-overview-page,
-.me-page,
-.settings-page,
-.filters-page,
-.create-event-page,
-.create-group-page,
-.search-page,
-.new-dm-page,
-.ticket-checkout-page,
-.ticket-page {
-  --float-head-clearance: calc(var(--yaqin-header-h) + 10px);
+/* Title clears fixed right actions */
+.chats-head h1,
+.me-top h1 {
+  padding-right: 52px;
 }
+.chats-head:has(.people-head-actions) h1 {
+  padding-right: min(52vw, 220px);
+}
+.filters-head h1,
+.modal-head h1,
+.sheet-head h1 {
+  padding-left: 4px;
+  padding-right: 52px;
+}
+
+/* Head is in normal flow (with safe-top padding) — no float clearance */
 .events-feed-page > .chats-head + *,
 .chats-page > .chats-head + *,
 .groups-tab-page > .chats-head + *,
@@ -243,7 +314,7 @@ body.full-screen .view {
 .new-dm-page > .modal-head + *,
 .ticket-checkout-page > .sheet-head + *,
 .ticket-page > .sheet-head + * {
-  margin-top: var(--float-head-clearance, calc(var(--yaqin-header-h) + 10px)) !important;
+  margin-top: 0 !important;
 }
 
 /* Shared primary pill CTA */
@@ -311,10 +382,8 @@ body.full-screen .view {
   flex: 0 0 40px;
 }
 
-/* Sheet/full screens: контент под шапкой Telegram */
-body.sheet-view .app {
-  padding-top: 0;
-}
+/* Sheet/full screens: контент тоже под status bar */
+body.sheet-view .app,
 body.full-screen .app {
-  padding-top: var(--yaqin-safe-top);
+  padding-top: 0;
 }

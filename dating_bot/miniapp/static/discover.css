@@ -11,7 +11,16 @@ body[data-route='people'] .view {
   position: relative;
   padding: 0 var(--yaqin-gutter);
   box-sizing: border-box;
-  --float-head-clearance: calc(var(--yaqin-header-h) + 8px);
+}
+
+.people-page > .chats-head {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 5;
+  margin: 0;
+  background: transparent !important;
 }
 
 .people-head-actions {
@@ -43,15 +52,18 @@ body[data-route='people'] .view {
   flex: 0 0 auto;
 }
 
+/* Карточки на весь экран, в т.ч. под safe area; хедер поверх */
 .people-page > .swipe-stage,
 .people-page > .discover-empty {
   position: absolute;
   left: var(--yaqin-gutter);
   right: var(--yaqin-gutter);
-  top: var(--float-head-clearance);
+  top: 0;
   bottom: 0;
   height: auto;
   min-height: 0;
+  padding-top: calc(var(--yaqin-safe-top) + var(--yaqin-header-h) + 4px);
+  box-sizing: border-box;
 }
 
 .swipe-stage {

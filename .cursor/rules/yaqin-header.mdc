@@ -8,27 +8,28 @@ alwaysApply: false
 
 Контракт из `design/DESIGN-SYSTEM.md` + Telegram BackButton.
 
+## Safe area
+
+- `.app { padding-top: 0 }` — контент **уходит под** status bar / Telegram chrome.
+- Верхний inset задаёт сам page-head: `padding-top: calc(var(--yaqin-safe-top) + 6px)`.
+- Не заливать safe area непрозрачным фоном `.app` / sticky-полосой.
+
 ## Page / list header (`.chats-head`, `.me-top`, `.filters-head`, `.modal-head`, `.sheet-head`)
 
-- Sticky сверху, **бар без заливки** (`background: transparent`).
-- **Плавающие элементы** с фоном: title-pill слева, action-кнопки справа (круг / pill).
-- Между ними — прозрачно; контент **скроллится под** хедером (negative margin + clearance у первого sibling).
-- Title: `--yaqin-fs-title` / 700 (вкладки) или `--yaqin-fs-modal` / 700 (модальные).
+- **Заголовок не sticky** — скроллится вместе с контентом.
+- **Без фона у title** (не pill): прозрачный текст слева.
+- **Только кнопки** (create `+`, settings, filters, back, head-action) остаются на экране: `position: fixed` под safe area, frosted circle/pill.
 - Горизонтальный padding = `--yaqin-gutter`.
 - Не дублировать «✕ Закрыть» в UI, если есть системный Telegram Close/Back.
 - Не делать сплошную sticky-полосу на всю ширину.
 
-Реализация: `layout.css` (float-head). Не возвращать `background: var(--yaqin-bg) !important` на эти классы в `style.css`.
+Реализация: `layout.css`. Не возвращать `background: var(--yaqin-bg) !important` и sticky на title-баре.
 
 ## Conversation header (`.chat-top`)
 
-- Та же высота и gutter.
+- Sticky под safe area (чат — исключение: peer-строка остаётся).
 - Layout: `[назад?] · peer (фото+имя+статус) слева (flex:1) · ⋯`.
 - В Telegram Mini App: системный `BackButton`, **без** пустого spacer слева — title сразу от gutter.
 - Вне Telegram: chevron `data-action` назад.
 - Имя собеседника / группы — tap → профиль / хаб группы.
 - Title **не** по центру экрана.
-
-## Safe area
-
-- Отступ сверху даёт `.app { padding-top: var(--yaqin-safe-top) }` — хедер не дублирует safe-top, кроме sheet/hero full-bleed.
