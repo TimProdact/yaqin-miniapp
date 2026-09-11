@@ -88,7 +88,7 @@ html[data-theme='dark'] .chats-section,
 html[data-theme='dark'] .search-count,
 html[data-theme='dark'] .chats-empty p,
 html[data-theme='dark'] .nav button {
-  color: var(--yaqin-text-tertiary) !important;
+  color: var(--yaqin-text-secondary) !important;
 }
 
 html[data-theme='dark'] .search-box,
@@ -120,6 +120,10 @@ html[data-theme='dark'] .sheet-head {
   }
   html[data-theme='system'] .chats-head,
   html[data-theme='system'] .modal-head {
+    background: transparent !important;
+  }
+  html[data-theme='system'] .app-header.discover-header,
+  html[data-theme='system'] .list-sticky-pill {
     background: transparent !important;
   }
 }

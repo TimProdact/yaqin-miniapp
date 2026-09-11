@@ -1,8 +1,6 @@
 /* Bottom nav — floating glass pill (как list-sticky-pill у хедера) */
 
-.nav,
-html[data-theme='dark'] .nav,
-html[data-theme='system'] .nav {
+.nav {
   position: absolute !important;
   left: var(--yaqin-gutter) !important;
   right: var(--yaqin-gutter) !important;
@@ -15,18 +13,36 @@ html[data-theme='system'] .nav {
   border: 0 !important;
   border-top: 0 !important;
   border-radius: var(--yaqin-radius-pill) !important;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 52%, transparent) !important;
+  /* Светлая тема: почти непрозрачный фон — иначе tertiary «пропадает» на фото */
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 92%, transparent) !important;
   backdrop-filter: blur(28px) saturate(1.35);
   -webkit-backdrop-filter: blur(28px) saturate(1.35);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--yaqin-bg-subtle) 55%, transparent),
-    0 10px 28px rgba(0, 0, 0, 0.28);
+    0 0 0 1px color-mix(in srgb, var(--yaqin-sep) 70%, transparent),
+    0 8px 24px rgba(0, 0, 0, 0.12);
   display: grid !important;
   grid-template-columns: repeat(5, 1fr) !important;
   align-items: center;
   gap: 0;
   z-index: 30 !important;
   box-sizing: border-box;
+}
+
+html[data-theme='dark'] .nav,
+html[data-theme='system'] .nav {
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 72%, transparent) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--yaqin-bg-subtle) 55%, transparent),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+@media (prefers-color-scheme: light) {
+  html[data-theme='system'] .nav {
+    background: color-mix(in srgb, var(--yaqin-surface-raised) 92%, transparent) !important;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--yaqin-sep) 70%, transparent),
+      0 8px 24px rgba(0, 0, 0, 0.12);
+  }
 }
 
 .nav button {
@@ -39,7 +55,8 @@ html[data-theme='system'] .nav {
   padding: 4px 2px;
   font-size: 22px;
   line-height: 1;
-  color: var(--yaqin-text-tertiary);
+  /* secondary читается на белом; tertiary слишком бледный на стекле */
+  color: var(--yaqin-text-secondary);
   border: 0;
   background: none;
 }
