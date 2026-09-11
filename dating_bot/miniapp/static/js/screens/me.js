@@ -105,7 +105,8 @@ export async function meScreen(_id, token) {
   const tickets = listTickets().slice(0, 6);
   const eventsAll = getUserEvents();
   const events = eventsAll.slice(0, 2);
-  const groups = getUserGroups().slice(0, 3);
+  const groupsAll = getUserGroups();
+  const groups = groupsAll.slice(0, 2);
   const privacy = getState().privacy || { showOnline: true, showInFeed: true };
   const nextTicket = tickets[0];
 
@@ -175,7 +176,7 @@ export async function meScreen(_id, token) {
       </section>
 
       <section class="me-panel">
-        ${sectionHead('Группы', 'groups')}
+        ${sectionHead('Группы', groupsAll.length > 2 ? 'groups' : null)}
         ${groups.length ? `
           <div class="me-mini-list">
             ${groups.map(group => `
@@ -187,11 +188,11 @@ export async function meScreen(_id, token) {
                 </div>
                 <i class="ti ti-chevron-right"></i>
               </button>`).join('')}
-          </div>` : `
-          <button type="button" class="me-empty-card" data-action="groups">
-            <i class="ti ti-users"></i>
-            <span>Найти или создать группу</span>
-          </button>`}
+          </div>` : ''}
+        <button type="button" class="me-add-card" data-action="create-group">
+          <i class="ti ti-user-plus"></i>
+          <span>Добавить группу</span>
+        </button>
       </section>
 
       <section class="me-panel me-panel-util">

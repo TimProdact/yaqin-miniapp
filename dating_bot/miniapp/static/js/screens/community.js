@@ -194,9 +194,6 @@ export function groupsScreen() {
       <div class="groups-tab-page">
         <header class="chats-head">
           <h1>Группы</h1>
-          <div class="events-head-actions">
-            <button data-action="create-group" aria-label="Создать группу"><i class="ti ti-plus"></i></button>
-          </div>
         </header>
 
         <div class="search-box groups-search">
@@ -234,9 +231,8 @@ export function groupsScreen() {
             ? `<p class="search-none">${term ? 'Ничего не найдено' : filter === 'closed' ? 'Пока нет закрытых групп' : 'Пока нет открытых групп'}</p>`
             : `<div class="groups-tab-empty">
                 <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
-                <h2>Создайте группу</h2>
-                <p>Соберите людей по интересам — открытую или закрытую.</p>
-                <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
+                <h2>Пока нет групп</h2>
+                <p>Создать группу можно в профиле.</p>
               </div>`}
 
       </div>`;
@@ -287,7 +283,7 @@ export function createGroupScreen() {
     view.innerHTML = `
       <div class="create-group-page">
         <header class="modal-head">
-          ${backControlHtml('groups')}
+          ${backControlHtml('me')}
           <h1>Создать группу</h1>
           <span></span>
         </header>
