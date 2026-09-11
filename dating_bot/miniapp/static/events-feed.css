@@ -850,6 +850,41 @@
   object-fit: cover;
   display: block;
 }
+
+/* QR-экран: обложка за «Назад», QR на первом плане */
+.ticket-pass-page {
+  padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+}
+.ticket-pass-hero {
+  height: min(280px, 36dvh) !important;
+}
+.ticket-pass-hero-fallback {
+  background: var(--yaqin-sep);
+}
+.ticket-pass-page .ticket-pass-body {
+  position: relative;
+  z-index: 1;
+  margin-top: -28px;
+  padding: 22px max(20px, var(--person-gutter, 20px)) 28px;
+  text-align: center;
+  background: var(--yaqin-bg);
+  border-radius: var(--yaqin-radius-xl) var(--yaqin-radius-xl) 0 0;
+}
+.ticket-pass-page .ticket-pass-body h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--yaqin-text);
+  word-break: break-word;
+}
+.ticket-pass-meta {
+  margin: 0;
+  font-size: var(--yaqin-fs-caption);
+  color: var(--yaqin-text-secondary);
+  line-height: 1.4;
+}
 .ticket-pass-body {
   padding: 18px 16px 22px;
   text-align: center;
@@ -866,7 +901,7 @@
 }
 .ticket-role {
   display: inline-block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--yaqin-yellow);
@@ -876,18 +911,24 @@
   font-style: normal;
   letter-spacing: 0.02em;
 }
+.ticket-role.guest {
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text-secondary);
+}
 .ticket-qr-wrap {
-  width: 200px;
-  height: 200px;
-  margin: 20px auto 12px;
-  padding: 12px;
+  width: min(240px, 68vw);
+  height: min(240px, 68vw);
+  margin: 22px auto 12px;
+  padding: 14px;
   border-radius: 16px;
   background: #fff;
+  box-sizing: border-box;
 }
 .ticket-qr-wrap img {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: contain;
 }
 .ticket-code {
   display: block;

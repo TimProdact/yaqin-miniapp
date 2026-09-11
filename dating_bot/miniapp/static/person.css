@@ -2,7 +2,8 @@
 /* Боковой inset здесь как в макете (~20px), не глобальный --yaqin-gutter. */
 body[data-route='person'],
 body[data-route='event'],
-body[data-route='group'] {
+body[data-route='group'],
+body[data-route='ticket'] {
   --person-gutter: 20px;
 }
 

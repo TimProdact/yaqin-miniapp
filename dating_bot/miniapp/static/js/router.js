@@ -28,14 +28,13 @@ const FULL_SCREEN_ROUTES = new Set([
   'edit-photos',
   'edit',
   'checkout',
-  'ticket',
   'create-group',
   'edit-group',
   'create-event',
   'edit-event',
   'group-chat'
 ]);
-const SHEET_ROUTES = new Set(['person', 'event', 'group']);
+const SHEET_ROUTES = new Set(['person', 'event', 'group', 'ticket']);
 const PROFILE_OPEN_ROUTES = new Set(['me']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'groups', 'me']);
 

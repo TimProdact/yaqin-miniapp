@@ -56,14 +56,17 @@ function getTickets() {
   return getState().tickets || [];
 }
 
-function ticketForEvent(eventId) {
-  const key = String(eventId);
-  return getTickets().find(ticket => String(ticket.eventId) === key);
-}
-
 function ticketsForEvent(eventId) {
   const key = String(eventId);
   return getTickets().filter(ticket => String(ticket.eventId) === key);
+}
+
+/** Гостевой билет / запись; иначе любой билет на событие. */
+function ticketForEvent(eventId) {
+  const list = ticketsForEvent(eventId);
+  return list.find(ticket => ticket.role === 'guest')
+    || list.find(ticket => ticket.role === 'host')
+    || list[0];
 }
 
 function isEventHost(event) {
@@ -71,7 +74,38 @@ function isEventHost(event) {
 }
 
 function hostTicket(eventId) {
-  return ticketsForEvent(eventId).find(ticket => ticket.role === 'host') || ticketForEvent(eventId);
+  return ticketsForEvent(eventId).find(ticket => ticket.role === 'host') || null;
+}
+
+/** Гарантирует QR организатора для своего события. */
+function ensureHostTicket(event) {
+  if (!event?.id || !isEventHost(event)) return null;
+  const existing = hostTicket(event.id);
+  if (existing) return existing;
+  const eventId = String(event.id);
+  const ticketMode = event.ticketMode || (isDoorMode(event) ? 'door' : 'free');
+  const ticket = {
+    id: `t-${eventId}-host`,
+    eventId,
+    title: event.title,
+    when: event.when,
+    place: event.place,
+    photo: event.photo,
+    mode: ticketMode,
+    role: 'host',
+    price: 0,
+    fee: 0,
+    total: 0,
+    doorPay: isDoorMode(event) ? Number(event.price || 0) : 0,
+    code: `YQHOST-${eventId.replace(/^e-/, '').slice(-8).toUpperCase()}`,
+    createdAt: new Date().toISOString()
+  };
+  const state = getState();
+  saveState({
+    ...state,
+    tickets: [ticket, ...(state.tickets || []).filter(item => String(item.id) !== ticket.id)]
+  });
+  return ticket;
 }
 
 function shareEvent(event) {
@@ -550,7 +584,7 @@ function renderHostEventDashboard(event) {
     const wanting = wantingForEvent(event.id);
     const tickets = ticketsForEvent(event.id);
     const guestTickets = tickets.filter(ticket => ticket.role !== 'host');
-    const hostQr = hostTicket(event.id);
+    const hostQr = ensureHostTicket(event) || hostTicket(event.id);
     const capacity = Number(event.capacity) || 0;
     const interested = wanting.length;
     const soldCount = needsGuestPass(event)
@@ -963,44 +997,54 @@ export function ticketCheckoutScreen(eventId) {
 /** QR-билет после покупки. */
 export function ticketScreen(ticketId) {
   clearHeader();
+  const tickets = getTickets();
   const ticket =
-    getTickets().find(item => String(item.id) === String(ticketId)) ||
-    getTickets()[getTickets().length - 1];
+    tickets.find(item => String(item.id) === String(ticketId))
+    || null;
   if (!ticket) {
-    navigate('me');
+    navigate('events');
     return;
   }
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ticket.code)}`;
+  const event = findEvent(ticket.eventId);
+  const backToEvent = event ? String(event.id) : '';
+  const photo = ticket.photo || event?.photo || '';
+  const title = ticket.title || event?.title || 'Событие';
+  const when = ticket.when || event?.when || '';
+  const place = ticket.place || event?.place || '';
+  const code = ticket.code || `YQ-${String(ticket.id).slice(-8).toUpperCase()}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(code)}`;
+  const isHost = ticket.role === 'host';
 
   view.innerHTML = `
-    <div class="ticket-page">
-      <header class="sheet-head">
-        ${backControlHtml('me', 'К профилю')}
-        <h1>Билет</h1>
-        <span style="width:36px"></span>
-      </header>
-
-      <div class="ticket-pass">
-        <div class="event-photo ticket-pass-cover">
-          <img src="${esc(ticket.photo)}" alt="">
-        </div>
-        <div class="ticket-pass-body">
-          ${ticket.role === 'host' ? '<em class="ticket-role">Организатор</em>' : ''}
-          <strong>${esc(ticket.title)}</strong>
-          <span>${esc(ticket.when)}</span>
-          <span>${esc(ticket.place)}</span>
-          <div class="ticket-qr-wrap">
-            <img src="${esc(qrUrl)}" alt="QR">
-          </div>
-          <code class="ticket-code">${esc(ticket.code)}</code>
-          ${ticket.doorPay ? `<p class="ticket-door">Гости платят на входе: <b>${money(ticket.doorPay)}</b></p>` : ''}
-          <p class="ticket-hint">${ticket.role === 'host' ? 'Ваш QR организатора · гости показывают свои билеты' : 'Покажите QR на входе'}</p>
-        </div>
+    <article class="person-view event-detail-view ticket-pass-page">
+      <div class="person-hero ticket-pass-hero">
+        ${photo ? `<img class="person-hero-photo" src="${esc(photo)}" alt="">` : '<div class="person-hero-photo ticket-pass-hero-fallback"></div>'}
+        ${hasTelegramBack()
+          ? ''
+          : `<button class="hero-icon back" data-action="${backToEvent ? 'event' : 'back'}"${backToEvent ? ` data-id="${esc(backToEvent)}"` : ''} aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
       </div>
+
+      <section class="ticket-pass-body">
+        ${isHost ? '<em class="ticket-role">Организатор</em>' : '<em class="ticket-role guest">Билет</em>'}
+        <h1>${esc(title)}</h1>
+        ${when ? `<p class="ticket-pass-meta">${esc(when)}</p>` : ''}
+        ${place ? `<p class="ticket-pass-meta">${esc(place)}</p>` : ''}
+
+        <div class="ticket-qr-wrap">
+          <img src="${esc(qrUrl)}" alt="QR ${esc(code)}" width="280" height="280">
+        </div>
+        <code class="ticket-code">${esc(code)}</code>
+        ${ticket.doorPay ? `<p class="ticket-door">Гости платят на входе: <b>${money(ticket.doorPay)}</b></p>` : ''}
+        <p class="ticket-hint">${isHost
+          ? 'Ваш QR организатора · гости показывают свои билеты'
+          : 'Покажите QR на входе'}</p>
+      </section>
 
       <div class="sticky-page-cta">
-        <button type="button" class="taneesh-buy-block" data-action="me">В профиль</button>
+        <button type="button" class="taneesh-buy-block" data-action="${backToEvent ? 'event' : 'events'}"${backToEvent ? ` data-id="${esc(backToEvent)}"` : ''}>
+          К событию
+        </button>
       </div>
-    </div>`;
+    </article>`;
 }
