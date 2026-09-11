@@ -110,17 +110,20 @@ export function joinOpenGroup(id) {
   return joined;
 }
 
-/** Заявка в закрытую группу — статус pending до принятия. */
-export function requestJoinGroup(id) {
+/** Заявка в закрытую группу — короткое сообщение обязательно, статус pending до принятия. */
+export function requestJoinGroup(id, message = '') {
   const existing = getUserGroups().find(group => String(group.id) === String(id));
   if (existing) return existing;
   const catalog = demoGroups.find(group => String(group.id) === String(id));
   if (!catalog) return null;
   if (catalog.isPublic !== false) return joinOpenGroup(id);
+  const text = String(message || '').trim();
+  if (text.length < 3) return null;
   const pending = {
     ...catalog,
     catalog: false,
     membership: 'pending',
+    requestMessage: text.slice(0, 200),
     requestedAt: new Date().toISOString(),
     messages: [...(catalog.messages || [])]
   };
@@ -406,11 +409,14 @@ export function createGroupScreen(editId = null) {
         ownerId: 'me',
         createdAt: new Date().toISOString(),
         ownerName: profile.name || 'Вы',
-        joinRequests: isPublic ? [] : people.slice(1, 3).map(person => ({
+        joinRequests: isPublic ? [] : people.slice(1, 3).map((person, index) => ({
           id: person.id,
           name: person.name,
           photo: person.photo,
-          age: person.age
+          age: person.age,
+          message: index === 0
+            ? 'Люблю такие клубы, можно с вами?'
+            : 'Читаю нон-фикшн, хочу вступить'
         })),
         messages: [
           {
@@ -477,6 +483,8 @@ export function groupHubScreen(id) {
   const joinRequests = isOwner ? (group.joinRequests || []) : [];
   const members = groupMembersPreview(group);
   let tab = 'overview'; // overview | members | requests
+  let joinSheet = false;
+  let joinDraft = '';
 
   const share = () => {
     const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
@@ -591,7 +599,7 @@ export function groupHubScreen(id) {
                         <img src="${esc(person.photo)}" alt="">
                         <div>
                           <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
-                          <span>Хочет вступить</span>
+                          <span>${esc(person.message || 'Хочет вступить')}</span>
                         </div>
                         <button type="button" class="group-join-accept" data-accept="${esc(String(person.id))}">Принять</button>
                         <button type="button" class="group-join-reject" data-reject="${esc(String(person.id))}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
@@ -637,8 +645,28 @@ export function groupHubScreen(id) {
                   ? `<button type="button" class="taneesh-buy-block" id="joinOpenGroup">Вступить</button>`
                   : `<button type="button" class="taneesh-buy-block" id="requestJoin">Подать заявку</button>`}
           </div>
+          ${joinSheet ? `
+            <div class="edit-sheet-scrim" id="joinSheetScrim"></div>
+            <div class="edit-sheet edit-sheet--text create-when-sheet join-request-sheet" role="dialog" aria-modal="true" aria-labelledby="joinSheetTitle">
+              <header class="edit-sheet-head">
+                <button type="button" class="edit-sheet-close" id="closeJoinSheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+                <div class="edit-sheet-titles">
+                  <h2 id="joinSheetTitle">Заявка</h2>
+                  <p>Коротко напишите, почему хотите вступить</p>
+                </div>
+                <span class="edit-sheet-spacer"></span>
+              </header>
+              <textarea class="create-sheet-textarea" id="joinMessage" maxlength="200" rows="4" placeholder="Например: читаю нон-фикшн и ищу компанию для обсуждений">${esc(joinDraft)}</textarea>
+              <p class="edit-sheet-hint">От 3 до 200 символов</p>
+              <div class="edit-sheet-foot">
+                <button type="button" class="edit-sheet-clear-field" id="clearJoinMessage" ${joinDraft.trim() ? '' : 'hidden'}>Очистить</button>
+                <button type="button" class="edit-sheet-done" id="sendJoinRequest" ${joinDraft.trim().length >= 3 ? '' : 'disabled'}>Отправить</button>
+              </div>
+            </div>` : ''}
         </div>`;
     }
+
+    document.body.classList.toggle('edit-sheet-open', joinSheet);
 
     if (tab === 'members' || !isOwner) {
       bindPeopleGoingBlock(view, members, { key: 'group-members', title: 'Участницы' });
@@ -652,11 +680,45 @@ export function groupHubScreen(id) {
     });
     view.querySelector('#inviteGroup')?.addEventListener('click', share);
     view.querySelector('#requestJoin')?.addEventListener('click', () => {
-      const result = requestJoinGroup(group.id);
+      joinSheet = true;
+      joinDraft = '';
+      render();
+      queueMicrotask(() => view.querySelector('#joinMessage')?.focus());
+    });
+    const closeJoinSheet = () => {
+      joinSheet = false;
+      joinDraft = '';
+      document.body.classList.remove('edit-sheet-open');
+      render();
+    };
+    view.querySelector('#joinSheetScrim')?.addEventListener('click', closeJoinSheet);
+    view.querySelector('#closeJoinSheet')?.addEventListener('click', closeJoinSheet);
+    const joinInput = view.querySelector('#joinMessage');
+    joinInput?.addEventListener('input', () => {
+      joinDraft = joinInput.value;
+      const send = view.querySelector('#sendJoinRequest');
+      if (send) send.disabled = joinDraft.trim().length < 3;
+      const clear = view.querySelector('#clearJoinMessage');
+      if (clear) clear.hidden = !joinDraft.trim();
+    });
+    view.querySelector('#clearJoinMessage')?.addEventListener('click', () => {
+      joinDraft = '';
+      if (joinInput) joinInput.value = '';
+      const send = view.querySelector('#sendJoinRequest');
+      if (send) send.disabled = true;
+      const clear = view.querySelector('#clearJoinMessage');
+      if (clear) clear.hidden = true;
+      joinInput?.focus();
+    });
+    view.querySelector('#sendJoinRequest')?.addEventListener('click', () => {
+      const result = requestJoinGroup(group.id, joinDraft);
       if (!result) return;
+      joinSheet = false;
+      joinDraft = '';
+      document.body.classList.remove('edit-sheet-open');
       showCelebrate({
         title: 'Заявка отправлена',
-        subtitle: 'Организатор рассмотрит заявку.',
+        subtitle: 'Организатор прочитает сообщение и ответит.',
         primaryLabel: 'К группам',
         onPrimary: () => navigate('groups')
       });

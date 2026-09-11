@@ -1478,6 +1478,9 @@ body[data-route='edit-photos'] .view {
   font-weight: 700;
   padding: 16px 20px;
 }
+.edit-sheet-done:disabled {
+  opacity: 0.45;
+}
 .edit-sheet-clear-field {
   width: 100%;
   border: 0;

@@ -1307,7 +1307,7 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   display: grid;
   grid-template-columns: 44px 1fr auto auto;
   gap: 10px;
-  align-items: center;
+  align-items: start;
   padding: 10px 12px;
   border-radius: 14px;
   background: var(--yaqin-bg);
@@ -1318,14 +1318,21 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   border-radius: 50%;
   object-fit: cover;
 }
+.group-join-row .group-join-accept,
+.group-join-row .group-join-reject {
+  margin-top: 4px;
+}
 .group-join-row strong {
   display: block;
   font-size: 14px;
 }
 .group-join-row span {
   display: block;
+  margin-top: 2px;
   font-size: 12px;
+  line-height: 1.35;
   color: var(--yaqin-text-tertiary);
+  white-space: normal;
 }
 .group-join-accept {
   border: 0;
