@@ -425,17 +425,19 @@ body.profile-open .view {
 .me-hub-overlay {
   align-items: stretch;
   padding: 0;
+  padding-top: var(--yaqin-safe-top, env(safe-area-inset-top, 0px));
+  background: var(--yaqin-bg);
 }
 .me-hub-sheet {
   width: min(100%, 442px);
   margin: 0 auto;
-  height: min(92dvh, 100%);
-  max-height: 100dvh;
+  height: 100%;
+  max-height: none;
   display: flex;
   flex-direction: column;
   background: var(--yaqin-bg);
   color: var(--yaqin-text);
-  border-radius: 20px 20px 0 0;
+  border-radius: 0;
   overflow: hidden;
   box-sizing: border-box;
 }
