@@ -109,10 +109,8 @@
   margin: 0;
   padding: 5px 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--yaqin-bg) 72%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: var(--yaqin-yellow);
+  background: var(--yaqin-yellow);
+  color: var(--yaqin-yellow-ink);
   font-size: 11px;
   font-weight: 700;
   font-style: normal;
@@ -121,7 +119,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.22);
 }
 
 .taneesh-event-card {
