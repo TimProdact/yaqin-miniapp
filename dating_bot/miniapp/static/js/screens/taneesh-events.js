@@ -581,10 +581,8 @@ function renderHostEventDashboard(event) {
         <section class="person-head">
           <div class="person-head-row">
             <div class="person-head-copy">
-              <em class="taneesh-source yaqin">Ваше событие</em>
               <h1>${esc(event.title)}</h1>
               <p class="person-meta">${esc(metaLine)}</p>
-              <p class="event-detail-price">${esc(priceLabel(event))}</p>
             </div>
             <button class="hero-wave" type="button" data-action="edit-event" data-id="${esc(event.id)}" aria-label="Редактировать">
               <i class="ti ti-pencil"></i>
@@ -764,7 +762,6 @@ function renderHostEventDashboard(event) {
 /** Гостевой экран события. */
 function renderGuestEventDetail(event) {
   const owned = ticketForEvent(event.id);
-  const sourceLabel = event.source === 'yaqin' ? 'Yaqin' : 'Афиша';
   const hard = needsGuestPass(event);
 
   const render = () => {
@@ -782,10 +779,8 @@ function renderGuestEventDetail(event) {
         <section class="person-head">
           <div class="person-head-row">
             <div class="person-head-copy">
-              <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${esc(sourceLabel)}</em>
               <h1>${esc(event.title)}</h1>
               <p class="person-meta">${esc(metaLine)}</p>
-              <p class="event-detail-price">${esc(priceLabel(event))}</p>
             </div>
             <button class="hero-wave event-want-btn ${want ? 'on' : ''}" type="button" id="toggleWant" aria-label="${want ? 'Интерес снят' : 'Хочу пойти'}" aria-pressed="${want ? 'true' : 'false'}">
               <i class="ti ${want ? 'ti-check' : 'ti-hand-stop'}"></i>
@@ -803,6 +798,7 @@ function renderGuestEventDetail(event) {
             <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
             ${event.address ? `<li><i class="ti ti-building"></i>${esc(event.address)}</li>` : ''}
             ${event.capacity ? `<li><i class="ti ti-users"></i>до ${esc(String(event.capacity))} мест</li>` : ''}
+            <li><i class="ti ti-ticket"></i>${esc(priceLabel(event))}</li>
             ${event.host ? `<li><i class="ti ti-user"></i>Организатор · ${esc(event.host)}</li>` : ''}
           </ul>
           ${Array.isArray(event.interests) && event.interests.length ? `
