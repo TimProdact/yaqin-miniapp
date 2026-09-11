@@ -5,7 +5,7 @@ import { isCurrentRender, navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadProfile, loadVerification, saveProfile } from '../repository.js';
 import { resolveView } from './verify.js';
-import { getUserEvents, getUserGroups } from './community.js';
+import { getUserEvents, getOwnedGroups } from './community.js';
 import {
   WORK_OPTIONS,
   CHIP_SHEETS,
@@ -105,7 +105,7 @@ export async function meScreen(_id, token) {
   const tickets = listTickets().slice(0, 6);
   const eventsAll = getUserEvents();
   const events = eventsAll.slice(0, 2);
-  const groupsAll = getUserGroups();
+  const groupsAll = getOwnedGroups();
   const groups = groupsAll.slice(0, 2);
   const privacy = getState().privacy || { showOnline: true, showInFeed: true };
   const nextTicket = tickets[0];
@@ -176,18 +176,21 @@ export async function meScreen(_id, token) {
       </section>
 
       <section class="me-panel">
-        ${sectionHead('Группы', groupsAll.length > 2 ? 'groups' : null)}
+        ${sectionHead('Мои группы', null)}
         ${groups.length ? `
           <div class="me-mini-list">
-            ${groups.map(group => `
+            ${groups.map(group => {
+              const open = group.isPublic !== false;
+              return `
               <button type="button" class="me-mini-row" data-action="group" data-id="${esc(group.id)}">
                 <img src="${esc(group.photo)}" alt="">
                 <div>
                   <strong>${esc(group.title)}</strong>
-                  <span>${group.members || 1} участниц${group.membership === 'pending' ? ' · заявка' : ''}</span>
+                  <span>Организатор · ${open ? 'открытая' : 'закрытая'} · ${group.members || 1} участниц</span>
                 </div>
-                <i class="ti ti-chevron-right"></i>
-              </button>`).join('')}
+                <i class="ti ti-settings"></i>
+              </button>`;
+            }).join('')}
           </div>` : ''}
         <button type="button" class="me-add-card" data-action="create-group">
           <i class="ti ti-user-plus"></i>

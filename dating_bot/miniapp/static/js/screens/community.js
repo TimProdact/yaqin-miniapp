@@ -13,6 +13,16 @@ export function getUserGroups() {
   return getState().userGroups || [];
 }
 
+export function isGroupOwner(group) {
+  if (!group) return false;
+  return group.ownerId === 'me' || String(group.id).startsWith('g-');
+}
+
+/** Группы, где пользователь — организатор. */
+export function getOwnedGroups() {
+  return getUserGroups().filter(isGroupOwner);
+}
+
 /** Каталог + созданные пользователем (без дублей по id). */
 export function listAllGroups() {
   const mine = getUserGroups();
@@ -270,21 +280,28 @@ export function groupsScreen() {
   render();
 }
 
-/** Создание группы — название, фото, открытая/закрытая. */
-export function createGroupScreen() {
+/** Создание / редактирование группы — название, фото, открытая/закрытая. */
+export function createGroupScreen(editId = null) {
   clearHeader();
-  let name = '';
-  let cover = null;
+  const existing = editId != null && editId !== '' ? peekGroup(editId) : null;
+  const isEdit = Boolean(existing && isGroupOwner(existing));
+  if (editId && !isEdit) {
+    navigate('me');
+    return;
+  }
+
+  let name = isEdit ? (existing.title || '') : '';
+  let cover = isEdit ? (existing.photo || null) : null;
   let coverIndex = 0;
-  let isPublic = true;
+  let isPublic = isEdit ? isGroupPublic(existing) : true;
 
   const render = () => {
     const canCreate = name.trim().length > 1;
     view.innerHTML = `
       <div class="create-group-page">
         <header class="modal-head">
-          ${backControlHtml('me')}
-          <h1>Создать группу</h1>
+          ${isEdit ? backControlHtml('back') : backControlHtml('me')}
+          <h1>${isEdit ? 'Редактировать' : 'Создать группу'}</h1>
           <span></span>
         </header>
 
@@ -308,7 +325,7 @@ export function createGroupScreen() {
         </div>
 
         <div class="create-sticky-cta">
-          <button type="button" class="create-submit ${canCreate ? 'on' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>Создать</button>
+          <button type="button" class="create-submit ${canCreate ? 'on' : ''}" id="createGroupBtn" ${canCreate ? '' : 'disabled'}>${isEdit ? 'Сохранить' : 'Создать'}</button>
         </div>
       </div>`;
 
@@ -332,6 +349,27 @@ export function createGroupScreen() {
     view.querySelector('#createGroupBtn').onclick = () => {
       if (!name.trim()) return;
       const profile = getState().profile || defaultProfile;
+      const state = getState();
+
+      if (isEdit) {
+        const updated = {
+          ...existing,
+          title: name.trim(),
+          about: isPublic ? 'Открытая группа в Yaqin' : 'Закрытая группа в Yaqin',
+          photo: cover || existing.photo || nextCover(0),
+          isPublic,
+          updatedAt: new Date().toISOString()
+        };
+        saveState({
+          ...state,
+          userGroups: (state.userGroups || []).map(item =>
+            String(item.id) === String(existing.id) ? updated : item
+          )
+        });
+        navigate('group', existing.id);
+        return;
+      }
+
       const group = {
         id: `g-${Date.now()}`,
         title: name.trim(),
@@ -360,7 +398,6 @@ export function createGroupScreen() {
           }
         ]
       };
-      const state = getState();
       saveState({ ...state, userGroups: [group, ...(state.userGroups || [])] });
       showCelebrate({
         title: 'Группа создана!',
@@ -371,6 +408,7 @@ export function createGroupScreen() {
         onPrimary: () => navigate('group', group.id),
         onClose: () => navigate('group', group.id)
       });
+      navigate('group', group.id);
     };
   };
 
@@ -412,69 +450,10 @@ export function groupHubScreen(id) {
   const member = isGroupMember(group);
   const pending = isGroupPending(group);
   const open = isGroupPublic(group);
-  const isOwner = member && (group.ownerId === 'me' || String(group.id).startsWith('g-'));
+  const isOwner = isGroupOwner(group) && member;
   const joinRequests = isOwner ? (group.joinRequests || []) : [];
   const members = groupMembersPreview(group);
-
-  view.innerHTML = `
-    <div class="group-hub-page">
-      <header class="group-hub-top">
-        ${backControlHtml('groups')}
-      </header>
-
-      <div class="group-hub-cover event-photo">
-        <img src="${esc(group.photo)}" alt="">
-      </div>
-
-      <section class="group-hub-body">
-        <em class="group-hub-city">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'}</em>
-        <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
-        <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
-        <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
-
-        ${joinRequests.length ? `
-          <section class="me-panel group-hub-panel">
-            <div class="me-section-head">
-              <div><h3>Заявки</h3></div>
-              <span class="host-count">${joinRequests.length}</span>
-            </div>
-            <div class="group-join-requests">
-              ${joinRequests.map(person => `
-                <div class="group-join-row">
-                  <img src="${esc(person.photo)}" alt="">
-                  <div>
-                    <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
-                    <span>Хочет вступить</span>
-                  </div>
-                  <button type="button" class="group-join-accept" data-accept="${esc(String(person.id))}">Принять</button>
-                  <button type="button" class="group-join-reject" data-reject="${esc(String(person.id))}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
-                </div>`).join('')}
-            </div>
-          </section>` : ''}
-
-        <div class="people-going-wrap">
-          ${peopleGoingBlockHtml(members, {
-            key: 'group-members',
-            title: 'Участницы',
-            empty: 'Пока никого нет'
-          })}
-        </div>
-      </section>
-
-      <div class="sticky-page-cta group-hub-cta ${member ? 'two' : 'one'}">
-        ${member
-          ? `
-            <button type="button" class="taneesh-buy-block" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
-            <button type="button" class="taneesh-buy-block ghost" id="inviteGroup">Пригласить</button>`
-          : pending
-            ? `<button type="button" class="taneesh-buy-block" disabled>Заявка отправлена</button>`
-            : open
-              ? `<button type="button" class="taneesh-buy-block" id="joinOpenGroup">Вступить</button>`
-              : `<button type="button" class="taneesh-buy-block" id="requestJoin">Подать заявку</button>`}
-      </div>
-    </div>`;
-
-  bindPeopleGoingBlock(view, members, { key: 'group-members', title: 'Участницы' });
+  let tab = 'overview'; // overview | members | requests
 
   const share = () => {
     const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
@@ -487,34 +466,198 @@ export function groupHubScreen(id) {
     } catch (_) { /* ignore */ }
     navigator.share?.({ text }).catch(() => {});
   };
-  view.querySelector('#inviteGroup')?.addEventListener('click', share);
-  view.querySelector('#requestJoin')?.addEventListener('click', () => {
-    const result = requestJoinGroup(group.id);
-    if (!result) return;
-    showCelebrate({
-      title: 'Заявка отправлена',
-      subtitle: 'Организатор рассмотрит заявку.',
-      primaryLabel: 'К группам',
-      onPrimary: () => navigate('groups')
+
+  const render = () => {
+    closePeopleGoingSheet();
+    const tabs = [
+      ['overview', 'Обзор'],
+      ['members', 'Участницы'],
+      ...(isOwner && !open ? [['requests', `Заявки${joinRequests.length ? ` · ${joinRequests.length}` : ''}`]] : [])
+    ];
+
+    if (isOwner) {
+      view.innerHTML = `
+        <article class="person-view host-group-page">
+          <div class="person-hero event-detail-hero group-hub-cover">
+            <img class="person-hero-photo" src="${esc(group.photo)}" alt="">
+            ${hasTelegramBack() ? '' : `<button class="hero-icon back" data-action="me" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
+          </div>
+
+          <section class="person-head">
+            <div class="person-head-row">
+              <div class="person-head-copy">
+                <em class="taneesh-source yaqin">Ваша группа</em>
+                <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
+                <p class="person-meta">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'} · ${memberCount} участниц</p>
+              </div>
+              <button class="hero-wave" type="button" data-action="edit-group" data-id="${esc(group.id)}" aria-label="Настройки">
+                <i class="ti ti-settings"></i>
+              </button>
+            </div>
+            ${group.about ? `<p class="person-bio">${esc(group.about)}</p>` : ''}
+          </section>
+
+          <div class="host-event-tabs" role="tablist">
+            ${tabs.map(([tid, label]) => `
+              <button type="button" class="${tab === tid ? 'on' : ''}" data-host-tab="${tid}" role="tab" aria-selected="${tab === tid}">
+                ${label}
+              </button>`).join('')}
+          </div>
+
+          <div class="host-event-body">
+            ${tab === 'overview' ? `
+              <section class="me-panel event-detail-panel">
+                <div class="me-section-head"><div><h3>Действия</h3></div></div>
+                <div class="me-mini-list">
+                  <button type="button" class="me-mini-row" data-action="group-chat" data-id="${esc(group.id)}">
+                    <span class="host-action-icon"><i class="ti ti-message"></i></span>
+                    <div>
+                      <strong>Чат группы</strong>
+                      <span>Переписка участниц</span>
+                    </div>
+                    <i class="ti ti-chevron-right"></i>
+                  </button>
+                  <button type="button" class="me-mini-row" id="inviteGroup">
+                    <span class="host-action-icon blue"><i class="ti ti-share"></i></span>
+                    <div>
+                      <strong>Пригласить</strong>
+                      <span>Ссылка на группу в Yaqin</span>
+                    </div>
+                    <i class="ti ti-chevron-right"></i>
+                  </button>
+                  <button type="button" class="me-mini-row" data-action="edit-group" data-id="${esc(group.id)}">
+                    <span class="host-action-icon yellow"><i class="ti ti-settings"></i></span>
+                    <div>
+                      <strong>Настройки</strong>
+                      <span>Название, фото, тип группы</span>
+                    </div>
+                    <i class="ti ti-chevron-right"></i>
+                  </button>
+                  ${!open ? `
+                    <button type="button" class="me-mini-row" data-host-tab="requests">
+                      <span class="host-action-icon green"><i class="ti ti-user-plus"></i></span>
+                      <div>
+                        <strong>Заявки</strong>
+                        <span>${joinRequests.length ? `${joinRequests.length} ожидают` : 'Пока пусто'}</span>
+                      </div>
+                      <i class="ti ti-chevron-right"></i>
+                    </button>` : ''}
+                </div>
+              </section>
+            ` : ''}
+
+            ${tab === 'members' ? `
+              <div class="people-going-wrap">
+                ${peopleGoingBlockHtml(members, {
+                  key: 'group-members',
+                  title: 'Участницы',
+                  empty: 'Пока никого нет'
+                })}
+              </div>` : ''}
+
+            ${tab === 'requests' ? `
+              <section class="me-panel event-detail-panel">
+                <div class="me-section-head">
+                  <div><h3>Заявки</h3></div>
+                  <span class="host-count">${joinRequests.length}</span>
+                </div>
+                ${joinRequests.length ? `
+                  <div class="group-join-requests">
+                    ${joinRequests.map(person => `
+                      <div class="group-join-row">
+                        <img src="${esc(person.photo)}" alt="">
+                        <div>
+                          <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
+                          <span>Хочет вступить</span>
+                        </div>
+                        <button type="button" class="group-join-accept" data-accept="${esc(String(person.id))}">Принять</button>
+                        <button type="button" class="group-join-reject" data-reject="${esc(String(person.id))}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
+                      </div>`).join('')}
+                  </div>` : `<p class="host-empty">Пока нет заявок</p>`}
+              </section>` : ''}
+          </div>
+        </article>`;
+    } else {
+      view.innerHTML = `
+        <div class="group-hub-page">
+          <header class="group-hub-top">
+            ${backControlHtml('groups')}
+          </header>
+
+          <div class="group-hub-cover event-photo">
+            <img src="${esc(group.photo)}" alt="">
+          </div>
+
+          <section class="group-hub-body">
+            <em class="group-hub-city">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'}</em>
+            <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
+            <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
+            <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
+
+            <div class="people-going-wrap">
+              ${peopleGoingBlockHtml(members, {
+                key: 'group-members',
+                title: 'Участницы',
+                empty: 'Пока никого нет'
+              })}
+            </div>
+          </section>
+
+          <div class="sticky-page-cta group-hub-cta ${member ? 'two' : 'one'}">
+            ${member
+              ? `
+                <button type="button" class="taneesh-buy-block" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
+                <button type="button" class="taneesh-buy-block ghost" id="inviteGroup">Пригласить</button>`
+              : pending
+                ? `<button type="button" class="taneesh-buy-block" disabled>Заявка отправлена</button>`
+                : open
+                  ? `<button type="button" class="taneesh-buy-block" id="joinOpenGroup">Вступить</button>`
+                  : `<button type="button" class="taneesh-buy-block" id="requestJoin">Подать заявку</button>`}
+          </div>
+        </div>`;
+    }
+
+    if (tab === 'members' || !isOwner) {
+      bindPeopleGoingBlock(view, members, { key: 'group-members', title: 'Участницы' });
+    }
+
+    view.querySelectorAll('[data-host-tab]').forEach(button => {
+      button.addEventListener('click', () => {
+        tab = button.dataset.hostTab;
+        render();
+      });
     });
-    navigate('group', result.id);
-  });
-  view.querySelector('#joinOpenGroup')?.addEventListener('click', () => {
-    const joined = joinOpenGroup(group.id);
-    if (joined) navigate('group-chat', joined.id);
-  });
-  view.querySelectorAll('[data-accept]').forEach(button => {
-    button.onclick = () => {
-      acceptJoinRequest(group.id, button.dataset.accept);
-      groupHubScreen(group.id);
-    };
-  });
-  view.querySelectorAll('[data-reject]').forEach(button => {
-    button.onclick = () => {
-      rejectJoinRequest(group.id, button.dataset.reject);
-      groupHubScreen(group.id);
-    };
-  });
+    view.querySelector('#inviteGroup')?.addEventListener('click', share);
+    view.querySelector('#requestJoin')?.addEventListener('click', () => {
+      const result = requestJoinGroup(group.id);
+      if (!result) return;
+      showCelebrate({
+        title: 'Заявка отправлена',
+        subtitle: 'Организатор рассмотрит заявку.',
+        primaryLabel: 'К группам',
+        onPrimary: () => navigate('groups')
+      });
+      navigate('group', result.id);
+    });
+    view.querySelector('#joinOpenGroup')?.addEventListener('click', () => {
+      const joined = joinOpenGroup(group.id);
+      if (joined) navigate('group-chat', joined.id);
+    });
+    view.querySelectorAll('[data-accept]').forEach(button => {
+      button.onclick = () => {
+        acceptJoinRequest(group.id, button.dataset.accept);
+        groupHubScreen(group.id);
+      };
+    });
+    view.querySelectorAll('[data-reject]').forEach(button => {
+      button.onclick = () => {
+        rejectJoinRequest(group.id, button.dataset.reject);
+        groupHubScreen(group.id);
+      };
+    });
+  };
+
+  render();
 }
 
 /** Простой чат группы (без комнат/постов). */

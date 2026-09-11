@@ -26,6 +26,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'checkout',
   'ticket',
   'create-group',
+  'edit-group',
   'create-event',
   'edit-event',
   'group-chat',
