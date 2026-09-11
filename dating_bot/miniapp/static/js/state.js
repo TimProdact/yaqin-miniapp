@@ -13,6 +13,8 @@ const initialState = {
   onboarded: false,
   filters: { ageMin: 18, ageMax: 40, distance: 50, interests: [], city: 'Ташкент' },
   theme: { dark: false, followSystem: true },
+  /** UI locale: ru | uz | en */
+  locale: 'ru',
   email: '',
   notifications: { dm: true, reactions: true },
   announcements: true,

@@ -17,6 +17,21 @@ import {
 
 let closeOverlay = null;
 
+const LOCALE_OPTIONS = [
+  { id: 'ru', title: 'Русский', hint: 'Интерфейс на русском' },
+  { id: 'uz', title: 'Oʻzbekcha', hint: 'Interfeys oʻzbek tilida' },
+  { id: 'en', title: 'English', hint: 'App interface in English' }
+];
+
+function currentLocale() {
+  const raw = getState().locale || 'ru';
+  return LOCALE_OPTIONS.some(item => item.id === raw) ? raw : 'ru';
+}
+
+function localeLabel(id = currentLocale()) {
+  return LOCALE_OPTIONS.find(item => item.id === id)?.title || 'Русский';
+}
+
 function listTickets() {
   return [...(getState().tickets || [])].reverse();
 }
@@ -331,6 +346,11 @@ export async function meScreen(_id, token) {
             <span>Показывать в ленте<br><small>Анкета появляется во вкладке «Люди»</small></span>
             <input type="checkbox" id="showInFeed" ${privacy.showInFeed !== false ? 'checked' : ''}>
           </label>
+          <button class="settings-row" type="button" data-action="language">
+            <span class="settings-icon purple square"><i class="ti ti-language"></i></span>
+            <span>Язык<br><small>${esc(localeLabel())}</small></span>
+            <i class="ti ti-chevron-right"></i>
+          </button>
           <button class="settings-row" type="button" id="inviteFriends">
             <span class="settings-icon blue square"><i class="ti ti-user-plus"></i></span>
             <span>Пригласить подруг<br><small>Ссылка на Yaqin</small></span>
@@ -425,6 +445,11 @@ export function settingsScreen() {
         <button class="settings-row" data-action="dark-mode" type="button">
           <span class="settings-icon purple square"><i class="ti ti-moon"></i></span>
           <span>Тема</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+        <button class="settings-row" data-action="language" type="button">
+          <span class="settings-icon purple square"><i class="ti ti-language"></i></span>
+          <span>Язык<br><small>${esc(localeLabel())}</small></span>
           <i class="ti ti-chevron-right"></i>
         </button>
         <button class="settings-row" data-action="blocked" type="button">
@@ -676,6 +701,38 @@ export function darkModeScreen() {
   view.querySelector('#systemToggle').onchange = event => {
     apply({ dark: theme.dark, followSystem: event.target.checked });
   };
+}
+
+export function languageScreen() {
+  clearHeader();
+  const selected = currentLocale();
+
+  view.innerHTML = `
+    <div class="settings-page">
+      <header class="filters-head">
+        ${backControlHtml('back')}
+        <h1>Язык</h1>
+      </header>
+      <section class="settings-block">
+        ${LOCALE_OPTIONS.map(item => `
+          <button class="settings-row ${selected === item.id ? 'on' : ''}" type="button" data-locale="${esc(item.id)}">
+            <span class="settings-icon purple square"><i class="ti ti-language"></i></span>
+            <span>${esc(item.title)}<br><small>${esc(item.hint)}</small></span>
+            ${selected === item.id ? '<i class="ti ti-check"></i>' : '<i class="ti ti-chevron-right"></i>'}
+          </button>`).join('')}
+      </section>
+      <p class="settings-footnote">Пока интерфейс на русском. Выбор языка сохранится и подключится в следующих обновлениях.</p>
+    </div>`;
+
+  view.querySelectorAll('[data-locale]').forEach(button => {
+    button.addEventListener('click', () => {
+      const locale = button.dataset.locale;
+      if (!LOCALE_OPTIONS.some(item => item.id === locale)) return;
+      saveState({ ...getState(), locale });
+      applyStoredLocale();
+      languageScreen();
+    });
+  });
 }
 
 export async function editScreen(_id, token) {
@@ -1531,4 +1588,10 @@ export function showDeleteAccountDialog() {
 export function applyStoredTheme() {
   const theme = getState().theme || { dark: false, followSystem: true };
   document.documentElement.dataset.theme = theme.followSystem ? 'system' : theme.dark ? 'dark' : 'light';
+}
+
+export function applyStoredLocale() {
+  const locale = currentLocale();
+  document.documentElement.lang = locale;
+  document.documentElement.dataset.locale = locale;
 }

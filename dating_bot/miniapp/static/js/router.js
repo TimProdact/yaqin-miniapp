@@ -20,6 +20,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'new-dm',
   'blocked',
   'dark-mode',
+  'language',
   'notifications',
   'account',
   'privacy',

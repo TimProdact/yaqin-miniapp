@@ -131,6 +131,17 @@ body[data-route='notifications'] .settings-row.toggle input:checked {
   background: var(--yaqin-blue);
 }
 
+.settings-row.on .ti-check {
+  color: var(--yaqin-link);
+  font-size: 20px;
+}
+.settings-footnote {
+  margin: 14px 4px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--yaqin-text-tertiary);
+}
+
 .settings-row.stacked {
   align-items: flex-start;
 }

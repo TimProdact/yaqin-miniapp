@@ -24,6 +24,7 @@ import {
   basicInfoScreen,
   blockedScreen,
   darkModeScreen,
+  languageScreen,
   notificationsScreen,
   accountScreen,
   showFeedbackSheet,
@@ -32,6 +33,7 @@ import {
   closeSettingsOverlay,
   consumeSettingsOverlayBack,
   applyStoredTheme,
+  applyStoredLocale,
   privacyScreen,
   helpScreen,
   legalScreen
@@ -85,6 +87,7 @@ try {
   /* ignore */
 }
 applyStoredTheme();
+applyStoredLocale();
 
 window.addEventListener('yaqin:tg-back', () => {
   if (consumeSettingsOverlayBack()) return;
@@ -120,6 +123,7 @@ registerScreens({
   'my-groups': () => profileHubScreen('groups'),
   blocked: blockedScreen,
   'dark-mode': darkModeScreen,
+  language: languageScreen,
   notifications: notificationsScreen,
   account: accountScreen,
   privacy: privacyScreen,
