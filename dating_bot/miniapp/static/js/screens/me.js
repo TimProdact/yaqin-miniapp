@@ -93,6 +93,17 @@ function countLabel(n, one, few, many) {
 }
 
 function openProfileHub(kind) {
+  const route = ({
+    tickets: 'my-tickets',
+    events: 'my-events',
+    groups: 'my-groups'
+  })[kind];
+  if (route) navigate(route);
+}
+
+/** Хаб профиля (билеты / события / группы) — как Настройки, полный экран. */
+export function profileHubScreen(kind) {
+  clearHeader();
   const tickets = listTickets();
   const events = getUserEvents();
   const groups = getOwnedGroups();
@@ -164,19 +175,23 @@ function openProfileHub(kind) {
   };
 
   const config = configs[kind];
-  if (!config) return;
+  if (!config) {
+    navigate('me');
+    return;
+  }
 
-  mountSheet(`
-    <div class="me-hub-sheet" role="dialog" aria-label="${esc(config.title)}">
-      <header class="filters-head me-hub-head">
-        ${backControlHtml('close-sheet')}
+  const empty = config.body.includes('me-hub-empty');
+  view.innerHTML = `
+    <div class="settings-page me-hub-page${empty ? ' is-empty' : ''}">
+      <header class="filters-head">
+        ${backControlHtml('back')}
         <h1>${esc(config.title)}</h1>
       </header>
-      <div class="me-hub-sheet-body${config.body.includes('me-hub-empty') ? ' is-empty' : ''}">${config.body}</div>
-      <div class="me-hub-sheet-cta">
+      <div class="me-hub-page-body${empty ? ' is-empty' : ''}">${config.body}</div>
+      <div class="sticky-page-cta">
         <button type="button" class="empty-primary" data-action="${esc(config.ctaAction)}">${esc(config.cta)}</button>
       </div>
-    </div>`, 'settings-overlay me-hub-overlay');
+    </div>`;
 }
 
 export async function meScreen(_id, token) {

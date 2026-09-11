@@ -18,6 +18,7 @@ import { verifyScreen, startVerification } from './screens/verify.js';
 import {
   meScreen,
   settingsScreen,
+  profileHubScreen,
   editScreen,
   editPhotosScreen,
   basicInfoScreen,
@@ -113,6 +114,9 @@ registerScreens({
   groups: groupsScreen,
   me: meScreen,
   settings: settingsScreen,
+  'my-tickets': () => profileHubScreen('tickets'),
+  'my-events': () => profileHubScreen('events'),
+  'my-groups': () => profileHubScreen('groups'),
   blocked: blockedScreen,
   'dark-mode': darkModeScreen,
   notifications: notificationsScreen,

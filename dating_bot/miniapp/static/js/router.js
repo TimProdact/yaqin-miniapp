@@ -12,6 +12,9 @@ const FULL_SCREEN_ROUTES = new Set([
   'city',
   'verify',
   'settings',
+  'my-tickets',
+  'my-events',
+  'my-groups',
   'search',
   'new-dm',
   'blocked',
@@ -36,7 +39,7 @@ const SHEET_ROUTES = new Set(['person', 'event']);
 const PROFILE_OPEN_ROUTES = new Set(['me']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'groups', 'me']);
 
-/** Старые роуты → живые экраны. Хабы my-tickets / my-events / my-groups удалены — контент в обзоре профиля и вкладках. */
+/** Старые роуты → живые экраны. */
 const LEGACY_REDIRECT = {
   activity: 'people',
   friends: 'me',
@@ -48,10 +51,7 @@ const LEGACY_REDIRECT = {
   'profile-groups': 'me',
   prompts: 'me',
   'share-profile': 'me',
-  announcements: 'settings',
-  'my-tickets': 'me',
-  'my-events': 'events',
-  'my-groups': 'groups'
+  announcements: 'settings'
 };
 
 let currentRoute = 'people';
