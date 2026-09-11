@@ -1139,19 +1139,24 @@ export function createEventScreen(editId = null) {
   let cover = isEdit ? (existing.photo || null) : null;
   let coverIndex = 0;
   let ticketMode = isEdit
-    ? (existing.ticketMode || (existing.isFree === false
-      ? (existing.paymentMode === 'at_door' || existing.paymentMode === 'door' ? 'door' : 'paid')
-      : 'free'))
+    ? (existing.ticketMode === 'door' || existing.ticketMode === 'paid'
+      || existing.paymentMode === 'at_door' || existing.paymentMode === 'door'
+      || existing.paymentMode === 'online'
+      || existing.isFree === false
+      ? 'door'
+      : 'free')
     : 'free';
+  if (isEdit && existing.isFree !== false && existing.ticketMode !== 'door' && existing.ticketMode !== 'paid'
+    && existing.paymentMode !== 'at_door' && existing.paymentMode !== 'door' && existing.paymentMode !== 'online') {
+    ticketMode = 'free';
+  }
+  if (ticketMode === 'paid') ticketMode = 'door';
   let freeEntryMode = isEdit
     ? (existing.freeEntryMode === 'register' ? 'register' : 'open')
     : 'open';
   let doorPrice = isEdit && ticketMode === 'door'
     ? String(existing.price || '50000')
     : '50000';
-  let paidPrice = isEdit && ticketMode === 'paid'
-    ? String(existing.price || '45000')
-    : '45000';
   let capacity = isEdit ? String(existing.capacity || '30') : '30';
   let sheet = null;
   let sheetQuery = '';
@@ -1320,11 +1325,8 @@ export function createEventScreen(editId = null) {
 
   const render = () => {
     const doorSum = Number(String(doorPrice).replace(/\D/g, '')) || 0;
-    const paidSum = Number(String(paidPrice).replace(/\D/g, '')) || 0;
     const ready = title.trim().length > 1 && place.trim().length > 1
-      && (ticketMode === 'free'
-        || (ticketMode === 'door' && doorSum > 0)
-        || (ticketMode === 'paid' && paidSum > 0));
+      && (ticketMode === 'free' || (ticketMode === 'door' && doorSum > 0));
     const when = whenOf();
     document.body.classList.toggle('edit-sheet-open', Boolean(sheet));
     destroyPlaceMap();
@@ -1387,9 +1389,6 @@ export function createEventScreen(editId = null) {
           <button type="button" class="${ticketMode === 'door' ? 'on' : ''}" data-mode="door">
             <i class="ti ti-cash"></i> На входе
           </button>
-          <button type="button" class="${ticketMode === 'paid' ? 'on' : ''}" data-mode="paid">
-            <i class="ti ti-credit-card"></i> Онлайн
-          </button>
         </div>
 
         ${ticketMode === 'free' ? `
@@ -1412,24 +1411,13 @@ export function createEventScreen(editId = null) {
             </div>
           </label>
         ` : ''}
-        ${ticketMode === 'paid' ? `
-          <label class="create-price-field">
-            <span>Цена билета</span>
-            <div class="create-price-input">
-              <input id="paidPrice" type="text" inputmode="numeric" value="${esc(paidPrice)}" placeholder="45000" maxlength="10" autocomplete="off">
-              <em>сум</em>
-            </div>
-          </label>
-        ` : ''}
 
         <p class="create-legal">
           ${ticketMode === 'free'
             ? (freeEntryMode === 'register'
               ? 'Гость записывается и получает QR.'
               : 'Свободный вход без записи и QR.')
-            : ticketMode === 'paid'
-              ? `Гость оплачивает ${paidSum ? paidSum.toLocaleString('ru-RU') + ' сум' : 'билет'} в Mini App.`
-              : `Бронь в Mini App, на входе — ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'оплата'}.`}
+            : `Бронь в Mini App, на входе — ${doorSum ? doorSum.toLocaleString('ru-RU') + ' сум' : 'оплата'}.`}
         </p>
         </div>
 
@@ -1444,8 +1432,7 @@ export function createEventScreen(editId = null) {
       const btn = view.querySelector('#createEventBtn');
       if (!btn) return;
       const doorOk = Number(String(doorPrice).replace(/\D/g, '')) > 0;
-      const paidOk = Number(String(paidPrice).replace(/\D/g, '')) > 0;
-      const priceOk = ticketMode === 'free' || (ticketMode === 'door' && doorOk) || (ticketMode === 'paid' && paidOk);
+      const priceOk = ticketMode === 'free' || (ticketMode === 'door' && doorOk);
       const ok = title.trim().length > 1 && place.trim().length > 1 && priceOk;
       btn.disabled = !ok;
       btn.classList.toggle('on', ok);
@@ -1494,7 +1481,7 @@ export function createEventScreen(editId = null) {
     view.querySelectorAll('[data-mode]').forEach(button => {
       button.onclick = () => {
         const mode = button.dataset.mode;
-        ticketMode = mode === 'door' || mode === 'paid' ? mode : 'free';
+        ticketMode = mode === 'door' ? 'door' : 'free';
         render();
       };
     });
@@ -1509,14 +1496,6 @@ export function createEventScreen(editId = null) {
       priceInput.oninput = event => {
         doorPrice = event.target.value.replace(/[^\d]/g, '');
         event.target.value = doorPrice;
-        syncReady();
-      };
-    }
-    const paidInput = view.querySelector('#paidPrice');
-    if (paidInput) {
-      paidInput.oninput = event => {
-        paidPrice = event.target.value.replace(/[^\d]/g, '');
-        event.target.value = paidPrice;
         syncReady();
       };
     }
@@ -1736,10 +1715,8 @@ export function createEventScreen(editId = null) {
       const slot = whenOf();
       const price = ticketMode === 'door'
         ? Number(String(doorPrice).replace(/\D/g, '')) || 0
-        : ticketMode === 'paid'
-          ? Number(String(paidPrice).replace(/\D/g, '')) || 0
-          : 0;
-      if ((ticketMode === 'door' || ticketMode === 'paid') && price < 1) return;
+        : 0;
+      if (ticketMode === 'door' && price < 1) return;
 
       const eventId = isEdit ? existing.id : `e-${Date.now()}`;
       const event = {
@@ -1764,9 +1741,9 @@ export function createEventScreen(editId = null) {
         isFree: ticketMode === 'free',
         freeEntryMode: ticketMode === 'free' ? freeEntryMode : undefined,
         ticketMode,
-        paymentMode: ticketMode === 'door' ? 'at_door' : ticketMode === 'paid' ? 'online' : undefined,
+        paymentMode: ticketMode === 'door' ? 'at_door' : undefined,
         price,
-        fee: ticketMode === 'paid' ? Math.round(price * 0.1) : 0,
+        fee: 0,
         currency: 'UZS',
         source: isEdit ? (existing.source || 'yaqin') : 'yaqin',
         createdAt: isEdit ? existing.createdAt : new Date().toISOString(),
@@ -1839,9 +1816,7 @@ export function createEventScreen(editId = null) {
           ? (freeEntryMode === 'register'
             ? 'Гости записываются и получают QR.'
             : 'Свободный вход без QR.')
-          : ticketMode === 'paid'
-            ? 'Гости оплатят онлайн и получат QR.'
-            : 'Гости бронируют место и платят на входе.',
+          : 'Гости бронируют место и платят на входе.',
         primaryLabel: 'Открыть QR',
         secondaryLabel: 'К событию',
         shareText: `Иду на «${event.title}» — присоединяйся в Yaqin`,
