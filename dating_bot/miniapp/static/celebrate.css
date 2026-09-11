@@ -21,6 +21,21 @@
   overflow: hidden;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
 }
+.celebrate-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+}
 .celebrate-check {
   width: 72px;
   height: 72px;
@@ -66,15 +81,8 @@
   font-size: var(--yaqin-fs-secondary);
   font-weight: 600;
 }
-.celebrate-skip {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  border: 0;
-  background: none;
-  color: var(--yaqin-text-tertiary);
-  font-size: var(--yaqin-fs-caption);
-  padding: 10px;
+.celebrate-card > .celebrate-primary {
+  margin-top: 22px;
 }
 .celebrate-burst {
   pointer-events: none;

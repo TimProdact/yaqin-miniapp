@@ -48,6 +48,9 @@ export function showCelebrate(opts) {
 
   overlay.innerHTML = `
     <div class="celebrate-card">
+      <button type="button" class="celebrate-close" id="celebrateClose" aria-label="Закрыть">
+        <i class="ti ti-x"></i>
+      </button>
       <div class="celebrate-burst" aria-hidden="true">${dots}</div>
       <div class="celebrate-check"><i class="ti ti-check"></i></div>
       <h2>${esc(opts.title)}</h2>
@@ -59,7 +62,6 @@ export function showCelebrate(opts) {
         <button type="button" class="celebrate-secondary" id="celebrateSecondary">
           ${esc(opts.secondaryLabel || 'Пригласить подруг')}
         </button>` : ''}
-      <button type="button" class="celebrate-skip" id="celebrateSkip">Закрыть</button>
     </div>`;
 
   const close = () => {
@@ -67,6 +69,7 @@ export function showCelebrate(opts) {
     opts.onClose?.();
   };
 
+  overlay.querySelector('#celebrateClose').onclick = close;
   overlay.querySelector('#celebratePrimary').onclick = () => {
     close();
     opts.onPrimary?.();
@@ -79,7 +82,6 @@ export function showCelebrate(opts) {
     }
     if (opts.shareText) shareText(opts.shareText);
   });
-  overlay.querySelector('#celebrateSkip').onclick = close;
   overlay.addEventListener('click', event => {
     if (event.target === overlay) close();
   });
