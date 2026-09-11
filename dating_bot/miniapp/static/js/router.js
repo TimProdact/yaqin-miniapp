@@ -13,6 +13,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'verify',
   'settings',
   'my-tickets',
+  'my-wanting',
   'my-events',
   'my-groups',
   'search',

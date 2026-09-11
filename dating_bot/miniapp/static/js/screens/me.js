@@ -4,7 +4,7 @@ import { view, esc, clearHeader, chipList, showLoading, showError, showPlacehold
 import { isCurrentRender, navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadProfile, saveProfile } from '../repository.js';
-import { getUserEvents, getOwnedGroups } from './community.js';
+import { getUserEvents, getOwnedGroups, allEvents } from './community.js';
 import {
   WORK_OPTIONS,
   CHIP_SHEETS,
@@ -19,6 +19,21 @@ let closeOverlay = null;
 
 function listTickets() {
   return [...(getState().tickets || [])].reverse();
+}
+
+/** События, где нажали «Хочу пойти». */
+function listWantedEvents() {
+  const interest = getState().eventInterest || {};
+  const going = getState().eventGoing || {};
+  return allEvents().filter(event => {
+    const id = event.id;
+    return Boolean(
+      interest[id]
+      || interest[String(id)]
+      || going[id]
+      || going[String(id)]
+    );
+  });
 }
 
 export function meTopHtml() {
@@ -94,6 +109,7 @@ function countLabel(n, one, few, many) {
 function openProfileHub(kind) {
   const route = ({
     tickets: 'my-tickets',
+    wanting: 'my-wanting',
     events: 'my-events',
     groups: 'my-groups'
   })[kind];
@@ -104,6 +120,7 @@ function openProfileHub(kind) {
 export function profileHubScreen(kind) {
   clearHeader();
   const tickets = listTickets();
+  const wanting = listWantedEvents();
   const events = getUserEvents();
   const groups = getOwnedGroups();
 
@@ -126,6 +143,26 @@ export function profileHubScreen(kind) {
             <div class="empty-badge"><i class="ti ti-ticket"></i></div>
             <h2>Пока нет билетов</h2>
             <p>Билеты появятся после покупки на афише.</p>
+          </div>`
+    },
+    wanting: {
+      title: 'Хочу пойти',
+      cta: wanting.length ? 'К афише' : 'Открыть афишу',
+      ctaAction: 'events',
+      body: wanting.length
+        ? `<div class="me-hub-list">${wanting.map(event => `
+            <button type="button" class="me-mini-row" data-action="event" data-id="${esc(event.id)}">
+              <img src="${esc(event.photo)}" alt="">
+              <div>
+                <strong>${esc(event.title)}</strong>
+                <span>${esc(event.when || '')}${event.place ? ` · ${esc(event.place)}` : ''}</span>
+              </div>
+              <i class="ti ti-chevron-right"></i>
+            </button>`).join('')}</div>`
+        : `<div class="me-hub-empty">
+            <div class="empty-badge yellow"><i class="ti ti-hand-stop"></i></div>
+            <h2>Пока пусто</h2>
+            <p>Отметьте «Хочу пойти» на афише — события появятся здесь.</p>
           </div>`
     },
     events: {
@@ -214,6 +251,7 @@ export async function meScreen(_id, token) {
   const photos = (profile.photos?.length ? profile.photos : [profile.photo]).filter(Boolean);
   const heroPhoto = photos[0] || profile.photo;
   const tickets = listTickets();
+  const wanting = listWantedEvents();
   const events = getUserEvents();
   const groups = getOwnedGroups();
   const privacy = getState().privacy || { showOnline: true, showInFeed: true };
@@ -248,6 +286,15 @@ export async function meScreen(_id, token) {
           title: 'Мои билеты',
           meta: tickets.length
             ? countLabel(tickets.length, 'билет', 'билета', 'билетов')
+            : 'Пока пусто'
+        })}
+        ${hubRow({
+          hub: 'wanting',
+          icon: 'ti-hand-stop',
+          tone: 'green',
+          title: 'Хочу пойти',
+          meta: wanting.length
+            ? countLabel(wanting.length, 'отметка', 'отметки', 'отметок')
             : 'Пока пусто'
         })}
         ${hubRow({

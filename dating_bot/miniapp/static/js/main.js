@@ -115,6 +115,7 @@ registerScreens({
   me: meScreen,
   settings: settingsScreen,
   'my-tickets': () => profileHubScreen('tickets'),
+  'my-wanting': () => profileHubScreen('wanting'),
   'my-events': () => profileHubScreen('events'),
   'my-groups': () => profileHubScreen('groups'),
   blocked: blockedScreen,
