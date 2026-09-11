@@ -207,8 +207,8 @@ export function groupsScreen() {
           <header class="chats-head">
             <h1>Группы</h1>
             <div class="list-head-actions">
-              <button type="button" id="toggleGroupSearch" aria-label="Поиск" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
-                <i class="ti ti-search"></i>
+              <button type="button" id="toggleGroupSearch" aria-label="${searchOpen ? 'Закрыть поиск' : 'Поиск'}" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
+                <i class="ti ${searchOpen ? 'ti-x' : 'ti-search'}"></i>
               </button>
             </div>
           </header>

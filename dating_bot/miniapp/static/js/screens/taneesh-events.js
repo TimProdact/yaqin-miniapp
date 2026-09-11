@@ -398,8 +398,8 @@ export function taneeshEventsScreen() {
           <header class="chats-head">
             <h1>События</h1>
             <div class="list-head-actions">
-              <button type="button" id="toggleEventFilters" aria-label="Фильтры" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
-                <i class="ti ti-search"></i>
+              <button type="button" id="toggleEventFilters" aria-label="${searchOpen ? 'Закрыть фильтры' : 'Фильтры'}" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
+                <i class="ti ${searchOpen ? 'ti-x' : 'ti-search'}"></i>
               </button>
             </div>
           </header>

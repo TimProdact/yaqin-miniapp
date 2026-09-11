@@ -290,43 +290,62 @@ body.full-screen .view {
 .list-sticky-pill .me-top > * {
   pointer-events: auto;
 }
-.list-sticky-pill .chats-head {
-  margin-bottom: 0;
-}
-.list-sticky-pill.is-search-open .chats-head {
-  margin-bottom: 10px;
-}
-.list-sticky-pill--compact .me-top,
-.list-sticky-pill--compact .chats-head {
-  margin-bottom: 0;
-}
 .list-head-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  justify-content: flex-end;
+  gap: 4px;
   margin-left: auto;
+  flex: 0 0 auto;
   pointer-events: auto;
+  z-index: 2;
 }
 .list-head-actions button {
   width: 40px;
   height: 40px;
   border: 0;
   border-radius: 50%;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: var(--yaqin-text);
-  font-size: 22px;
-  display: grid;
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 70%, transparent) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--yaqin-bg-subtle) 55%, transparent) !important;
+  color: var(--yaqin-text) !important;
+  font-size: 20px;
+  display: grid !important;
   place-items: center;
   flex: 0 0 40px;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 .list-head-actions button.on {
-  color: var(--yaqin-text);
-  opacity: 1;
+  color: var(--yaqin-text) !important;
+  background: color-mix(in srgb, var(--yaqin-ink) 14%, var(--yaqin-surface-raised)) !important;
+}
+.list-sticky-pill .chats-head {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 0;
+}
+.list-sticky-pill .chats-head h1 {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .list-search-panel {
   display: grid;
   gap: 10px;
+  min-width: 0;
+  overflow: visible;
+}
+.list-search-panel .chats-pills,
+.list-search-panel .events-date-pills {
+  margin: 0 !important;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 .list-sticky-pill .search-box,
 .list-sticky-pill .chats-search,
@@ -336,9 +355,13 @@ body.full-screen .view {
 .list-sticky-pill .chats-pills,
 .list-sticky-pill .events-date-bar {
   margin: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  padding-bottom: 0 !important;
+  padding: 0 !important;
+  max-width: 100%;
+}
+.list-sticky-pill .chats-pills {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 .list-sticky-pill .groups-pills {
   margin: 0 !important;
