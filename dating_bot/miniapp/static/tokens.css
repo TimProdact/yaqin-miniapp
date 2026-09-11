@@ -52,7 +52,8 @@
   --yaqin-row-h: 72px;
   --yaqin-nav-h: 76px;
   --yaqin-nav-pill-h: 64px;
-  --yaqin-nav-float-inset: max(10px, calc(var(--yaqin-safe-bottom, 0px) + 8px));
+  /* Близко к низу viewport: Telegram уже учитывает home indicator в высоте WebView */
+  --yaqin-nav-float-inset: max(4px, env(safe-area-inset-bottom, 0px));
   --yaqin-fab-size: 56px;
 
   /* Radius */
