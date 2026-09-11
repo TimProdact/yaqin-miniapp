@@ -11,22 +11,14 @@ alwaysApply: false
 ## Page / list header (`.chats-head`, `.me-top`, `.filters-head`, `.modal-head`, `.sheet-head`)
 
 - Sticky сверху, **бар без заливки** (`background: transparent`).
-- **Плавающие элементы** с фоном: title-pill слева, action-кнопки справа (круг / pill).
-- Между ними — прозрачно; контент **скроллится под** хедером (negative margin + clearance у первого sibling).
+- Title и action-кнопки — **без фона, blur и обводки** (plain text / plain icon).
+- Контент скроллится под хедером (negative margin + clearance у первого sibling).
 - Title: `--yaqin-fs-title` / 700 (вкладки) или `--yaqin-fs-modal` / 700 (модальные).
 - Горизонтальный padding = `--yaqin-gutter`.
 - Не дублировать «✕ Закрыть» в UI, если есть системный Telegram Close/Back.
-- Не делать сплошную sticky-полосу на всю ширину (кроме `.list-sticky-top` ниже).
+- Не делать сплошную sticky-полосу и не возвращать title-pill с `box-shadow`.
 
 Реализация: `layout.css` (float-head). Не возвращать `background: var(--yaqin-bg) !important` на эти классы в `style.css`.
-
-## List tabs chrome (`.list-sticky-top`)
-
-На вкладках Чаты / Группы / События: **title + поиск + фильтры** в одном sticky-блоке; скроллится только список под ним.
-
-- Обёртка `.list-sticky-top` вокруг `.chats-head` + search + pills / date-bar.
-- Фон блока: полупрозрачный `--yaqin-bg` + blur (чтобы контент не просвечивал сквозь фильтры).
-- Внутри обёртки `.chats-head` — `position: relative` (без повторного sticky / negative margin).
 
 ## Люди (discover)
 

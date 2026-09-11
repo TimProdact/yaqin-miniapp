@@ -22,7 +22,7 @@ body.profile-open .view {
 }
 
 .me-top {
-  /* floating pills — see layout.css */
+  /* sticky transparent — layout.css */
 }
 .me-top h1 {
   color: var(--yaqin-text);

@@ -140,12 +140,13 @@ body.full-screen .view {
   width: fit-content;
   max-width: min(72vw, 260px);
   margin: 0;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  padding: 0;
+  border-radius: 0;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
   font-size: var(--yaqin-fs-title);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -154,6 +155,7 @@ body.full-screen .view {
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
+  color: var(--yaqin-text);
 }
 .filters-head h1,
 .modal-head h1,
@@ -171,10 +173,10 @@ body.full-screen .view {
   height: 40px;
   border: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
   color: var(--yaqin-text);
   font-size: 22px;
   display: grid;
@@ -187,10 +189,10 @@ body.full-screen .view {
   padding: 0 12px;
   border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
   font-size: 15px;
   font-weight: 600;
   color: var(--yaqin-link);
@@ -244,36 +246,6 @@ body.full-screen .view {
 .ticket-checkout-page > .sheet-head + *,
 .ticket-page > .sheet-head + * {
   margin-top: var(--float-head-clearance, calc(var(--yaqin-header-h) + 10px)) !important;
-}
-
-/* List tabs: sticky chrome (title + search + filters), only the list scrolls */
-.list-sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 21;
-  margin: 0 calc(var(--yaqin-gutter) * -1);
-  padding: 6px var(--yaqin-gutter) 10px;
-  background: color-mix(in srgb, var(--yaqin-bg) 92%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-.list-sticky-top .chats-head {
-  position: relative;
-  top: auto;
-  margin: 0;
-  height: auto;
-  min-height: 40px;
-  padding: 0 0 8px;
-  pointer-events: none;
-  background: transparent !important;
-}
-.list-sticky-top .chats-head > * {
-  pointer-events: auto;
-}
-.chats-page > .list-sticky-top + *,
-.groups-tab-page > .list-sticky-top + *,
-.events-feed-page > .list-sticky-top + * {
-  margin-top: 0 !important;
 }
 
 /* Shared primary pill CTA */
