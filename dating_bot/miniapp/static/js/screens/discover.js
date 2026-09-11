@@ -168,6 +168,7 @@ export function personScreen(id) {
       <div class="person-hero" data-photos="${photos.length}">
         <img class="person-hero-photo" src="${esc(photos[0])}">
         ${hasTelegramBack() ? '' : '<button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>'}
+        ${waved && !matched ? '<span class="person-say-hi"><i class="ti ti-hand-stop"></i>Передаёт привет</span>' : ''}
         <div class="hero-dots">${photos.map((_, index) => `<span class="${index ? '' : 'on'}" data-index="${index}"></span>`).join('')}</div>
       </div>
 
@@ -176,7 +177,6 @@ export function personScreen(id) {
           <div class="person-head-copy">
             <h1>${esc(person.name)}</h1>
             <p class="person-meta">${person.age} • ${esc(person.city)}</p>
-            ${waved && !matched ? '<p class="person-wave-hint">Передаёт вам привет</p>' : ''}
           </div>
           <button class="hero-wave" type="button" id="personWave" aria-label="${matched ? 'Открыть чат' : waved ? 'Ответить приветом' : 'Передать привет'}">
             <i class="ti ti-hand-stop"></i>
