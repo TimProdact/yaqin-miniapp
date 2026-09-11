@@ -392,18 +392,20 @@ export function taneeshEventsScreen() {
 
     view.innerHTML = `
       <div class="events-feed-page">
-        <header class="chats-head">
-          <h1>События</h1>
-        </header>
+        <div class="list-sticky-pill">
+          <header class="chats-head">
+            <h1>События</h1>
+          </header>
 
-        <div class="events-date-bar">
-          <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
-            ${filters.map(([id, label]) => `
-              <button type="button" class="${dateFilter === id ? 'on' : ''}" data-date-filter="${id}">
-                ${id === 'pick' ? esc(pickLabel) : esc(label)}
-              </button>`).join('')}
+          <div class="events-date-bar">
+            <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
+              ${filters.map(([id, label]) => `
+                <button type="button" class="${dateFilter === id ? 'on' : ''}" data-date-filter="${id}">
+                  ${id === 'pick' ? esc(pickLabel) : esc(label)}
+                </button>`).join('')}
+            </div>
+            <input type="date" id="eventsPickDate" value="${esc(pickIso)}" hidden>
           </div>
-          <input type="date" id="eventsPickDate" value="${esc(pickIso)}" hidden>
         </div>
 
         <div class="events-feed">

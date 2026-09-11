@@ -39,10 +39,12 @@ function listTickets() {
 
 export function meTopHtml() {
   return `
-    <div class="me-top">
-      <h1>Профиль</h1>
-      <div>
-        <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+    <div class="list-sticky-pill list-sticky-pill--compact">
+      <div class="me-top">
+        <h1>Профиль</h1>
+        <div>
+          <button data-action="settings" aria-label="Настройки"><i class="ti ti-settings"></i></button>
+        </div>
       </div>
     </div>`;
 }

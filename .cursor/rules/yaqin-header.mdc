@@ -8,33 +8,34 @@ alwaysApply: false
 
 Контракт из `design/DESIGN-SYSTEM.md` + Telegram BackButton.
 
-## Page / list header (`.chats-head`, `.me-top`, `.filters-head`, `.modal-head`, `.sheet-head`)
+## List tabs chrome (`.list-sticky-pill`)
 
-- Sticky сверху, **бар без заливки** (`background: transparent`).
-- Title и action-кнопки — **без фона, blur и обводки** (plain text / plain icon).
-- Контент скроллится под хедером (negative margin + clearance у первого sibling).
-- Title: `--yaqin-fs-title` / 700 (вкладки) или `--yaqin-fs-modal` / 700 (модальные).
-- Горизонтальный padding = `--yaqin-gutter`.
-- Не дублировать «✕ Закрыть» в UI, если есть системный Telegram Close/Back.
-- Не делать сплошную sticky-полосу и не возвращать title-pill с `box-shadow`.
+На вкладках Чаты / Группы / События / Профиль:
 
-Реализация: `layout.css` (float-head). Не возвращать `background: var(--yaqin-bg) !important` на эти классы в `style.css`.
+- Title (+ поиск + фильтры) в **одном sticky-блоке** на всю ширину страницы.
+- Формат **pill**: `border-radius: var(--yaqin-radius-xl)`, полупрозрачный фон + `backdrop-filter: blur`.
+- Скроллится только список / контент под блоком.
+- Внутри title и icon-кнопки — plain (без отдельных pill-обводок).
+
+Реализация: обёртка `.list-sticky-pill` в markup + стили в `layout.css`.
+
+## Other page headers (`.filters-head`, `.modal-head`, `.sheet-head`)
+
+- Sticky / float-head по необходимости экрана.
+- Title и кнопки без лишнего фона, если не в `.list-sticky-pill`.
+- Не дублировать «✕ Закрыть» в UI при системном Telegram Back.
 
 ## Люди (discover)
 
-- Хедер через `#header` + `setDiscoverHeader(city)` (город + фильтры).
-- В `.view` — только `.swipe-stage` со snap по одной карточке (`scroll-snap-type: y mandatory`).
-- Не класть title «Люди» внутрь первой карточки и не fixed-кнопки поверх ленты.
+- Хедер через `#header` + `setDiscoverHeader(city)`.
+- В `.view` — `.swipe-stage` со snap по одной карточке.
 
 ## Conversation header (`.chat-top`)
 
-- Та же высота и gutter.
-- Layout: `[назад?] · peer (фото+имя+статус) слева (flex:1) · ⋯`.
-- В Telegram Mini App: системный `BackButton`, **без** пустого spacer слева — title сразу от gutter.
-- Вне Telegram: chevron `data-action` назад.
-- Имя собеседника / группы — tap → профиль / хаб группы.
-- Title **не** по центру экрана.
+- Sticky peer-строка: `[назад?] · peer слева · ⋯`.
+- В Telegram Mini App — системный `BackButton`, без пустого spacer.
+- Title не по центру экрана.
 
 ## Safe area
 
-- Отступ сверху даёт `.app { padding-top: var(--yaqin-safe-top) }` — хедер не дублирует safe-top, кроме sheet/hero full-bleed.
+- `.app { padding-top: var(--yaqin-safe-top) }` — page-head не дублирует safe-top, кроме sheet/hero full-bleed.

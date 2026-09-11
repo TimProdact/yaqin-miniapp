@@ -248,6 +248,66 @@ body.full-screen .view {
   margin-top: var(--float-head-clearance, calc(var(--yaqin-header-h) + 10px)) !important;
 }
 
+/* Sticky glass pill: title + search + filters, full page width */
+.list-sticky-pill {
+  position: sticky;
+  top: 0;
+  z-index: 21;
+  box-sizing: border-box;
+  width: calc(100% + (var(--yaqin-gutter) * 2));
+  margin: 0 calc(var(--yaqin-gutter) * -1) 12px;
+  padding: 12px 14px 14px;
+  border-radius: var(--yaqin-radius-xl);
+  background: color-mix(in srgb, var(--yaqin-surface-raised) 52%, transparent);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--yaqin-bg-subtle) 55%, transparent);
+}
+.list-sticky-pill--compact {
+  padding: 6px 10px;
+}
+.list-sticky-pill .chats-head,
+.list-sticky-pill .me-top {
+  position: relative;
+  top: auto;
+  z-index: auto;
+  margin: 0;
+  height: auto;
+  min-height: 40px;
+  padding: 0;
+  pointer-events: none;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.list-sticky-pill .chats-head > *,
+.list-sticky-pill .me-top > * {
+  pointer-events: auto;
+}
+.list-sticky-pill .chats-head {
+  margin-bottom: 10px;
+}
+.list-sticky-pill--compact .me-top,
+.list-sticky-pill--compact .chats-head {
+  margin-bottom: 0;
+}
+.list-sticky-pill .search-box,
+.list-sticky-pill .chats-search,
+.list-sticky-pill .groups-search {
+  margin: 0 0 10px !important;
+}
+.list-sticky-pill .chats-pills,
+.list-sticky-pill .events-date-bar {
+  margin: 0;
+}
+.chats-page > .list-sticky-pill + *,
+.groups-tab-page > .list-sticky-pill + *,
+.events-feed-page > .list-sticky-pill + *,
+.me-overview-page > .list-sticky-pill + *,
+.me-page > .list-sticky-pill + * {
+  margin-top: 0 !important;
+}
+
 /* Shared primary pill CTA */
 .empty-primary,
 .filters-save,

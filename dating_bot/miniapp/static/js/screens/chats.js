@@ -113,20 +113,22 @@ export function chatsScreen() {
 
     view.innerHTML = `
       <div class="chats-page">
-        <header class="chats-head">
-          <h1>Чаты</h1>
-        </header>
+        <div class="list-sticky-pill">
+          <header class="chats-head">
+            <h1>Чаты</h1>
+          </header>
 
-        <div class="search-box chats-search">
-          <i class="ti ti-search"></i>
-          <input id="chatListSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
-          ${term ? '<button type="button" id="clearChatSearch" aria-label="Очистить">×</button>' : ''}
-        </div>
+          <div class="search-box chats-search">
+            <i class="ti ti-search"></i>
+            <input id="chatListSearch" type="search" placeholder="Поиск" value="${esc(query)}" enterkeyhint="search">
+            ${term ? '<button type="button" id="clearChatSearch" aria-label="Очистить">×</button>' : ''}
+          </div>
 
-        <div class="chats-pills" role="tablist">
-          ${pills.map(([id, label]) => `
-            <button type="button" class="${segment === id ? 'on' : ''}" data-segment="${id}">${label}</button>
-          `).join('')}
+          <div class="chats-pills" role="tablist">
+            ${pills.map(([id, label]) => `
+              <button type="button" class="${segment === id ? 'on' : ''}" data-segment="${id}">${label}</button>
+            `).join('')}
+          </div>
         </div>
 
         ${rows.length ? `
