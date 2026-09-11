@@ -497,17 +497,33 @@ body[data-route='me'] .view {
   flex-direction: column;
   align-items: stretch;
 }
-/* Сетка афиши */
+/* Сетка афиши: ровные ряды, без «дыр» и наложений */
 .events-feed-page > .events-feed {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   align-content: start;
+  align-items: stretch;
+  grid-auto-flow: row;
+  grid-auto-rows: auto;
   height: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 .events-feed-page .taneesh-event-card {
-  height: auto;
-  align-self: start;
+  height: 100%;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
 }
 .events-feed-page .event-photo {
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  width: 100%;
+  aspect-ratio: 4 / 5;
 }
 
 /* Shared primary pill CTA */
