@@ -87,6 +87,8 @@ body.sheet-view .view {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.person-head-row:has(.hero-wave) {
   min-height: 72px;
 }
 .person-head-copy {
@@ -96,6 +98,8 @@ body.sheet-view .view {
   flex-direction: column;
   justify-content: center;
   gap: 2px;
+}
+.person-head-row:has(.hero-wave) .person-head-copy {
   max-height: 72px;
 }
 .person-head h1 {
