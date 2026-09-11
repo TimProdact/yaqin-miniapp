@@ -66,18 +66,20 @@ html, body {
 }
 
 .nav {
-  bottom: 0 !important;
+  bottom: var(--yaqin-nav-float-inset) !important;
   z-index: 30 !important;
-  background: var(--yaqin-surface) !important;
-  border-top: 1px solid var(--yaqin-sep) !important;
-  padding-bottom: max(12px, var(--yaqin-safe-bottom)) !important;
+  background: transparent !important;
+  border-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
-body:not(.full-screen) .view { padding-bottom: calc(var(--yaqin-nav-h) + 20px); }
+body:not(.full-screen) .view {
+  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 20px);
+}
 body.profile-open .view {
   height: auto !important;
-  /* место под таббар — иначе последний блок не доскролливается */
-  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 24px) !important;
+  /* место под плавающий таббар */
+  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 24px) !important;
 }
 body.full-screen .app-header { display: none; }
 body.full-screen .view {
@@ -345,7 +347,7 @@ body[data-route='me'] .view {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   margin-top: 0 !important;
-  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 28px);
+  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 28px);
 }
 .me-overview-page > .page-scroll {
   display: flex;
@@ -383,7 +385,7 @@ body[data-route='me'] .view {
 }
 
 .compose {
-  bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 12px) !important;
+  bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 12px) !important;
   width: var(--yaqin-fab-size) !important;
   height: var(--yaqin-fab-size) !important;
   font-size: 22px !important;

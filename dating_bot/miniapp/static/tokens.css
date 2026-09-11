@@ -51,6 +51,8 @@
   --yaqin-header-h: 52px;
   --yaqin-row-h: 72px;
   --yaqin-nav-h: 76px;
+  --yaqin-nav-pill-h: 64px;
+  --yaqin-nav-float-inset: max(10px, calc(var(--yaqin-safe-bottom, 0px) + 8px));
   --yaqin-fab-size: 56px;
 
   /* Radius */

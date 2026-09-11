@@ -1,11 +1,17 @@
 /* Чаты — личные и группы. */
 
-.chats-page,
+.chats-page {
+  min-height: 100%;
+  background: var(--yaqin-bg);
+  padding: var(--yaqin-space-2) var(--yaqin-gutter) 0;
+  position: relative;
+  color: var(--yaqin-text);
+}
 .search-page,
 .settings-page {
   min-height: 100%;
   background: var(--yaqin-bg);
-  padding: var(--yaqin-space-2) var(--yaqin-gutter) 0;
+  padding: var(--yaqin-space-2) var(--yaqin-gutter) 120px;
   position: relative;
   color: var(--yaqin-text);
 }
@@ -148,7 +154,7 @@
 .compose {
   position: fixed;
   right: max(var(--yaqin-gutter), calc(50% - 221px + var(--yaqin-gutter)));
-  bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 12px);
+  bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 12px);
   width: var(--yaqin-fab-size);
   height: var(--yaqin-fab-size);
   border: 0;

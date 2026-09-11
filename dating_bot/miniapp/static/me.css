@@ -11,7 +11,7 @@ body.profile-open .view {
   padding: 0 !important;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--yaqin-nav-h) + var(--yaqin-safe-bottom, 0px) + 24px) !important;
+  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 24px) !important;
 }
 
 .me-page {
