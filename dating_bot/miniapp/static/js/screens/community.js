@@ -321,12 +321,13 @@ export function createGroupScreen(editId = null) {
           <span></span>
         </header>
 
-        <div class="create-cover ${cover ? 'has-photo' : ''}">
-          ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ФОТО</span>`}
-          <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+        <div class="create-identity-panel">
+          <div class="create-cover ${cover ? 'has-photo' : ''}">
+            ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ФОТО</span>`}
+            <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+          </div>
+          <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}" maxlength="60" autocomplete="off">
         </div>
-
-        <input class="create-name" id="groupName" placeholder="Название группы..." value="${esc(name)}" maxlength="60" autocomplete="off">
 
         <div class="create-entry-panel">
           <h3 class="settings-label">Тип группы</h3>
@@ -1078,13 +1079,14 @@ export function createEventScreen(editId = null) {
           <span></span>
         </header>
 
-        <div class="create-cover create-event-cover ${cover ? 'has-photo' : ''}">
-          ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ОБЛОЖКА</span>`}
-          <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
-          <input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp" hidden>
+        <div class="create-identity-panel">
+          <div class="create-cover create-event-cover ${cover ? 'has-photo' : ''}">
+            ${cover ? `<img src="${esc(cover)}" alt="">` : `<i class="ti ti-camera"></i><span>ОБЛОЖКА</span>`}
+            <button type="button" class="cover-edit" id="setCover" aria-label="Изменить"><i class="ti ti-pencil"></i></button>
+            <input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp" hidden>
+          </div>
+          <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}" maxlength="80" autocomplete="off">
         </div>
-
-        <input class="create-name" id="eventTitle" placeholder="Название события" value="${esc(title)}" maxlength="80" autocomplete="off">
 
         <div class="create-field-rows">
           <button class="settings-row" type="button" data-sheet="place">
