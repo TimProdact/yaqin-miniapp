@@ -337,7 +337,7 @@ body.profile-open .view {
   font-size: 15px;
   font-weight: 700;
 }
-.me-mini-row span {
+.me-mini-row > div span {
   display: block;
   margin-top: 2px;
   font-size: 12px;
@@ -345,6 +345,18 @@ body.profile-open .view {
 }
 .me-mini-row > i {
   color: var(--yaqin-text-tertiary);
+}
+.me-mini-row .settings-icon,
+.me-mini-row .host-action-icon {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+.me-mini-row .settings-icon .ti,
+.me-mini-row .host-action-icon .ti {
+  display: block;
+  line-height: 1;
+  margin: 0;
 }
 .me-util-block {
   margin: 0;
