@@ -843,28 +843,32 @@ export async function editScreen(_id, token) {
           </div>
 
           <h3 class="settings-label">Основное</h3>
-          <div class="edit-basic-list">
-            ${[
-              ['work', 'Работа', draft.work || 'Добавить'],
-              ['languages', 'Языки', draft.languages.length ? draft.languages.join(', ') : 'Добавить']
-            ].map(([key, label, value]) => `
-              <button type="button" class="edit-basic-row" data-field="${key}">
-                <span>${label}</span>
-                <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
-              </button>`).join('')}
+          <div class="me-box edit-basic-box">
+            <div class="edit-basic-list">
+              ${[
+                ['work', 'Работа', draft.work || 'Добавить'],
+                ['languages', 'Языки', draft.languages.length ? draft.languages.join(', ') : 'Добавить']
+              ].map(([key, label, value]) => `
+                <button type="button" class="edit-basic-row" data-field="${key}">
+                  <span>${label}</span>
+                  <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
+                </button>`).join('')}
+            </div>
           </div>
 
           <h3 class="settings-label">Ссылки <small style="font-weight:500;opacity:.55">только в Yaqin</small></h3>
-          <div class="edit-basic-list">
-            ${[
-              ['instagram', 'Instagram', draft.instagram ? `@${draft.instagram}` : 'Добавить'],
-              ['tiktok', 'TikTok', draft.tiktok ? `@${draft.tiktok}` : 'Добавить'],
-              ['website', 'Сайт', draft.website || 'Добавить']
-            ].map(([key, label, value]) => `
-              <button type="button" class="edit-basic-row" data-field="${key}">
-                <span>${label}</span>
-                <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
-              </button>`).join('')}
+          <div class="me-box edit-basic-box">
+            <div class="edit-basic-list">
+              ${[
+                ['instagram', 'Instagram', draft.instagram ? `@${draft.instagram}` : 'Добавить'],
+                ['tiktok', 'TikTok', draft.tiktok ? `@${draft.tiktok}` : 'Добавить'],
+                ['website', 'Сайт', draft.website || 'Добавить']
+              ].map(([key, label, value]) => `
+                <button type="button" class="edit-basic-row" data-field="${key}">
+                  <span>${label}</span>
+                  <b class="${value === 'Добавить' ? 'muted' : ''}">${esc(value)} <i class="ti ti-plus"></i></b>
+                </button>`).join('')}
+            </div>
           </div>
         </section>
 

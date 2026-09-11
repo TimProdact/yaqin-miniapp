@@ -1189,22 +1189,55 @@ body[data-route='edit-photos'] .view {
 .edit-groups span { font-size: 13px; font-weight: 600; }
 .edit-basic-list { display: grid; gap: 0; }
 .edit-basic-list.padded { padding: 0 4px; }
+.edit-basic-box {
+  padding: 0;
+  overflow: hidden;
+}
+.edit-basic-box .edit-basic-list {
+  margin: 0;
+}
 .edit-basic-row {
   width: 100%;
   border: 0;
   border-bottom: 1px solid var(--yaqin-sep-soft);
-  background: var(--yaqin-bg);
-  padding: 14px 0;
+  background: transparent;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   text-align: left;
   font: inherit;
+  color: var(--yaqin-text);
+  box-sizing: border-box;
+}
+.edit-basic-box .edit-basic-row:last-child {
+  border-bottom: 0;
 }
 .edit-basic-row.static { cursor: default; }
-.edit-basic-row span { color: var(--yaqin-text-secondary); }
-.edit-basic-row b { font-size: 14px; display: inline-flex; align-items: center; gap: 4px; }
+.edit-basic-row span {
+  color: var(--yaqin-text);
+  font-size: 15px;
+  font-weight: 500;
+  flex: 0 1 auto;
+}
+.edit-basic-row b {
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--yaqin-text);
+  text-align: right;
+  min-width: 0;
+}
 .edit-basic-row b.muted { color: var(--yaqin-text-tertiary); font-weight: 600; }
+.edit-card > .settings-label {
+  margin: 22px 4px 10px;
+}
+.edit-card > .settings-label:first-of-type {
+  margin-top: 18px;
+}
 .edit-sheet-scrim {
   position: fixed;
   inset: 0;
