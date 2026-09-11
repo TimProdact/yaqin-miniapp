@@ -1138,19 +1138,12 @@ export function createEventScreen(editId = null) {
   }
   let cover = isEdit ? (existing.photo || null) : null;
   let coverIndex = 0;
-  let ticketMode = isEdit
-    ? (existing.ticketMode === 'door' || existing.ticketMode === 'paid'
-      || existing.paymentMode === 'at_door' || existing.paymentMode === 'door'
-      || existing.paymentMode === 'online'
-      || existing.isFree === false
-      ? 'door'
-      : 'free')
-    : 'free';
-  if (isEdit && existing.isFree !== false && existing.ticketMode !== 'door' && existing.ticketMode !== 'paid'
-    && existing.paymentMode !== 'at_door' && existing.paymentMode !== 'door' && existing.paymentMode !== 'online') {
-    ticketMode = 'free';
+  let ticketMode = 'free';
+  if (isEdit) {
+    const raw = existing.ticketMode
+      || (existing.isFree === false ? 'door' : 'free');
+    ticketMode = raw === 'free' ? 'free' : 'door';
   }
-  if (ticketMode === 'paid') ticketMode = 'door';
   let freeEntryMode = isEdit
     ? (existing.freeEntryMode === 'register' ? 'register' : 'open')
     : 'open';
