@@ -497,14 +497,13 @@ body[data-route='me'] .view {
   flex-direction: column;
   align-items: stretch;
 }
-/* Сетка афиши: 2 колонки, высота карточки по контенту (не обрезать title) */
+/* Афиша: flex-wrap 2 колонки (без CSS Grid — иначе наслоение в WebView) */
 .events-feed-page > .events-feed {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  align-content: start;
-  align-items: start;
-  grid-auto-flow: row;
+  align-content: flex-start;
+  align-items: flex-start;
   height: auto;
   width: 100%;
   max-width: 100%;
@@ -513,16 +512,33 @@ body[data-route='me'] .view {
   box-sizing: border-box;
 }
 .events-feed-page .taneesh-event-card {
+  flex: 0 0 calc((100% - 12px) / 2);
+  width: calc((100% - 12px) / 2);
+  max-width: calc((100% - 12px) / 2);
   height: auto;
   min-width: 0;
-  align-self: start;
+  align-self: flex-start;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  contain: layout;
+  box-sizing: border-box;
 }
 .events-feed-page .event-photo {
-  flex: 0 0 auto;
+  flex: none;
   width: 100%;
   aspect-ratio: 4 / 5;
+  position: relative;
+  overflow: hidden;
+}
+.events-feed-page .event-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Shared primary pill CTA */
