@@ -210,7 +210,6 @@ export async function meScreen(_id, token) {
             <i class="ti ti-pencil"></i>
           </button>
         </div>
-        ${profile.bio ? `<p class="me-overview-bio">${esc(profile.bio)}</p>` : ''}
       </section>
 
       <section class="me-hub-block" aria-label="Разделы профиля">
