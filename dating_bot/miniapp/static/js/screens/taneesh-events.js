@@ -607,7 +607,7 @@ function renderHostEventDashboard(event) {
                 <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
                 ${event.address ? `<li><i class="ti ti-building"></i>${esc(event.address)}</li>` : ''}
                 ${capacity ? `<li><i class="ti ti-users"></i>до ${capacity} мест · занято ${soldCount}</li>` : ''}
-                <li><i class="ti ti-ticket"></i>${esc(priceLabel(event))}</li>
+                <li class="meta-price"><i class="ti ti-ticket"></i>${esc(priceLabel(event))}</li>
               </ul>
             </section>
 
@@ -793,7 +793,7 @@ function renderGuestEventDetail(event) {
             <li><i class="ti ti-map-pin"></i>${esc(event.place)}</li>
             ${event.address ? `<li><i class="ti ti-building"></i>${esc(event.address)}</li>` : ''}
             ${event.capacity ? `<li><i class="ti ti-users"></i>до ${esc(String(event.capacity))} мест</li>` : ''}
-            <li><i class="ti ti-ticket"></i>${esc(priceLabel(event))}</li>
+            <li class="meta-price"><i class="ti ti-ticket"></i>${esc(priceLabel(event))}</li>
             ${event.host ? `<li><i class="ti ti-user"></i>Организатор · ${esc(event.host)}</li>` : ''}
           </ul>
           ${Array.isArray(event.interests) && event.interests.length ? `

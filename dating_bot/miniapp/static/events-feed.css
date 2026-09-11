@@ -575,6 +575,11 @@
   color: var(--yaqin-text);
   margin-top: 1px;
 }
+.taneesh-detail-meta li.meta-price,
+.taneesh-detail-meta li.meta-price i {
+  color: var(--yaqin-yellow);
+  font-weight: 700;
+}
 .taneesh-detail-body h3 {
   margin: 0 0 12px;
   font-size: var(--yaqin-fs-secondary);
