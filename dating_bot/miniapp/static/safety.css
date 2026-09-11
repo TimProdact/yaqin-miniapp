@@ -254,14 +254,19 @@ body.safety-open .person-view {
   width: 100%;
   min-height: 140px;
   margin-top: 16px;
-  border: 0;
+  border: 1.5px solid var(--yaqin-sep);
   border-radius: 16px;
-  background: var(--yaqin-bg-subtle);
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
   padding: 16px;
   resize: none;
   font: inherit;
   font-size: 15px;
   outline: 0;
+  box-sizing: border-box;
+}
+.report-flow textarea:focus {
+  border-color: color-mix(in srgb, var(--yaqin-text) 45%, transparent);
 }
 .report-count {
   margin: 8px 4px 0;

@@ -98,13 +98,19 @@ body[data-route='edit-event'] .view {
   display: block;
   width: calc(100% - 2 * var(--yaqin-gutter));
   margin: 0 auto 8px;
-  border: 0;
+  border: 1.5px solid var(--yaqin-sep);
+  border-radius: 14px;
   outline: 0;
   text-align: center;
   font-size: 22px;
   font-weight: 600;
   color: var(--yaqin-text);
-  background: none;
+  background: var(--yaqin-bg);
+  padding: 12px 14px;
+  box-sizing: border-box;
+}
+.create-name:focus {
+  border-color: color-mix(in srgb, var(--yaqin-text) 45%, transparent);
 }
 .create-name.smaller {
   font-size: 18px;
@@ -258,9 +264,9 @@ body[data-route='edit-event'] .view {
   min-height: 140px;
   margin: 0 0 12px;
   padding: 14px;
-  border: 0;
+  border: 1.5px solid var(--yaqin-sep);
   border-radius: 14px;
-  background: var(--yaqin-bg-subtle);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text);
   font: inherit;
   font-size: 16px;
@@ -268,6 +274,9 @@ body[data-route='edit-event'] .view {
   resize: vertical;
   outline: 0;
   box-sizing: border-box;
+}
+.create-sheet-textarea:focus {
+  border-color: color-mix(in srgb, var(--yaqin-text) 45%, transparent);
 }
 .create-when-custom {
   display: grid;
@@ -289,9 +298,9 @@ body[data-route='edit-event'] .view {
 .create-when-custom input {
   width: 100%;
   min-height: 48px;
-  border: 0;
+  border: 1.5px solid var(--yaqin-sep);
   border-radius: 14px;
-  background: var(--yaqin-bg-subtle);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text);
   font: inherit;
   font-size: 16px;
@@ -300,6 +309,9 @@ body[data-route='edit-event'] .view {
   outline: 0;
   box-sizing: border-box;
   color-scheme: dark light;
+}
+.create-when-custom input:focus {
+  border-color: color-mix(in srgb, var(--yaqin-text) 45%, transparent);
 }
 .create-when-quick {
   margin: 0 0 8px;

@@ -1357,10 +1357,14 @@ body[data-route='edit-photos'] .view {
   margin: 0 0 12px;
   padding: 0 12px;
   min-height: 44px;
+  border: 1.5px solid var(--yaqin-sep);
   border-radius: 14px;
-  background: var(--yaqin-bg-subtle);
+  background: var(--yaqin-bg);
   color: var(--yaqin-text-tertiary);
   flex-shrink: 0;
+}
+.edit-sheet-search:focus-within {
+  border-color: color-mix(in srgb, var(--yaqin-text) 45%, transparent);
 }
 .edit-sheet-search i {
   font-size: 18px;
