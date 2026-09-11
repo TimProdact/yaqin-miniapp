@@ -6,9 +6,11 @@ import { api, isLive } from './api.js';
 import {
   completeMatch,
   registerOutgoingWave,
+  clearOutgoingWave,
   showWaveBanner,
   findPersonById,
   isMatched,
+  hasOutgoingWave,
   chatIndexForPerson
 } from './match.js';
 
@@ -39,10 +41,46 @@ export async function decide(action, id) {
       return;
     }
     registerOutgoingWave(targetId);
-    showWaveBanner('Привет отправлен — чат откроется, когда она ответит');
+    showWaveBanner('Вы передали привет');
     navigate('people');
   } catch {
     showError('Привет не отправился. Попробуйте ещё раз.');
+  }
+}
+
+/** Передать / снять привет, оставаясь на анкете. */
+export async function togglePersonWave(id) {
+  const targetId = Number(id);
+  if (!Number.isFinite(targetId)) return { ok: false };
+
+  if (isMatched(targetId)) {
+    const index = chatIndexForPerson(targetId);
+    if (index >= 0) navigate('chat', index);
+    else navigate('chats');
+    return { ok: true, matched: true };
+  }
+
+  if (hasOutgoingWave(targetId)) {
+    clearOutgoingWave(targetId);
+    showWaveBanner('Вы сняли привет');
+    return { ok: true, sent: false };
+  }
+
+  try {
+    const { mutual } = await sendLike(targetId);
+    if (mutual) {
+      const person = findPersonById(targetId);
+      if (person) completeMatch(person);
+      else registerOutgoingWave(targetId);
+      navigate('connected', targetId);
+      return { ok: true, matched: true };
+    }
+    registerOutgoingWave(targetId);
+    showWaveBanner('Вы передали привет');
+    return { ok: true, sent: true };
+  } catch {
+    showError('Привет не отправился. Попробуйте ещё раз.');
+    return { ok: false };
   }
 }
 

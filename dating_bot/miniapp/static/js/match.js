@@ -1,4 +1,4 @@
-import { getState, saveState, addToList } from './state.js';
+import { getState, saveState, addToList, removeFromList } from './state.js';
 import { people, chats as seedChats } from './data.js';
 
 const TEAM_SEED = [
@@ -94,6 +94,10 @@ export function registerOutgoingWave(personId) {
   addToList('liked', personId);
 }
 
+export function clearOutgoingWave(personId) {
+  removeFromList('liked', personId);
+}
+
 export function completeMatch(person) {
   registerOutgoingWave(person.id);
   ensureMatchChat(person);
@@ -148,8 +152,12 @@ export function showWaveBanner(text) {
   document.getElementById('wave-banner')?.remove();
   const banner = document.createElement('div');
   banner.id = 'wave-banner';
-  banner.className = 'block-banner';
+  banner.className = 'yaqin-toast';
   banner.textContent = text;
   document.body.appendChild(banner);
-  setTimeout(() => banner.remove(), 2200);
+  requestAnimationFrame(() => banner.classList.add('on'));
+  setTimeout(() => {
+    banner.classList.remove('on');
+    setTimeout(() => banner.remove(), 220);
+  }, 2200);
 }

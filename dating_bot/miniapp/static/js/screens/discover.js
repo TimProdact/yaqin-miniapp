@@ -3,11 +3,11 @@ import { isCurrentRender, navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { loadPeople, clearSkipped, saveFilters } from '../repository.js';
 import { enableSwipe } from '../swipe.js';
-import { decide } from '../actions.js';
+import { decide, togglePersonWave } from '../actions.js';
 import { people as demoPeople } from '../data.js';
 import { getState } from '../state.js';
 import { closeSafetyOverlay } from './safety.js';
-import { chatIndexForPerson, hasIncomingWave, isMatched } from '../match.js';
+import { chatIndexForPerson, hasIncomingWave, hasOutgoingWave, isMatched } from '../match.js';
 import {
   INTEREST_OPTIONS,
   interestsOf,
@@ -161,7 +161,15 @@ export function personScreen(id) {
   const basic = basicRowsFromProfile(person);
 
   const waved = hasIncomingWave(person.id);
+  const sent = hasOutgoingWave(person.id);
   const matched = isMatched(person.id);
+  const waveChip = matched
+    ? ''
+    : waved
+      ? '<span class="name-wave-chip in">привет</span>'
+      : sent
+        ? '<span class="name-wave-chip out">передали</span>'
+        : '';
 
   view.innerHTML = `
     <article class="person-view">
@@ -174,12 +182,14 @@ export function personScreen(id) {
       <section class="person-head">
         <div class="person-head-row">
           <div class="person-head-copy">
-            <h1>${esc(person.name)}</h1>
+            <div class="person-title-row">
+              <h1>${esc(person.name)}</h1>
+              ${waveChip}
+            </div>
             <p class="person-meta">${person.age} • ${esc(person.city)}</p>
-            ${waved && !matched ? '<p class="person-wave-hint">Передаёт вам привет</p>' : ''}
           </div>
-          <button class="hero-wave" type="button" id="personWave" aria-label="${matched ? 'Открыть чат' : waved ? 'Ответить приветом' : 'Передать привет'}">
-            <i class="ti ti-hand-stop"></i>
+          <button class="hero-wave ${sent && !matched ? 'on' : ''}" type="button" id="personWave" aria-label="${matched ? 'Открыть чат' : sent ? 'Снять привет' : waved ? 'Ответить приветом' : 'Передать привет'}" aria-pressed="${sent && !matched ? 'true' : 'false'}">
+            <i class="ti ${sent && !matched ? 'ti-check' : 'ti-hand-stop'}"></i>
           </button>
         </div>
         <p class="person-bio">${esc(person.bio)}</p>
@@ -208,7 +218,11 @@ export function personScreen(id) {
     </article>`;
 
   bindPersonHero(photos);
-  view.querySelector('#personWave')?.addEventListener('click', () => decide('like', person.id));
+  view.querySelector('#personWave')?.addEventListener('click', async () => {
+    const result = await togglePersonWave(person.id);
+    if (result?.matched) return;
+    if (result?.ok) personScreen(person.id);
+  });
 }
 
 function bindPersonHero(photos) {

@@ -45,3 +45,11 @@ export function addToList(key, id) {
   saveState(state);
   return state;
 }
+
+export function removeFromList(key, id) {
+  const state = getState();
+  const target = Number(id);
+  state[key] = (state[key] || []).filter(item => Number(item) !== target);
+  saveState(state);
+  return state;
+}
