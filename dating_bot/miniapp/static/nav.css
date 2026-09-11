@@ -76,9 +76,9 @@ html[data-theme='system'] .nav {
   place-items: center;
 }
 
-/* Место под плавающий pill + safe area — только на вкладках */
+/* Вкладки: view на всю высоту (включая зону под pill), inset — у внутреннего скролла */
 body.tab-shell:not(.full-screen) .view {
-  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 20px);
+  padding-bottom: 0;
 }
 
 /* Таббар только на главных вкладках; внутренние экраны — назад + sticky CTA */

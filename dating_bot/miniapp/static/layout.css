@@ -74,12 +74,12 @@ html, body {
 }
 
 body.tab-shell:not(.full-screen) .view {
-  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 20px);
+  /* скролл на всю высоту, включая зону под таббаром */
+  padding-bottom: 0;
 }
 body.profile-open .view {
   height: auto !important;
-  /* место под плавающий таббар */
-  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 24px) !important;
+  padding-bottom: 0 !important;
 }
 body.full-screen .app-header { display: none; }
 body.full-screen .view {
@@ -443,13 +443,25 @@ body[data-route='me'] .view {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   margin-top: 0 !important;
-  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 28px);
+  /* место под pill: контент скроллится за навигацией, в конце — полностью читаем */
+  padding-bottom: var(--yaqin-tab-scroll-pad);
 }
 .me-overview-page > .page-scroll {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding-top: 2px;
+  align-content: start;
+}
+/* Не сжимать блоки в flex-скролле — иначе overflow:hidden обрезает ряды без скролла */
+.me-overview-page > .page-scroll > *,
+.chats-page > .list-sticky-pill + * > *,
+.groups-tab-page > .list-sticky-pill + * > *,
+.events-feed-page > .list-sticky-pill + * > * {
+  flex-shrink: 0;
+}
+.me-overview-page > .page-scroll > * {
+  flex: 0 0 auto;
 }
 
 /* Сетка афиши не сжимать карточки внутри flex-скролла */

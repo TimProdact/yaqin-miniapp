@@ -11,14 +11,12 @@ body.profile-open .view {
   padding: 0 !important;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--yaqin-nav-pill-h) + var(--yaqin-nav-float-inset) + 24px) !important;
 }
 
 .me-page {
   min-height: 100%;
   background: var(--yaqin-bg);
   color: var(--yaqin-text);
-  padding-bottom: 28px;
 }
 
 .me-top {
