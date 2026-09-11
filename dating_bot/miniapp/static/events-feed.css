@@ -92,12 +92,36 @@
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--yaqin-bg-subtle);
+  position: relative;
 }
 .event-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+.event-photo-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  max-width: calc(100% - 16px);
+  margin: 0;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--yaqin-bg) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--yaqin-yellow);
+  font-size: 11px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.28);
 }
 
 .taneesh-event-card {
@@ -126,9 +150,9 @@
 .taneesh-event-copy {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
-  padding: 10px 10px 0;
+  padding: 8px 10px 0;
 }
 .taneesh-event-copy strong {
   font-size: 13px;
@@ -153,7 +177,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 8px 10px 10px;
+  padding: 6px 10px 10px;
   margin-top: auto;
 }
 

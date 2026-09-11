@@ -119,6 +119,14 @@ function priceLabel(event) {
   return money(event.price);
 }
 
+/** Короткий бейдж на обложке карточки. */
+function priceBadge(event) {
+  if (isOpenWalkIn(event)) return 'Бесплатно';
+  if (isFreeMode(event) && !isDoorMode(event)) return 'С записью';
+  if (isDoorMode(event)) return money(event.price) || 'На входе';
+  return money(event.price) || 'Билет';
+}
+
 function hardPassLabel(event) {
   if (ticketForEvent(event.id)) return 'Мой билет';
   if (isDoorMode(event)) return 'Оформить бронь';
@@ -341,21 +349,16 @@ function eventCardHtml(event) {
     : wantingForEvent(event.id);
   const preview = previewPeople.slice(0, 3);
   const count = previewPeople.length;
-  const source = event.source === 'yaqin'
-    ? (event.hostId === 'me' ? 'Ваше' : 'Yaqin')
-    : 'Афиша';
   return `
     <article class="taneesh-event-card">
       <button type="button" class="taneesh-event-hit" data-action="event" data-id="${esc(event.id)}">
         <div class="event-photo">
           <img src="${esc(event.photo)}" alt="">
+          <em class="event-photo-badge">${esc(priceBadge(event))}</em>
         </div>
         <div class="taneesh-event-copy">
-          <em class="taneesh-source ${event.source === 'yaqin' ? 'yaqin' : ''}">${source}</em>
           <strong>${esc(event.title)}</strong>
           <span>${esc(event.when)}</span>
-          <span>${esc(event.place)}</span>
-          <em class="taneesh-price">${esc(priceLabel(event))}</em>
         </div>
       </button>
       <div class="taneesh-event-foot">
