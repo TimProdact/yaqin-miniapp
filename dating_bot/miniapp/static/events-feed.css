@@ -947,6 +947,27 @@
   font-size: var(--yaqin-fs-caption);
   color: var(--yaqin-text-tertiary);
 }
+.ticket-hint.muted {
+  opacity: 0.85;
+  word-break: break-all;
+}
+.event-invite-link {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.35;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.event-invite-cta {
+  display: grid;
+  gap: 10px;
+}
+.event-invite-cta .taneesh-buy-block.ghost {
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+}
 .taneesh-chip.block {
   display: block;
   width: 100%;

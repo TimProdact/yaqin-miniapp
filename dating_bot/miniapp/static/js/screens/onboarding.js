@@ -2,8 +2,13 @@ import { defaultProfile, promptPhoto } from '../data.js';
 import { getState, saveState } from '../state.js';
 import { view, esc, clearHeader } from '../dom.js';
 import { navigate } from '../router.js';
+import { applyPendingDeepLink } from '../deep-link.js';
 
 /** Короткий онбординг воронки: имя → возраст → женщина → 2 фото → готово. */
+
+function enterAppAfterOnboarding() {
+  if (!applyPendingDeepLink(navigate)) navigate('people');
+}
 
 function draft() {
   const state = getState();
@@ -98,7 +103,7 @@ function renderWelcome() {
       onboarded: true,
       profile: { ...defaultProfile, ...(getState().profile || {}) }
     });
-    navigate('people');
+    enterAppAfterOnboarding();
   };
 }
 
@@ -265,7 +270,7 @@ function renderReady(data) {
       <p class="ob-sub">Можно знакомиться и ходить на события.</p>
       <button class="ob-next on" id="enterApp">Смотреть людей</button>
     </div>`;
-  view.querySelector('#enterApp').onclick = () => navigate('people');
+  view.querySelector('#enterApp').onclick = () => enterAppAfterOnboarding();
 }
 
 export function startOnboardingFlow() {

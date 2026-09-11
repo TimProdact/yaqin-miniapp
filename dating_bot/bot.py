@@ -343,6 +343,33 @@ async def require_verified(message: Message, state: FSMContext) -> bool:
     return False
 
 
+def event_open_keyboard(bot_username: str, start_param: str) -> InlineKeyboardMarkup:
+    """Кнопка сразу в Mini App с startapp (карточка события)."""
+    user = (bot_username or "").lstrip("@")
+    short = os.getenv("MINIAPP_SHORT_NAME", "").strip()
+    if short:
+        url = f"https://t.me/{user}/{short}?startapp={start_param}"
+    else:
+        url = f"https://t.me/{user}?startapp={start_param}"
+    rows = [[InlineKeyboardButton(text="Открыть событие", url=url)]]
+    if WEBAPP_URL:
+        rows.append([InlineKeyboardButton(text="Открыть Yaqin", web_app=WebAppInfo(url=WEBAPP_URL))])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def parse_start_payload(raw: str | None) -> tuple[str, str] | None:
+    """Вернёт (kind, value). kind: event | verify."""
+    payload = (raw or "").strip()
+    if not payload:
+        return None
+    lower = payload.lower()
+    if lower in {"verify", "verification"}:
+        return ("verify", payload)
+    if lower.startswith("e_") or lower.startswith("event_"):
+        return ("event", payload)
+    return None
+
+
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext, command: CommandObject) -> None:
     await ensure_user(message.from_user.id)
@@ -350,9 +377,18 @@ async def start(message: Message, state: FSMContext, command: CommandObject) -> 
         await message.answer("Бот предназначен только для пользователей 18+. Подтвердите возраст.", reply_markup=adult_keyboard())
         return
 
+    parsed = parse_start_payload(command.args if command else None)
     status = await verification_status(message.from_user.id)
+
     if status == "approved":
         await state.clear()
+        if parsed and parsed[0] == "event":
+            me = await message.bot.get_me()
+            await message.answer(
+                "Откройте событие в Yaqin — ссылка ведёт сразу на карточку.",
+                reply_markup=event_open_keyboard(me.username or "", parsed[1]),
+            )
+            return
         await message.answer(
             "Снова рады вас видеть. Откройте Yaqin и пройдите онбординг, если ещё не закончили.",
             reply_markup=app_keyboard(),
@@ -365,6 +401,11 @@ async def start(message: Message, state: FSMContext, command: CommandObject) -> 
         return
 
     # /start и /start verify — одна точка входа: проверка до онбординга
+    # Deep link на событие сохранится у клиента в Mini App после апрува (startapp).
+    if parsed and parsed[0] == "event":
+        await message.answer(
+            "Сначала пройдите проверку — после доступа откроем событие по ссылке из QR."
+        )
     await send_verification_gate(message, state)
 
 

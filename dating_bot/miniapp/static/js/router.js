@@ -35,7 +35,7 @@ const FULL_SCREEN_ROUTES = new Set([
   'edit-event',
   'group-chat'
 ]);
-const SHEET_ROUTES = new Set(['person', 'event', 'group', 'ticket']);
+const SHEET_ROUTES = new Set(['person', 'event', 'group', 'ticket', 'event-invite']);
 const PROFILE_OPEN_ROUTES = new Set(['me']);
 const TAB_ROUTES = new Set(['people', 'events', 'chats', 'groups', 'me']);
 

@@ -7,6 +7,11 @@ import { showCelebrate } from '../celebrate.js';
 import { isLive } from '../api.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
+import {
+  eventBotStartLink,
+  eventDeepLink,
+  qrImageUrl
+} from '../deep-link.js';
 
 /** Демо: купили билет / записались (жёсткое участие). */
 const DEMO_ATTENDING = {
@@ -109,15 +114,20 @@ function ensureHostTicket(event) {
 }
 
 function shareEvent(event) {
-  const text = `Приходи на «${event.title}» · ${event.when || ''} · ${event.place || ''} — Yaqin`;
+  const link = eventDeepLink(event.id);
+  const text = `Приходи на «${event.title}» · ${event.when || ''} · ${event.place || ''} — Yaqin\n${link}`;
   try {
     const tg = window.Telegram?.WebApp;
     if (tg?.openTelegramLink) {
-      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/yaqin_bot')}&text=${encodeURIComponent(text)}`);
+      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`Приходи на «${event.title}» в Yaqin`)}`);
       return;
     }
   } catch (_) { /* ignore */ }
-  navigator.share?.({ text }).catch(() => {});
+  navigator.share?.({ title: event.title, text, url: link }).catch(() => {
+    try {
+      navigator.clipboard?.writeText(link);
+    } catch (_) { /* ignore */ }
+  });
 }
 
 function isDoorMode(event) {
@@ -659,6 +669,14 @@ function renderHostEventDashboard(event) {
                     </div>
                     <i class="ti ti-chevron-right"></i>
                   </button>` : ''}
+                <button type="button" class="me-mini-row" data-action="event-invite" data-id="${esc(event.id)}">
+                  <span class="host-action-icon blue"><i class="ti ti-qrcode"></i></span>
+                  <div>
+                    <strong>QR события</strong>
+                    <span>Для афиши · открывает это событие в боте</span>
+                  </div>
+                  <i class="ti ti-chevron-right"></i>
+                </button>
                 <button type="button" class="me-mini-row" data-action="edit-event" data-id="${esc(event.id)}">
                   <span class="host-action-icon yellow"><i class="ti ti-pencil"></i></span>
                   <div>
@@ -1047,4 +1065,61 @@ export function ticketScreen(ticketId) {
         </button>
       </div>
     </article>`;
+}
+
+/** QR афиши: deep link на карточку события в боте (не пропуск на вход). */
+export function eventInviteScreen(eventId) {
+  clearHeader();
+  const event = findEvent(eventId);
+  if (!event) {
+    navigate('events');
+    return;
+  }
+
+  const link = eventDeepLink(event.id);
+  const fallback = eventBotStartLink(event.id);
+  const qrUrl = qrImageUrl(link, 280);
+  const metaLine = [event.when, event.place].filter(Boolean).join(' · ');
+
+  view.innerHTML = `
+    <article class="person-view event-detail-view ticket-pass-page event-invite-page">
+      <div class="person-hero ticket-pass-hero">
+        <img class="person-hero-photo" src="${esc(event.photo)}" alt="">
+        ${hasTelegramBack()
+          ? ''
+          : `<button class="hero-icon back" data-action="event" data-id="${esc(event.id)}" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
+      </div>
+
+      <section class="ticket-pass-body">
+        <em class="ticket-role guest">QR события</em>
+        <h1>${esc(event.title)}</h1>
+        ${metaLine ? `<p class="ticket-pass-meta">${esc(metaLine)}</p>` : ''}
+
+        <div class="ticket-qr-wrap">
+          <img src="${esc(qrUrl)}" alt="QR события" width="280" height="280">
+        </div>
+        <code class="ticket-code event-invite-link">${esc(link)}</code>
+        <p class="ticket-hint">Скан открывает это событие в Yaqin. Это не билет на вход — гость сначала попадает в бот.</p>
+        <p class="ticket-hint muted">Запасной вход: ${esc(fallback)}</p>
+      </section>
+
+      <div class="sticky-page-cta event-invite-cta">
+        <button type="button" class="taneesh-buy-block" id="shareEventInvite">Поделиться</button>
+        <button type="button" class="taneesh-buy-block ghost" id="copyEventInvite">Скопировать ссылку</button>
+      </div>
+    </article>`;
+
+  view.querySelector('#shareEventInvite')?.addEventListener('click', () => shareEvent(event));
+  view.querySelector('#copyEventInvite')?.addEventListener('click', async () => {
+    const btn = view.querySelector('#copyEventInvite');
+    try {
+      await navigator.clipboard.writeText(link);
+      if (btn) btn.textContent = 'Скопировано';
+    } catch (_) {
+      if (btn) btn.textContent = 'Не удалось скопировать';
+    }
+    setTimeout(() => {
+      if (btn) btn.textContent = 'Скопировать ссылку';
+    }, 1600);
+  });
 }

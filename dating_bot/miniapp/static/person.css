@@ -3,7 +3,8 @@
 body[data-route='person'],
 body[data-route='event'],
 body[data-route='group'],
-body[data-route='ticket'] {
+body[data-route='ticket'],
+body[data-route='event-invite'] {
   --person-gutter: 20px;
 }
 

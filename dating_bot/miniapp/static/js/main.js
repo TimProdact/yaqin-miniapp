@@ -11,7 +11,7 @@ import {
   showReportFlow,
   closeSafetyOverlay
 } from './screens/safety.js';
-import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen } from './screens/taneesh-events.js';
+import { taneeshEventsScreen, taneeshEventDetailScreen, ticketCheckoutScreen, ticketScreen, eventInviteScreen } from './screens/taneesh-events.js';
 import { chatsScreen, chatScreen, searchChatsScreen, newDmScreen, showMessageMenu, closeMessageMenu } from './screens/chats.js';
 import { createGroupScreen, createEventScreen, groupChatScreen, groupHubScreen, groupsScreen } from './screens/community.js';
 import { verifyScreen } from './screens/verify.js';
@@ -40,6 +40,11 @@ import {
 } from './screens/me.js';
 import { onboardingScreen } from './screens/onboarding.js';
 import { getState } from './state.js';
+import {
+  applyPendingDeepLink,
+  readLaunchDeepLink,
+  stashPendingDeepLink
+} from './deep-link.js';
 
 const telegram = window.Telegram?.WebApp;
 
@@ -133,7 +138,8 @@ registerScreens({
   edit: editScreen,
   basic: basicInfoScreen,
   onboarding: onboardingScreen,
-  verify: verifyScreen
+  verify: verifyScreen,
+  'event-invite': eventInviteScreen
 });
 
 function parseRouteId(id) {
@@ -218,6 +224,11 @@ document.querySelectorAll('.nav button').forEach(button => {
 
 render();
 
+const launchLink = readLaunchDeepLink();
+if (launchLink) stashPendingDeepLink(launchLink);
+
 if (!getState().onboarded) {
   navigate('onboarding');
+} else {
+  applyPendingDeepLink(navigate);
 }
