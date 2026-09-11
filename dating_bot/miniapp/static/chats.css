@@ -247,14 +247,14 @@
 }
 .chat-top {
   height: auto;
-  min-height: calc(var(--yaqin-safe-top) + var(--yaqin-header-h));
+  min-height: var(--yaqin-header-h);
   flex-shrink: 0;
   box-sizing: border-box;
   border-bottom: 1px solid var(--yaqin-sep-soft);
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: var(--yaqin-safe-top) var(--yaqin-gutter) 0;
+  padding: 0 var(--yaqin-gutter);
   background: color-mix(in srgb, var(--yaqin-bg) 72%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -409,23 +409,21 @@
   align-self: flex-start;
 }
 .chat-bubble .chat-avatar {
-  width: 36px;
-  height: 36px;
-  font-size: 16px;
-  flex: 0 0 36px;
+  display: none;
+}
+.bubble-name {
+  margin: 0 0 4px;
+  padding: 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yaqin-link);
+  line-height: 1.2;
+}
+.chat-bubble.mine .bubble-name {
+  display: none;
 }
 .bubble-head {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  margin-bottom: 4px;
-}
-.bubble-head b {
-  font-size: 15px;
-}
-.bubble-head time {
-  font-size: 13px;
-  color: var(--yaqin-text-tertiary);
+  display: none;
 }
 .chat-bubble p {
   margin: 0;
@@ -1428,10 +1426,14 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   font-size: 20px;
   backdrop-filter: blur(8px);
 }
-.group-hub-cover {
+/* Legacy cover (не person-hero): оставляем компактный вариант */
+.group-hub-cover:not(.person-hero) {
   width: 100%;
   max-height: min(62dvh, 480px);
   border-radius: 0;
+}
+.person-hero.group-hub-cover {
+  max-height: none;
 }
 .group-hub-body {
   margin-top: -28px;
@@ -1450,6 +1452,12 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   text-transform: uppercase;
   color: var(--yaqin-text-tertiary);
   margin-bottom: 6px;
+}
+.group-guest-page .people-going-wrap {
+  margin: 0 var(--person-gutter, 20px) 12px;
+}
+.group-guest-page {
+  padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
 }
 .group-hub-body h1 {
   margin: 0 0 8px;

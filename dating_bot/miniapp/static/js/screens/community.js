@@ -635,10 +635,10 @@ export function groupHubScreen(id) {
 
     if (isOwner) {
       view.innerHTML = `
-        <article class="person-view host-group-page">
-          <div class="person-hero event-detail-hero group-hub-cover">
+        <article class="person-view event-detail-view host-group-page">
+          <div class="person-hero event-detail-hero">
             <img class="person-hero-photo" src="${esc(group.photo)}" alt="">
-            ${hasTelegramBack() ? '' : `<button class="hero-icon back" data-action="me" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
+            ${hasTelegramBack() ? '' : `<button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
           </div>
 
           <section class="person-head">
@@ -742,29 +742,30 @@ export function groupHubScreen(id) {
         </article>`;
     } else {
       view.innerHTML = `
-        <div class="group-hub-page">
-          <header class="group-hub-top">
-            ${backControlHtml('groups')}
-          </header>
-
-          <div class="group-hub-cover event-photo">
-            <img src="${esc(group.photo)}" alt="">
+        <article class="person-view event-detail-view group-guest-page">
+          <div class="person-hero event-detail-hero">
+            <img class="person-hero-photo" src="${esc(group.photo)}" alt="">
+            ${hasTelegramBack()
+              ? ''
+              : `<button class="hero-icon back" data-action="back" aria-label="Назад"><i class="ti ti-chevron-left"></i></button>`}
           </div>
 
-          <section class="group-hub-body">
-            <em class="group-hub-city">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'}</em>
-            <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
-            <p class="group-hub-about">${esc(group.about || 'Группа в Yaqin')}</p>
-            <p class="group-hub-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
-
-            <div class="people-going-wrap">
-              ${peopleGoingBlockHtml(members, {
-                key: 'group-members',
-                title: 'Участницы',
-                empty: 'Пока никого нет'
-              })}
+          <section class="person-head">
+            <div class="person-head-copy">
+              <em class="group-hub-city">${esc(group.city || 'Ташкент')} · ${open ? 'открытая' : 'закрытая'}</em>
+              <h1>${esc(group.title)}${open ? '' : ' <i class="ti ti-lock"></i>'}</h1>
+              <p class="person-meta">${memberCount} участниц${group.online ? ` · ${group.online} онлайн` : ''}</p>
             </div>
+            <p class="person-bio">${esc(group.about || 'Группа в Yaqin')}</p>
           </section>
+
+          <div class="people-going-wrap">
+            ${peopleGoingBlockHtml(members, {
+              key: 'group-members',
+              title: 'Участницы',
+              empty: 'Пока никого нет'
+            })}
+          </div>
 
           <div class="sticky-page-cta group-hub-cta ${member ? 'two' : 'one'}">
             ${member
@@ -794,7 +795,7 @@ export function groupHubScreen(id) {
                 <button type="button" class="edit-sheet-done" id="sendJoinRequest" ${joinDraft.trim().length >= 3 ? '' : 'disabled'}>Отправить</button>
               </div>
             </div>` : ''}
-        </div>`;
+        </article>`;
     }
 
     document.body.classList.toggle('edit-sheet-open', joinSheet || Boolean(viewRequestId));
@@ -951,18 +952,20 @@ export function groupChatScreen(id) {
         </header>
 
         <div class="chat-thread">
-          ${messages.map(message => `
-            <div class="chat-bubble ${message.from === 'me' ? 'mine' : ''}">
+          ${messages.map((message, index) => {
+            const mine = message.from === 'me';
+            const prev = messages[index - 1];
+            const showName = !mine && (!prev || prev.from === 'me' || prev.name !== message.name);
+            return `
+            <div class="chat-bubble ${mine ? 'mine' : ''}${showName ? ' with-name' : ''}">
               <div class="bubble-body">
-                <div class="bubble-head">
-                  <b>${esc(message.from === 'me' ? 'Вы' : (message.name || 'Участница'))}</b>
-                  <time>${esc(message.time || '')}</time>
-                </div>
+                ${showName ? `<div class="bubble-name">${esc(message.name || 'Участница')}</div>` : ''}
                 ${message.text ? `<p>${esc(message.text)}</p>` : ''}
                 ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
                 ${message.share ? shareBubbleHtml(message.share) : ''}
               </div>
-            </div>`).join('')}
+            </div>`;
+          }).join('')}
         </div>
 
         ${composerShellHtml({

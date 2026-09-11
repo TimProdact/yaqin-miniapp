@@ -357,16 +357,15 @@ export function chatScreen(id) {
     openFile: Boolean(ui.attachOpenFile)
   };
 
-  const renderMessage = message => {
+  const renderMessage = (message, index, list) => {
     const mine = message.from === 'me';
+    const prev = list[index - 1];
+    // В ЛС имя уже в chat-top; подпись только в командном чате при смене автора
+    const showName = !mine && !chat.personId && (!prev || prev.from === 'me' || prev.name !== message.name);
     return `
-    <div class="chat-bubble ${mine ? 'mine' : ''}">
-      ${mine ? '' : avatar(chat.photo, chat.team)}
+    <div class="chat-bubble ${mine ? 'mine' : ''}${showName ? ' with-name' : ''}">
       <div class="bubble-body">
-        <div class="bubble-head">
-          <b>${esc(mine ? 'Вы' : message.name)}</b>
-          <time>${esc(message.time)}</time>
-        </div>
+        ${showName ? `<div class="bubble-name">${esc(message.name || chat.name)}</div>` : ''}
         ${message.replyTo ? `<div class="bubble-reply"><small>В ответ</small><span>${esc(message.replyTo)}</span></div>` : ''}
         ${message.text ? `<p>${message.text.split('\n').map(line => esc(line)).join('<br>')}</p>` : ''}
         ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
@@ -387,7 +386,6 @@ export function chatScreen(id) {
               <span class="audio-track"></span>
               <small>${esc(message.audio.duration || '0:00')}</small>
             </div>
-            <time>${esc(message.time)}</time>
           </div>` : ''}
         ${message.reaction ? `
           <div class="bubble-reactions">
@@ -436,14 +434,12 @@ export function chatScreen(id) {
         </div>` : ''}
 
       <main class="chat-thread ${empty ? 'start' : ''}">
-        ${chat.team ? '' : `
+        ${!chat.team && empty ? `
           <section class="chat-intro me-panel">
             <img class="chat-photo" src="${esc(chat.photo || people[0].photo)}" alt="">
-            <p class="chat-meta">${empty
-              ? `Это начало вашей переписки · ${esc(chat.name)}`
-              : `Вы познакомились · ${esc(chat.name)}`}</p>
+            <p class="chat-meta">Это начало вашей переписки · ${esc(chat.name)}</p>
             <div class="chat-pills">${emptyPills.map(tag => `<span class="chat-pill">${esc(tag)}</span>`).join('')}</div>
-          </section>`}
+          </section>` : ''}
         ${messages.map(renderMessage).join('')}
       </main>
 
