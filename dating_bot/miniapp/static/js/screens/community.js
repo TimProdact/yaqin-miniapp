@@ -6,6 +6,13 @@ import { showCelebrate } from '../celebrate.js';
 import { INTEREST_OPTIONS, filterOptions } from '../profile-fields.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
+import {
+  TASHKENT,
+  coordsForPlace,
+  formatCoordLabel,
+  mountPlaceMap,
+  reverseGeocode
+} from '../place-map.js';
 
 const COVER_POOL = [PHOTOS.palms, PHOTOS.coffee, PHOTOS.city, PHOTOS.books, PHOTOS.event, PHOTOS.mila].filter(Boolean);
 
@@ -930,6 +937,12 @@ export function createEventScreen(editId = null) {
   let title = isEdit ? (existing.title || '') : '';
   let place = isEdit ? (existing.place || '') : '';
   let address = isEdit ? (existing.address || '') : '';
+  let placeCoords = (() => {
+    if (isEdit && Number.isFinite(Number(existing.lat)) && Number.isFinite(Number(existing.lng))) {
+      return { lat: Number(existing.lat), lng: Number(existing.lng) };
+    }
+    return coordsForPlace(place) || { ...TASHKENT };
+  })();
   let description = isEdit ? (existing.description || '') : '';
   let interests = isEdit ? [...(existing.interests || [])] : [];
   let whenIdx = 3;
@@ -979,6 +992,8 @@ export function createEventScreen(editId = null) {
   let draftText = '';
   let restoreFocus = false;
   let whenDraft = partsFromSlot(selectedSlot);
+  let placeMapApi = null;
+  let placeGeoBusy = false;
 
   const whenOf = () => selectedSlot || WHEN_OPTIONS[0];
   const preview = (text, empty) => {
@@ -987,7 +1002,13 @@ export function createEventScreen(editId = null) {
     return value.length > 42 ? `${value.slice(0, 42)}…` : value;
   };
 
+  const destroyPlaceMap = () => {
+    placeMapApi?.destroy?.();
+    placeMapApi = null;
+  };
+
   const closeSheet = () => {
+    destroyPlaceMap();
     sheet = null;
     sheetQuery = '';
     draftText = '';
@@ -1035,15 +1056,23 @@ export function createEventScreen(editId = null) {
 
     if (sheet === 'place') {
       const filtered = filterOptions(PLACE_OPTIONS, sheetQuery);
+      const customValue = PLACE_OPTIONS.includes(place) ? '' : place;
       return `
         <div class="edit-sheet-scrim" id="sheetScrim"></div>
-        <div class="edit-sheet edit-sheet--picker create-when-sheet" role="dialog" aria-modal="true">
-          ${sheetHead('Место', 'Где пройдёт встреча')}
+        <div class="edit-sheet edit-sheet--picker create-when-sheet create-place-sheet" role="dialog" aria-modal="true">
+          ${sheetHead('Место', 'Карта или быстрый список')}
+          <div class="create-place-map-wrap">
+            <div id="placeMap" class="create-place-map" role="application" aria-label="Карта места"></div>
+            <p class="create-place-map-hint" id="placeMapHint">Нажмите на карту или перетащите метку</p>
+            <button type="button" class="create-place-locate" id="placeLocate">
+              <i class="ti ti-current-location"></i> Моё местоположение
+            </button>
+          </div>
           <label class="edit-sheet-search">
             <i class="ti ti-search"></i>
-            <input id="sheetSearch" type="search" placeholder="Поиск или своё место" value="${esc(sheetQuery)}" autocomplete="off">
+            <input id="sheetSearch" type="search" placeholder="Поиск в списке" value="${esc(sheetQuery)}" autocomplete="off">
           </label>
-          <div class="create-when-list">
+          <div class="create-when-list" id="placeList">
             ${filtered.map(item => `
               <button type="button" class="create-when-row ${place === item ? 'on' : ''}" data-place="${esc(item)}">
                 <span>${esc(item)}</span>
@@ -1053,7 +1082,7 @@ export function createEventScreen(editId = null) {
           </div>
           <div class="edit-work-custom">
             <span>Своё место</span>
-            <input id="placeCustom" type="text" maxlength="80" value="${esc(PLACE_OPTIONS.includes(place) ? '' : place)}" placeholder="Адрес или название" autocomplete="off">
+            <input id="placeCustom" type="text" maxlength="80" value="${esc(customValue)}" placeholder="Название или адрес" autocomplete="off">
           </div>
           <div class="edit-sheet-foot">
             <button type="button" class="edit-sheet-done" id="doneSheet">Готово</button>
@@ -1147,6 +1176,7 @@ export function createEventScreen(editId = null) {
         || (ticketMode === 'paid' && paidSum > 0));
     const when = whenOf();
     document.body.classList.toggle('edit-sheet-open', Boolean(sheet));
+    destroyPlaceMap();
 
     view.innerHTML = `
       <div class="create-event-page">
@@ -1356,6 +1386,8 @@ export function createEventScreen(editId = null) {
       if (sheet === 'place') {
         const custom = view.querySelector('#placeCustom')?.value?.trim() || '';
         if (custom) place = custom;
+        const live = placeMapApi?.getCoords?.();
+        if (live) placeCoords = live;
       }
       if (sheet === 'address') {
         address = (view.querySelector('#addressInput')?.value || draftText || '').trim();
@@ -1402,9 +1434,21 @@ export function createEventScreen(editId = null) {
     view.querySelectorAll('[data-place]').forEach(button => {
       button.onclick = () => {
         place = button.dataset.place;
+        const known = coordsForPlace(place);
+        if (known) {
+          placeCoords = { ...known };
+          placeMapApi?.setView(placeCoords);
+        }
         const custom = view.querySelector('#placeCustom');
         if (custom) custom.value = '';
-        render();
+        view.querySelectorAll('#placeList [data-place]').forEach(row => {
+          const on = row.dataset.place === place;
+          row.classList.toggle('on', on);
+          row.querySelector('i.ti-check')?.remove();
+          if (on) row.insertAdjacentHTML('beforeend', '<i class="ti ti-check"></i>');
+        });
+        const hint = view.querySelector('#placeMapHint');
+        if (hint) hint.textContent = place === 'Онлайн' ? 'Для онлайн-встречи карта не нужна' : place;
       };
     });
     view.querySelectorAll('[data-capacity]').forEach(button => {
@@ -1424,6 +1468,31 @@ export function createEventScreen(editId = null) {
       };
     });
 
+    const refreshPlaceList = () => {
+      const list = view.querySelector('#placeList');
+      if (!list) return;
+      const filtered = filterOptions(PLACE_OPTIONS, sheetQuery);
+      list.innerHTML = filtered.map(item => `
+        <button type="button" class="create-when-row ${place === item ? 'on' : ''}" data-place="${esc(item)}">
+          <span>${esc(item)}</span>
+          ${place === item ? '<i class="ti ti-check"></i>' : ''}
+        </button>
+      `).join('') || '<p class="edit-sheet-empty">Ничего не найдено</p>';
+      list.querySelectorAll('[data-place]').forEach(button => {
+        button.onclick = () => {
+          place = button.dataset.place;
+          const known = coordsForPlace(place);
+          if (known) {
+            placeCoords = { ...known };
+            placeMapApi?.setView(placeCoords);
+          }
+          const custom = view.querySelector('#placeCustom');
+          if (custom) custom.value = '';
+          refreshPlaceList();
+        };
+      });
+    };
+
     const search = view.querySelector('#sheetSearch');
     if (search) {
       if (restoreFocus) {
@@ -1434,9 +1503,76 @@ export function createEventScreen(editId = null) {
       }
       search.oninput = () => {
         sheetQuery = search.value;
+        if (sheet === 'place') {
+          refreshPlaceList();
+          return;
+        }
         restoreFocus = true;
         render();
       };
+    }
+
+    const applyMapPick = async (coords, source = 'map') => {
+      placeCoords = { lat: coords.lat, lng: coords.lng };
+      const hint = view.querySelector('#placeMapHint');
+      if (hint) hint.textContent = source === 'geo' ? 'Определяем адрес…' : 'Ищем название…';
+      placeGeoBusy = true;
+      const geo = await reverseGeocode(coords.lat, coords.lng);
+      placeGeoBusy = false;
+      place = geo.place || formatCoordLabel(coords.lat, coords.lng);
+      if (geo.address) address = geo.address;
+      const custom = view.querySelector('#placeCustom');
+      if (custom) custom.value = place;
+      refreshPlaceList();
+      if (hint) hint.textContent = place;
+    };
+
+    if (sheet === 'place') {
+      const mapEl = view.querySelector('#placeMap');
+      mountPlaceMap(mapEl, {
+        lat: placeCoords.lat,
+        lng: placeCoords.lng,
+        onPick: applyMapPick
+      }).then(api => {
+        if (sheet !== 'place') {
+          api?.destroy?.();
+          return;
+        }
+        placeMapApi = api;
+      }).catch(() => {
+        const hint = view.querySelector('#placeMapHint');
+        if (hint) hint.textContent = 'Карта недоступна — выберите из списка или введите своё место';
+      });
+
+      view.querySelector('#placeLocate')?.addEventListener('click', () => {
+        if (placeGeoBusy) return;
+        const hint = view.querySelector('#placeMapHint');
+        if (hint) hint.textContent = 'Определяем геолокацию…';
+        const fail = () => {
+          if (hint) hint.textContent = 'Не удалось получить геолокацию';
+        };
+        if (!navigator.geolocation) {
+          fail();
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const next = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            placeMapApi?.setView(next, 16);
+            applyMapPick(next, 'geo');
+          },
+          fail,
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+      });
+
+      const customInput = view.querySelector('#placeCustom');
+      if (customInput) {
+        customInput.oninput = () => {
+          const value = customInput.value.trim();
+          if (value) place = value;
+        };
+      }
     }
 
     const descInput = view.querySelector('#descInput');
@@ -1481,6 +1617,8 @@ export function createEventScreen(editId = null) {
         month: slot.month,
         place: place.trim(),
         address: address.trim() || 'Ташкент',
+        lat: placeCoords?.lat,
+        lng: placeCoords?.lng,
         description: description.trim(),
         interests: [...interests],
         capacity: Number(capacity) || 30,

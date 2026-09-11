@@ -340,6 +340,72 @@ body[data-route='edit-event'] .view {
   font-size: 18px;
 }
 
+.create-place-sheet {
+  max-height: min(92vh, 780px);
+}
+.create-place-map-wrap {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  flex-shrink: 0;
+}
+.create-place-map {
+  height: 190px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--yaqin-bg-subtle);
+  touch-action: none;
+}
+.create-place-map .leaflet-control-attribution {
+  font-size: 10px;
+  background: color-mix(in srgb, var(--yaqin-bg) 82%, transparent);
+  color: var(--yaqin-text-tertiary);
+  border: 0;
+  margin: 0;
+  padding: 2px 6px;
+}
+.create-place-map .leaflet-control-zoom a {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  border: 0 !important;
+  background: var(--yaqin-surface-raised) !important;
+  color: var(--yaqin-text) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+.create-place-map .leaflet-control-zoom {
+  border: 0 !important;
+  margin: 0 10px 10px 0 !important;
+  display: grid;
+  gap: 6px;
+}
+.create-place-map-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--yaqin-text-tertiary);
+}
+.create-place-locate {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.create-place-locate i {
+  font-size: 18px;
+  color: var(--yaqin-link);
+}
+
 .create-legal {
   margin: 20px var(--yaqin-gutter) 0;
   text-align: center;
