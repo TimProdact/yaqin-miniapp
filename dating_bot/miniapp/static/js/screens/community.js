@@ -434,31 +434,20 @@ export function createGroupScreen(editId = null) {
     });
     view.querySelector('#sheetScrim')?.addEventListener('click', closeSheet);
     view.querySelector('#closeSheet')?.addEventListener('click', closeSheet);
+    const descInput = view.querySelector('#descInput');
+    if (descInput) {
+      descInput.focus();
+      descInput.oninput = () => { draftText = descInput.value; };
+    }
     view.querySelector('#clearDesc')?.addEventListener('click', () => {
       draftText = '';
-      const input = view.querySelector('#descInput');
-      if (input) input.value = '';
+      about = '';
       render();
-      view.querySelector('#descInput')?.focus();
-    });
-    view.querySelector('#descInput')?.addEventListener('input', event => {
-      draftText = event.target.value;
-      const clear = view.querySelector('#clearDesc');
-      if (clear) clear.hidden = !draftText.trim();
-      else if (draftText.trim()) render();
     });
     view.querySelector('#doneSheet')?.addEventListener('click', () => {
       about = (view.querySelector('#descInput')?.value || draftText || '').trim();
       closeSheet();
     });
-    if (sheet === 'description') {
-      const input = view.querySelector('#descInput');
-      if (input) {
-        input.focus();
-        const len = input.value.length;
-        input.setSelectionRange(len, len);
-      }
-    }
 
     view.querySelector('#createGroupBtn').onclick = () => {
       if (!name.trim()) return;
