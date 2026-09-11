@@ -1,59 +1,60 @@
 /* Лента людей. Метрики сняты с design/bff-ios-jan-2026/04-discover/card--040.png (393pt). */
 
-.app-header.discover-header {
-  height: var(--yaqin-header-h);
-  min-height: var(--yaqin-header-h);
-  padding: 0 var(--yaqin-gutter);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.discover-header .brand {
-  font-size: 26px;
-  line-height: 1;
-  color: var(--yaqin-text);
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-}
-.discover-header .city {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  background: none;
-  color: var(--yaqin-text);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.discover-header .city i {
-  font-size: 17px;
-  stroke-width: 2.4;
-}
-.discover-header .filters {
-  border: 0;
-  background: none;
-  color: var(--yaqin-text);
-  width: 40px;
-  height: 40px;
-  font-size: 22px;
-  display: grid;
-  place-items: center;
-}
-
 body[data-route='people'] .view {
-  padding: 0 var(--yaqin-gutter) !important;
+  padding: 0 !important;
   overflow: hidden !important;
   position: relative;
 }
 
-.swipe-stage {
+.people-page {
+  height: 100%;
+  position: relative;
+  padding: 0 var(--yaqin-gutter);
+  box-sizing: border-box;
+  --float-head-clearance: calc(var(--yaqin-header-h) + 8px);
+}
+
+.people-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.people-head-actions .people-city-btn {
+  width: auto !important;
+  max-width: min(46vw, 180px);
+  height: 40px;
+  padding: 0 12px 0 14px !important;
+  border-radius: 999px !important;
+  flex: 0 1 auto !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.people-head-actions .people-city-btn i {
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+
+.people-page > .swipe-stage,
+.people-page > .discover-empty {
   position: absolute;
-  inset: 0;
+  left: var(--yaqin-gutter);
+  right: var(--yaqin-gutter);
+  top: var(--float-head-clearance);
+  bottom: 0;
   height: auto;
   min-height: 0;
+}
+
+.swipe-stage {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
