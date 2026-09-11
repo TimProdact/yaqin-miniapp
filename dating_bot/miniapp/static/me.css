@@ -277,6 +277,30 @@ body.profile-open .view {
   font-size: 22px;
   color: var(--yaqin-text-tertiary);
 }
+.me-add-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--yaqin-radius-md);
+  background: var(--yaqin-bg);
+  color: var(--yaqin-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+.me-add-card i {
+  font-size: 20px;
+  color: var(--yaqin-yellow);
+}
+.me-mini-list + .me-add-card {
+  margin-top: 10px;
+}
 .me-mini-list {
   display: grid;
   gap: 8px;

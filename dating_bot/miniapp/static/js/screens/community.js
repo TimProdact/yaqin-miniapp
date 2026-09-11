@@ -918,7 +918,7 @@ export function createEventScreen(editId = null) {
     view.innerHTML = `
       <div class="create-event-page">
         <header class="modal-head">
-          ${isEdit ? backControlHtml('back') : backControlHtml('events')}
+          ${isEdit ? backControlHtml('back') : backControlHtml('me')}
           <h1>${isEdit ? 'Редактировать' : 'Новое событие'}</h1>
           <span></span>
         </header>

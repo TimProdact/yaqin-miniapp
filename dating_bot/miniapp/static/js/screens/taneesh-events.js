@@ -394,9 +394,6 @@ export function taneeshEventsScreen() {
       <div class="events-feed-page">
         <header class="chats-head">
           <h1>События</h1>
-          <div class="events-head-actions">
-            <button data-action="create-event" aria-label="Создать"><i class="ti ti-plus"></i></button>
-          </div>
         </header>
 
         <div class="events-date-bar">

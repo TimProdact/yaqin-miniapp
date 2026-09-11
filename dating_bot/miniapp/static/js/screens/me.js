@@ -103,8 +103,9 @@ export async function meScreen(_id, token) {
   const verify = resolveView(verification);
   const fill = profileFillPercent(profile);
   const tickets = listTickets().slice(0, 6);
-  const events = getUserEvents().slice(0, 4);
-  const groups = getUserGroups().slice(0, 4);
+  const eventsAll = getUserEvents();
+  const events = eventsAll.slice(0, 2);
+  const groups = getUserGroups().slice(0, 3);
   const privacy = getState().privacy || { showOnline: true, showInFeed: true };
   const nextTicket = tickets[0];
 
@@ -154,7 +155,7 @@ export async function meScreen(_id, token) {
       </section>
 
       <section class="me-panel">
-        ${sectionHead('Мои события', 'events')}
+        ${sectionHead('Мои события', eventsAll.length > 2 ? 'events' : null)}
         ${events.length ? `
           <div class="me-mini-list">
             ${events.map(event => `
@@ -166,11 +167,11 @@ export async function meScreen(_id, token) {
                 </div>
                 <i class="ti ti-chevron-right"></i>
               </button>`).join('')}
-          </div>` : `
-          <button type="button" class="me-empty-card" data-action="create-event">
-            <i class="ti ti-calendar-plus"></i>
-            <span>Создать своё событие</span>
-          </button>`}
+          </div>` : ''}
+        <button type="button" class="me-add-card" data-action="create-event">
+          <i class="ti ti-calendar-plus"></i>
+          <span>Добавить событие</span>
+        </button>
       </section>
 
       <section class="me-panel">
