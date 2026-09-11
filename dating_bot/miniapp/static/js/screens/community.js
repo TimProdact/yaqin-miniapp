@@ -6,6 +6,7 @@ import { showCelebrate } from '../celebrate.js';
 import { INTEREST_OPTIONS, filterOptions } from '../profile-fields.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
+import { threadMessagesHtml, isSystemMessage } from '../chat-thread.js';
 import {
   bindComposerAttach,
   composerShellHtml,
@@ -214,73 +215,112 @@ function groupMatchesFilter(group, filter) {
 export function groupsScreen() {
   clearHeader();
   let query = '';
-  let filter = 'all'; // all | open | closed
+  let filter = 'all'; // all | open | closed | mine
   let searchOpen = false;
+
+  const groupPreview = group => {
+    const messages = group.messages || [];
+    const last = messages[messages.length - 1];
+    if (last?.text && !/^группа создана/i.test(last.text) && last.from !== 'system') {
+      if (last.from === 'me') return `Вы: ${last.text}`;
+      return last.name ? `${last.name}: ${last.text}` : last.text;
+    }
+    if (group.members) {
+      const online = group.online ? ` · ${group.online} онлайн` : '';
+      return `${group.members} участниц${online}`;
+    }
+    return group.about || 'Напишите первой';
+  };
 
   const render = () => {
     const term = query.trim().toLowerCase();
-    const groups = listAllGroups()
-      .filter(group => groupMatchesFilter(group, filter))
+    const all = listAllGroups();
+    const mine = all.filter(group => isGroupOwner(group) || isGroupMember(group));
+    const catalog = all.filter(group => !isGroupOwner(group) && !isGroupMember(group));
+    const source = filter === 'mine' ? mine : all;
+    const groups = source
+      .filter(group => groupMatchesFilter(group, filter === 'mine' ? 'all' : filter))
       .filter(group => groupMatchesQuery(group, term));
     const pills = [
       ['all', 'Все'],
+      ['mine', 'Мои'],
       ['open', 'Открытые'],
       ['closed', 'Закрытые']
     ];
     const filterActive = filter !== 'all' || Boolean(term);
 
+    const rowHtml = group => {
+      const open = isGroupPublic(group);
+      const last = group.messages?.[group.messages.length - 1];
+      const preview = groupPreview(group);
+      const time = last?.time || '';
+      const mineRow = isGroupOwner(group) || isGroupMember(group);
+      const requests = isGroupOwner(group) ? (group.joinRequests || []).length : 0;
+      return `
+        <button class="group-tab-row${mineRow ? ' mine' : ''}" type="button" data-open-group="${esc(group.id)}">
+          <div class="group-tab-avatar">
+            <img src="${esc(group.photo)}" alt="">
+            ${open ? '' : '<i class="ti ti-lock group-tab-lock" aria-hidden="true"></i>'}
+          </div>
+          <div class="group-tab-copy">
+            <div class="group-tab-top">
+              <strong>${esc(group.title)}</strong>
+              ${mineRow ? '<em class="group-tab-you">вы внутри</em>' : ''}
+            </div>
+            <span>${esc(preview)}</span>
+          </div>
+          <div class="group-tab-meta">
+            ${time ? `<time>${esc(time)}</time>` : '<span class="chat-row-meta-spacer"></span>'}
+            ${requests ? `<i class="unread-dot" aria-label="${requests} заявок"></i>` : ''}
+          </div>
+        </button>`;
+    };
+
     view.innerHTML = `
       <div class="groups-tab-page">
-        <div class="list-sticky-pill ${searchOpen ? 'is-search-open' : ''}">
+        <div class="list-sticky-pill">
           <header class="chats-head">
             <h1>Группы</h1>
             <div class="list-head-actions">
+              <button type="button" data-action="create-group" aria-label="Создать группу">
+                <i class="ti ti-plus"></i>
+              </button>
               <button type="button" id="toggleGroupSearch" aria-label="${searchOpen ? 'Закрыть поиск' : 'Поиск'}" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
                 <i class="ti ${searchOpen ? 'ti-x' : 'ti-search'}"></i>
               </button>
             </div>
           </header>
 
-          ${searchOpen ? `
-            <div class="list-search-panel">
+          <div class="list-search-panel">
+            ${searchOpen ? `
               <div class="search-box groups-search">
                 <i class="ti ti-search"></i>
                 <input id="groupSearch" type="search" placeholder="Поиск групп" value="${esc(query)}" enterkeyhint="search">
                 ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
-              </div>
-              <div class="chats-pills groups-pills" role="tablist">
-                ${pills.map(([id, label]) => `
-                  <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
-                `).join('')}
-              </div>
-            </div>` : ''}
+              </div>` : ''}
+            <div class="chats-pills groups-pills" role="tablist">
+              ${pills.map(([id, label]) => `
+                <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
+              `).join('')}
+            </div>
+          </div>
         </div>
 
         ${groups.length
-          ? `<div class="groups-tab-list">${groups.map(group => {
-              const open = isGroupPublic(group);
-              const last = group.messages?.[group.messages.length - 1];
-              const meta = last?.text
-                || (group.members ? `${group.members} участниц` : group.about)
-                || 'Группа';
-              return `
-                <button class="group-tab-row" type="button" data-open-group="${esc(group.id)}">
-                  <div class="group-tab-avatar">
-                    <img src="${esc(group.photo)}" alt="">
-                    ${open ? '' : '<i class="ti ti-lock group-tab-lock" aria-hidden="true"></i>'}
-                  </div>
-                  <div>
-                    <strong>${esc(group.title)}${open ? '' : ' <em class="group-privacy">закрытая</em>'}</strong>
-                    <span>${esc(meta)}${last?.time ? ` · ${esc(last.time)}` : ''}</span>
-                  </div>
-                </button>`;
-            }).join('')}</div>`
+          ? filter === 'all' && !term
+            ? `
+              ${mine.length ? `<section class="chat-section"><h2 class="chat-section-title">Ваши</h2><div class="groups-tab-list">${mine.map(rowHtml).join('')}</div></section>` : ''}
+              ${catalog.length ? `<section class="chat-section"><h2 class="chat-section-title">Открыть рядом</h2><div class="groups-tab-list">${catalog.map(rowHtml).join('')}</div></section>` : ''}
+              ${!mine.length && !catalog.length ? '' : ''}
+            `
+            : `<div class="groups-tab-list">${groups.map(rowHtml).join('')}</div>`
           : term || filter !== 'all'
-            ? `<p class="search-none">${term ? 'Ничего не найдено' : filter === 'closed' ? 'Пока нет закрытых групп' : 'Пока нет открытых групп'}</p>`
+            ? `<p class="search-none">${term ? 'Ничего не найдено' : filter === 'closed' ? 'Пока нет закрытых групп' : filter === 'mine' ? 'Пока нет ваших групп' : 'Пока нет открытых групп'}</p>`
             : `<div class="groups-tab-empty">
                 <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
                 <h2>Пока нет групп</h2>
-                <p>Создать группу можно в профиле.</p>
+                <p>Создайте свою или найдите открытую рядом.</p>
+                <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
               </div>`}
 
       </div>`;
@@ -288,11 +328,7 @@ export function groupsScreen() {
     view.querySelector('#toggleGroupSearch')?.addEventListener('click', () => {
       searchOpen = !searchOpen;
       render();
-      if (searchOpen) {
-        view.querySelector('#groupSearch')?.focus({ preventScroll: true });
-        const page = view.querySelector('.groups-tab-page');
-        if (page) page.scrollLeft = 0;
-      }
+      if (searchOpen) view.querySelector('#groupSearch')?.focus({ preventScroll: true });
     });
     const input = view.querySelector('#groupSearch');
     input?.addEventListener('input', () => {
@@ -304,20 +340,15 @@ export function groupsScreen() {
         const pos = query.length;
         next.setSelectionRange(pos, pos);
       }
-      const page = view.querySelector('.groups-tab-page');
-      if (page) page.scrollLeft = 0;
     });
     view.querySelector('#clearGroupSearch')?.addEventListener('click', () => {
       query = '';
       render();
       view.querySelector('#groupSearch')?.focus({ preventScroll: true });
-      const page = view.querySelector('.groups-tab-page');
-      if (page) page.scrollLeft = 0;
     });
     view.querySelectorAll('[data-filter]').forEach(button => {
       button.onclick = () => {
         filter = button.dataset.filter;
-        searchOpen = true;
         render();
       };
     });
@@ -515,8 +546,8 @@ export function createGroupScreen(editId = null) {
         })),
         messages: [
           {
-            from: 'me',
-            name: profile.name || 'Вы',
+            from: 'system',
+            system: true,
             text: 'Группа создана. Можно писать здесь.',
             time: 'сейчас'
           }
@@ -934,7 +965,7 @@ export function groupChatScreen(id) {
             <img class="chat-peer-photo" src="${esc(group.photo)}" alt="">
             <span class="chat-peer-copy">
               <h1>${esc(group.title)}</h1>
-              <p>${group.members || 1} участниц · ${esc(group.city || '')}</p>
+              <p>${group.members || 1} участниц${group.online ? ` · ${group.online} онлайн` : ''}${group.city ? ` · ${esc(group.city)}` : ''}</p>
             </span>
           </button>
           <div class="chat-top-menu-wrap">
@@ -952,10 +983,11 @@ export function groupChatScreen(id) {
         </header>
 
         <div class="chat-thread">
-          ${messages.map((message, index) => {
+          ${threadMessagesHtml(messages, (message, index) => {
+            if (isSystemMessage(message)) return '';
             const mine = message.from === 'me';
             const prev = messages[index - 1];
-            const showName = !mine && (!prev || prev.from === 'me' || prev.name !== message.name);
+            const showName = !mine && (!prev || isSystemMessage(prev) || prev.from === 'me' || prev.name !== message.name);
             return `
             <div class="chat-bubble ${mine ? 'mine' : ''}${showName ? ' with-name' : ''}">
               <div class="bubble-body">
@@ -965,7 +997,7 @@ export function groupChatScreen(id) {
                 ${message.share ? shareBubbleHtml(message.share) : ''}
               </div>
             </div>`;
-          }).join('')}
+          })}
         </div>
 
         ${composerShellHtml({

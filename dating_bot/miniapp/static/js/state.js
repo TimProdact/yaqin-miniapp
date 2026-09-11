@@ -20,7 +20,9 @@ const initialState = {
   announcements: true,
   shakeFeedback: true,
   onboardingStep: 'welcome',
-  onboardingDraft: null
+  onboardingDraft: null,
+  /** Mute / archive / pin ключи чатов: dm:id | group:id | team | event:id */
+  chatPrefs: { muted: {}, archived: {}, pinned: {} }
 };
 
 export function getState() {

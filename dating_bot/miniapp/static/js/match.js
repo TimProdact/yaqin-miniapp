@@ -1,5 +1,6 @@
 import { getState, saveState, addToList, removeFromList } from './state.js';
 import { people, chats as seedChats } from './data.js';
+import { isChatMuted } from './chat-prefs.js';
 
 const TEAM_SEED = [
   { from: 'them', name: 'Команда Yaqin', text: 'Добро пожаловать в Yaqin ✨', time: '2 д' }
@@ -115,7 +116,11 @@ export function matchedPeople() {
 }
 
 export function unreadChatCount() {
-  return listDmChats().filter(chat => chat.unread).length;
+  return listDmChats().filter(chat => {
+    if (!chat.unread) return false;
+    const key = `dm:${chat.personId}`;
+    return !isChatMuted(key);
+  }).length;
 }
 
 export function appendChatMessage(personId, message) {
