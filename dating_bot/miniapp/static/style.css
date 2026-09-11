@@ -20,6 +20,10 @@ html[data-theme='dark'] .nav {
   background: var(--yaqin-bg) !important;
   color: var(--yaqin-text);
 }
+html[data-theme='dark'] .app-header.discover-header,
+html[data-theme='dark'] .list-sticky-pill {
+  background: transparent !important;
+}
 
 html[data-theme='dark'] .chats-page,
 html[data-theme='dark'] .search-page,
