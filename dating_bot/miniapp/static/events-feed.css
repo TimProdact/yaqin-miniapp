@@ -11,19 +11,10 @@
   display: none;
 }
 
-.events-feed-page > .chats-head + .events-date-bar {
-  /* clearance under floating title/+ */
-}
 .events-date-bar {
-  position: sticky;
-  top: calc(var(--yaqin-header-h) - 2px);
-  z-index: 19;
   margin-left: calc(var(--yaqin-gutter) * -1);
   margin-right: calc(var(--yaqin-gutter) * -1);
   padding: 0 var(--yaqin-gutter) 10px;
-  background: color-mix(in srgb, var(--yaqin-bg) 78%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   box-sizing: border-box;
 }
 .events-date-pills {
