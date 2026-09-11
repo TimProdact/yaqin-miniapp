@@ -29,6 +29,7 @@ import {
   showAddEmailSheet,
   showDeleteAccountDialog,
   closeSettingsOverlay,
+  consumeSettingsOverlayBack,
   applyStoredTheme,
   privacyScreen,
   helpScreen,
@@ -84,7 +85,10 @@ try {
 }
 applyStoredTheme();
 
-window.addEventListener('yaqin:tg-back', () => goBack());
+window.addEventListener('yaqin:tg-back', () => {
+  if (consumeSettingsOverlayBack()) return;
+  goBack();
+});
 
 registerScreens({
   people: peopleScreen,
