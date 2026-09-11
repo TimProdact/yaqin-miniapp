@@ -87,6 +87,7 @@ body.profile-open .view {
 }
 .me-overview-page > .list-sticky-pill {
   /* chrome вне скролла — layout.css */
+  margin-bottom: 8px;
 }
 .settings-page .filters-head {
   /* floating — layout.css */
@@ -102,15 +103,15 @@ body.profile-open .view {
   overflow: hidden;
 }
 .me-panel-identity {
-  padding: 18px 16px 16px;
+  padding: 16px;
 }
 .me-panel-util {
-  padding: 4px 8px;
+  padding: 0;
 }
 .me-identity {
   display: grid;
   grid-template-columns: 72px 1fr 40px;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   margin: 0;
 }
@@ -163,16 +164,6 @@ body.profile-open .view {
   font-size: 14px;
   font-weight: 600;
 }
-.me-fill-pill {
-  display: inline-flex;
-  margin-top: 8px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--yaqin-bg);
-  color: var(--yaqin-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-}
 .me-identity-edit {
   width: 40px;
   height: 40px;
@@ -185,9 +176,10 @@ body.profile-open .view {
   font-size: 18px;
 }
 .me-overview-bio {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
+  padding: 0;
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--yaqin-text-secondary);
 }
 .me-panel .me-section-head {
@@ -360,6 +352,7 @@ body.profile-open .view {
   background: var(--yaqin-surface-raised);
   box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
   overflow: hidden;
+  flex: 0 0 auto;
 }
 .me-hub-row {
   display: grid;
@@ -368,7 +361,7 @@ body.profile-open .view {
   align-items: center;
   width: 100%;
   margin: 0;
-  padding: 14px 14px;
+  padding: 14px 16px;
   border: 0;
   border-bottom: 1px solid var(--yaqin-sep-soft);
   background: transparent;
@@ -376,6 +369,7 @@ body.profile-open .view {
   font: inherit;
   text-align: left;
   cursor: pointer;
+  box-sizing: border-box;
 }
 .me-hub-row:last-child {
   border-bottom: 0;

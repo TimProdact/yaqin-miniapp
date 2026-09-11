@@ -18,21 +18,6 @@ import {
 
 let closeOverlay = null;
 
-function profileFillPercent(profile) {
-  const checks = [
-    Boolean(profile.name),
-    Boolean(profile.age),
-    Boolean(profile.city),
-    Boolean(profile.bio),
-    Boolean((profile.photos || []).length || profile.photo),
-    interestsOf(profile).length > 0,
-    lookingOf(profile).length > 0,
-    Boolean(profile.work || (profile.languages || []).length)
-  ];
-  const done = checks.filter(Boolean).length;
-  return Math.round((done / checks.length) * 100);
-}
-
 function listTickets() {
   return [...(getState().tickets || [])].reverse();
 }
@@ -199,7 +184,6 @@ export async function meScreen(_id, token) {
   const photos = (profile.photos?.length ? profile.photos : [profile.photo]).filter(Boolean);
   const heroPhoto = photos[0] || profile.photo;
   const verify = resolveView(verification);
-  const fill = profileFillPercent(profile);
   const tickets = listTickets();
   const events = getUserEvents();
   const groups = getOwnedGroups();
@@ -221,7 +205,6 @@ export async function meScreen(_id, token) {
             <button type="button" class="me-identity-city" data-action="city">
               <i class="ti ti-map-pin"></i> ${esc(profile.city || 'Город')}
             </button>
-            <span class="me-fill-pill">Заполнен на ${fill}%</span>
           </div>
           <button type="button" class="me-identity-edit" data-action="edit" aria-label="Редактировать">
             <i class="ti ti-pencil"></i>

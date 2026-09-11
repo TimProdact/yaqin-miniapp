@@ -54,10 +54,19 @@
   flex: 1;
   min-width: 0;
 }
-.settings-row.toggle > span:first-child,
-.settings-row.stacked-btn > span:first-child {
+/* Текст тянется; иконка всегда фиксированная */
+.settings-row.toggle > span:first-child:not(.settings-icon),
+.settings-row.stacked-btn > span:first-child:not(.settings-icon),
+.settings-row.toggle > .settings-icon + span,
+.settings-row.stacked-btn > .settings-icon + span {
   flex: 1;
   min-width: 0;
+}
+.settings-row.toggle > .settings-icon,
+.settings-row.stacked-btn > .settings-icon {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
 }
 .settings-row .ti-chevron-right {
   color: var(--yaqin-text-tertiary);
