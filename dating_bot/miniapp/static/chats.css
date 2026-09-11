@@ -1058,11 +1058,11 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
 }
 
 .share-card {
-  margin-top: 8px;
-  width: 100%;
-  max-width: 280px;
+  margin-top: 6px;
+  width: auto;
+  max-width: 168px;
   border: 0;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   background: var(--yaqin-bg-subtle);
   text-align: left;
@@ -1071,31 +1071,59 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   padding: 0;
   display: grid;
 }
-.share-card img {
+.share-card.is-group {
+  max-width: 176px;
+}
+.share-card.is-event {
+  max-width: 148px;
+}
+.share-card-media {
+  display: block;
   width: 100%;
-  height: 132px;
+  overflow: hidden;
+  background: var(--yaqin-bg-subtle);
+  position: relative;
+}
+.share-card.is-group .share-card-media {
+  aspect-ratio: 16 / 10;
+}
+.share-card.is-event .share-card-media {
+  aspect-ratio: 4 / 5;
+}
+.share-card-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
-.share-card > div {
-  padding: 12px 14px;
+.share-card-copy {
+  padding: 8px 10px 10px;
   display: grid;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
-.share-card small {
+.share-card-copy small {
   color: var(--yaqin-link);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
-.share-card strong {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--yaqin-text);
-}
-.share-card span {
+.share-card-copy strong {
   font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--yaqin-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.share-card-copy > span {
+  font-size: 11px;
+  line-height: 1.3;
   color: var(--yaqin-text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1104,6 +1132,19 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
 }
 .chat-bubble.mine .share-card {
   background: color-mix(in srgb, var(--yaqin-link) 10%, var(--yaqin-bg));
+}
+/* legacy selectors (старые сообщения без обёрток) */
+.share-card > img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+.share-card > div {
+  padding: 8px 10px 10px;
+  display: grid;
+  gap: 2px;
 }
 
 .draft-attach {

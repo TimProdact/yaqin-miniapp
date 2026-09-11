@@ -136,14 +136,15 @@ export function shareBubbleHtml(share) {
   if (!share?.kind || share.id == null) return '';
   const action = share.kind === 'event' ? 'event' : 'group';
   const kindLabel = share.kind === 'event' ? 'Событие' : 'Группа';
+  const kindClass = share.kind === 'event' ? 'is-event' : 'is-group';
   return `
-    <button type="button" class="share-card" data-action="${action}" data-id="${esc(share.id)}">
-      ${share.photo ? `<img src="${esc(share.photo)}" alt="">` : ''}
-      <div>
+    <button type="button" class="share-card ${kindClass}" data-action="${action}" data-id="${esc(share.id)}">
+      ${share.photo ? `<span class="share-card-media"><img src="${esc(share.photo)}" alt=""></span>` : ''}
+      <span class="share-card-copy">
         <small>${esc(kindLabel)}</small>
         <strong>${esc(share.title || kindLabel)}</strong>
         ${share.subtitle ? `<span>${esc(share.subtitle)}</span>` : ''}
-      </div>
+      </span>
     </button>`;
 }
 
