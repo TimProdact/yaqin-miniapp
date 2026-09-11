@@ -225,6 +225,12 @@
   flex: 1;
   font-size: 16px;
 }
+.search-box input[type='search']::-webkit-search-cancel-button,
+.search-box input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
 .search-box button {
   border: 0;
   border-radius: 50%;
@@ -559,6 +565,13 @@ body[data-route='new-dm'] .view {
   background: none;
   font-size: 16px;
   color: var(--yaqin-text);
+}
+/* type=search рисует свой крестик — оставляем только наш button */
+.search-box input[type='search']::-webkit-search-cancel-button,
+.search-box input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
 }
 .search-box button {
   border: 0;
