@@ -466,6 +466,25 @@ function groupMembersPreview(group) {
   return [mine, ...demo.filter(person => person.id !== 'me')];
 }
 
+const JOIN_MESSAGE_FALLBACKS = [
+  'Люблю такие клубы, можно с вами?',
+  'Читаю нон-фикшн, хочу вступить',
+  'Ищу компанию для обсуждений'
+];
+
+function joinRequestText(person, index = 0) {
+  const text = String(person?.message || '').trim();
+  if (text) return text;
+  return JOIN_MESSAGE_FALLBACKS[index % JOIN_MESSAGE_FALLBACKS.length];
+}
+
+function normalizeJoinRequests(requests) {
+  return (requests || []).map((person, index) => ({
+    ...person,
+    message: joinRequestText(person, index)
+  }));
+}
+
 /** Хаб группы: обложка, участницы, чат / заявка / пригласить. */
 export function groupHubScreen(id) {
   clearHeader();
@@ -480,11 +499,20 @@ export function groupHubScreen(id) {
   const pending = isGroupPending(group);
   const open = isGroupPublic(group);
   const isOwner = isGroupOwner(group) && member;
-  const joinRequests = isOwner ? (group.joinRequests || []) : [];
+  let joinRequests = isOwner ? normalizeJoinRequests(group.joinRequests || []) : [];
+  if (isOwner && (group.joinRequests || []).some(person => !String(person.message || '').trim())) {
+    const state = getState();
+    const list = (state.userGroups || []).map(item =>
+      String(item.id) === String(group.id) ? { ...item, joinRequests } : item
+    );
+    saveState({ ...state, userGroups: list });
+    group.joinRequests = joinRequests;
+  }
   const members = groupMembersPreview(group);
   let tab = 'overview'; // overview | members | requests
   let joinSheet = false;
   let joinDraft = '';
+  let viewRequestId = null;
 
   const share = () => {
     const text = `Присоединяйся к группе «${group.title}» в Yaqin`;
@@ -500,6 +528,10 @@ export function groupHubScreen(id) {
 
   const render = () => {
     closePeopleGoingSheet();
+    joinRequests = isOwner ? normalizeJoinRequests(peekGroup(id)?.joinRequests || joinRequests) : [];
+    const viewRequest = viewRequestId
+      ? joinRequests.find(person => String(person.id) === String(viewRequestId))
+      : null;
     const tabs = [
       ['overview', 'Обзор'],
       ['members', 'Участницы'],
@@ -596,17 +628,37 @@ export function groupHubScreen(id) {
                   <div class="group-join-requests">
                     ${joinRequests.map(person => `
                       <div class="group-join-row">
-                        <img src="${esc(person.photo)}" alt="">
-                        <div>
-                          <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
-                          <span>${esc(person.message || 'Хочет вступить')}</span>
-                        </div>
+                        <button type="button" class="group-join-hit" data-view-request="${esc(String(person.id))}">
+                          <img src="${esc(person.photo)}" alt="">
+                          <span class="group-join-copy">
+                            <strong>${esc(person.name)}${person.age ? `, ${person.age}` : ''}</strong>
+                            <span>Нажмите, чтобы прочитать</span>
+                          </span>
+                          <i class="ti ti-chevron-right" aria-hidden="true"></i>
+                        </button>
                         <button type="button" class="group-join-accept" data-accept="${esc(String(person.id))}">Принять</button>
                         <button type="button" class="group-join-reject" data-reject="${esc(String(person.id))}" aria-label="Отклонить"><i class="ti ti-x"></i></button>
                       </div>`).join('')}
                   </div>` : `<p class="host-empty">Пока нет заявок</p>`}
               </section>` : ''}
           </div>
+          ${viewRequest ? `
+            <div class="edit-sheet-scrim" id="viewRequestScrim"></div>
+            <div class="edit-sheet edit-sheet--text create-when-sheet join-request-sheet" role="dialog" aria-modal="true" aria-labelledby="viewRequestTitle">
+              <header class="edit-sheet-head">
+                <button type="button" class="edit-sheet-close" id="closeViewRequest" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+                <div class="edit-sheet-titles">
+                  <h2 id="viewRequestTitle">${esc(viewRequest.name)}${viewRequest.age ? `, ${viewRequest.age}` : ''}</h2>
+                  <p>Сообщение к заявке</p>
+                </div>
+                <span class="edit-sheet-spacer"></span>
+              </header>
+              <div class="join-request-message">${esc(viewRequest.message)}</div>
+              <div class="edit-sheet-foot join-request-actions">
+                <button type="button" class="group-join-reject sheet" data-reject="${esc(String(viewRequest.id))}">Отклонить</button>
+                <button type="button" class="edit-sheet-done" data-accept="${esc(String(viewRequest.id))}">Принять</button>
+              </div>
+            </div>` : ''}
         </article>`;
     } else {
       view.innerHTML = `
@@ -666,7 +718,7 @@ export function groupHubScreen(id) {
         </div>`;
     }
 
-    document.body.classList.toggle('edit-sheet-open', joinSheet);
+    document.body.classList.toggle('edit-sheet-open', joinSheet || Boolean(viewRequestId));
 
     if (tab === 'members' || !isOwner) {
       bindPeopleGoingBlock(view, members, { key: 'group-members', title: 'Участницы' });
@@ -675,10 +727,24 @@ export function groupHubScreen(id) {
     view.querySelectorAll('[data-host-tab]').forEach(button => {
       button.addEventListener('click', () => {
         tab = button.dataset.hostTab;
+        viewRequestId = null;
         render();
       });
     });
     view.querySelector('#inviteGroup')?.addEventListener('click', share);
+    view.querySelectorAll('[data-view-request]').forEach(button => {
+      button.addEventListener('click', () => {
+        viewRequestId = button.dataset.viewRequest;
+        render();
+      });
+    });
+    const closeViewRequest = () => {
+      viewRequestId = null;
+      document.body.classList.remove('edit-sheet-open');
+      render();
+    };
+    view.querySelector('#viewRequestScrim')?.addEventListener('click', closeViewRequest);
+    view.querySelector('#closeViewRequest')?.addEventListener('click', closeViewRequest);
     view.querySelector('#requestJoin')?.addEventListener('click', () => {
       joinSheet = true;
       joinDraft = '';

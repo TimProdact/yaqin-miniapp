@@ -1305,12 +1305,55 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
 }
 .group-join-row {
   display: grid;
-  grid-template-columns: 44px 1fr auto auto;
-  gap: 10px;
-  align-items: start;
-  padding: 10px 12px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 6px 6px 6px;
   border-radius: 14px;
   background: var(--yaqin-bg);
+}
+.group-join-hit {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 16px;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 4px 6px 6px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.group-join-hit img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.group-join-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.group-join-copy strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--yaqin-text);
+}
+.group-join-copy span {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--yaqin-text-tertiary);
+}
+.group-join-hit > .ti {
+  font-size: 16px;
+  color: var(--yaqin-text-tertiary);
 }
 .group-join-row img {
   width: 44px;
@@ -1320,7 +1363,7 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
 }
 .group-join-row .group-join-accept,
 .group-join-row .group-join-reject {
-  margin-top: 4px;
+  margin-top: 0;
 }
 .group-join-row strong {
   display: block;
@@ -1333,6 +1376,32 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
   line-height: 1.35;
   color: var(--yaqin-text-tertiary);
   white-space: normal;
+}
+.join-request-message {
+  margin: 0 0 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  font-size: 16px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.join-request-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  align-items: stretch;
+}
+.group-join-reject.sheet {
+  width: 100%;
+  height: auto;
+  min-height: 52px;
+  border-radius: var(--yaqin-radius-pill);
+  padding: 14px 16px;
+  font-size: var(--yaqin-fs-body);
+  font-weight: 700;
 }
 .group-join-accept {
   border: 0;
