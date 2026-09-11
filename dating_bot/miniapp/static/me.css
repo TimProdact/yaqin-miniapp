@@ -314,7 +314,7 @@ body.profile-open .view {
 }
 .me-mini-row {
   display: grid;
-  grid-template-columns: 48px 1fr 18px;
+  grid-template-columns: 40px 1fr 18px;
   gap: 12px;
   align-items: center;
   width: 100%;
@@ -326,11 +326,20 @@ body.profile-open .view {
   font: inherit;
   padding: 10px 12px;
 }
+/* Люди — круглые; контент (группа/событие/билет) — 4:5 */
 .me-mini-row img {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   object-fit: cover;
+}
+.me-mini-row[data-action='group'] img,
+.me-mini-row[data-action='event'] img,
+.me-mini-row[data-action='ticket'] img {
+  width: 40px;
+  height: auto;
+  aspect-ratio: var(--yaqin-content-ratio, 4 / 5);
+  border-radius: var(--yaqin-content-radius, 12px);
 }
 .me-mini-row strong {
   display: block;
@@ -1183,7 +1192,13 @@ body[data-route='edit-photos'] .view {
   text-align: left;
 }
 .profile-group-row.on { outline: 1.5px solid var(--yaqin-danger); background: var(--yaqin-danger-soft); }
-.profile-group-row img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; }
+.profile-group-row img {
+  width: 40px;
+  height: auto;
+  aspect-ratio: var(--yaqin-content-ratio, 4 / 5);
+  border-radius: var(--yaqin-content-radius, 12px);
+  object-fit: cover;
+}
 .profile-group-row .check {
   width: 28px; height: 28px; border-radius: 50%;
   background: var(--yaqin-sep); color: var(--yaqin-ink-inverse);
@@ -1242,7 +1257,7 @@ body[data-route='edit-photos'] .view {
 }
 .edit-groups img {
   width: 100%;
-  aspect-ratio: 1.4;
+  aspect-ratio: var(--yaqin-content-ratio, 4 / 5);
   object-fit: cover;
   border-radius: 10px;
 }

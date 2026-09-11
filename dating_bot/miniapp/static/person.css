@@ -231,7 +231,8 @@ body.sheet-view .view {
 }
 .group-tile img {
   width: 100%;
-  height: 148px;
+  aspect-ratio: var(--yaqin-content-ratio, 4 / 5);
+  height: auto;
   border-radius: 14px;
   object-fit: cover;
 }

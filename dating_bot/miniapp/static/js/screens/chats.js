@@ -150,7 +150,7 @@ export function chatsScreen() {
           <div class="chat-list">${rows.map(row => `
             <button class="chat-row" data-action="${row.action}" data-id="${esc(row.id)}">
               ${row.kind === 'group' || row.kind === 'event'
-                ? `<div class="chat-avatar"><img src="${esc(row.photo)}" alt=""></div>`
+                ? `<div class="content-thumb chat-content-thumb"><img src="${esc(row.photo)}" alt=""></div>`
                 : avatar(row.photo, row.team)}
               <div class="chat-copy">
                 <strong>${esc(row.name)}</strong>
@@ -255,7 +255,7 @@ export function searchChatsScreen(queryOrId = '') {
                 </button>`).join('')}
               ${groupRows.map(group => `
                 <button class="chat-row" data-action="group" data-id="${esc(group.id)}">
-                  ${avatar(group.photo)}
+                  <div class="content-thumb chat-content-thumb"><img src="${esc(group.photo)}" alt=""></div>
                   <div class="chat-copy"><strong>${esc(group.title)}</strong><span>Группа</span></div>
                 </button>`).join('')}
               ${!dmRows.length && !groupRows.length ? '<p class="search-none">Ничего не найдено</p>' : ''}
