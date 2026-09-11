@@ -512,6 +512,7 @@ body[data-route='filters'] .view {
 .dual-range input[type='range']::-webkit-slider-thumb,
 .range-slider input[type='range']::-webkit-slider-thumb {
   appearance: none;
+  -webkit-appearance: none;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -522,6 +523,8 @@ body[data-route='filters'] .view {
   cursor: pointer;
   position: relative;
   z-index: 2;
+  /* центрируем кружок на треке 4px */
+  margin-top: -11px;
 }
 .dual-range input[type='range']::-moz-range-thumb,
 .range-slider input[type='range']::-moz-range-thumb {
@@ -550,18 +553,14 @@ body[data-route='filters'] .view {
   z-index: 3;
 }
 
-.single-range {
+.filter-interests {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
 }
-.range-ends {
-  display: flex;
-  justify-content: space-between;
-  color: var(--yaqin-text-tertiary);
-  font-size: 13px;
-  line-height: 1;
-  padding: 0 2px;
+.filter-block:has(.filter-interests) .filter-value {
+  margin-bottom: 10px;
 }
 
 .filters-page .filters-save {
@@ -583,11 +582,6 @@ body[data-route='filters'] .view {
   padding: 16px 20px;
 }
 
-.filter-interests {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
 .filter-chip {
   border: 1px solid color-mix(in srgb, var(--yaqin-text) 28%, transparent);
   background: transparent;
@@ -602,12 +596,6 @@ body[data-route='filters'] .view {
   background: var(--yaqin-text);
   color: var(--yaqin-ink-inverse);
   border-color: var(--yaqin-text);
-}
-.filter-hint {
-  margin: 14px 0 0;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--yaqin-text-tertiary);
 }
 
 body[data-route='city'] .nav {

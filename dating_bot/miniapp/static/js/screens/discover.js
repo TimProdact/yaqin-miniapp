@@ -247,10 +247,9 @@ function bindPersonHero(photos) {
   });
 }
 
-function distanceLabel(km) {
-  if (km <= 5) return 'Рядом';
-  if (km >= 45) return 'Далеко';
-  return 'В городе';
+function distanceValueHtml(km) {
+  const max = Number(km) >= 50 ? '50+' : String(km);
+  return `от <b>1</b> до <b>${esc(max)}</b> км`;
 }
 
 const FILTER_INTERESTS = INTEREST_OPTIONS;
@@ -269,7 +268,6 @@ export function filtersScreen() {
         <header class="filters-head">
           ${backControlHtml('back')}
           <h1>Фильтры</h1>
-          <span></span>
         </header>
 
         <section class="filter-block">
@@ -284,24 +282,20 @@ export function filtersScreen() {
 
         <section class="filter-block">
           <h2>Как далеко?</h2>
-          <p class="filter-value" id="distanceLabel">${distanceLabel(distance)}</p>
-          <div class="single-range">
-            <div class="range-ends"><span>1 км</span><span>50+ км</span></div>
-            <div class="range-slider">
-              <div class="range-track"><div class="range-fill" id="distFill"></div></div>
-              <input type="range" id="distance" min="1" max="50" value="${distance}">
-            </div>
+          <p class="filter-value" id="distanceLabel">${distanceValueHtml(distance)}</p>
+          <div class="range-slider" id="distanceRange">
+            <div class="range-track"><div class="range-fill" id="distFill"></div></div>
+            <input type="range" id="distance" min="1" max="50" value="${distance}">
           </div>
         </section>
 
         <section class="filter-block">
           <h2>Интересы</h2>
-          <p class="filter-value">${interests.size ? `выбрано <b>${interests.size}</b>` : 'любые'}</p>
+          ${interests.size ? `<p class="filter-value">выбрано <b>${interests.size}</b></p>` : ''}
           <div class="filter-interests">
             ${FILTER_INTERESTS.map(item => `
               <button type="button" class="filter-chip ${interests.has(item) ? 'on' : ''}" data-interest="${esc(item)}">${esc(item)}</button>`).join('')}
           </div>
-          <p class="filter-hint">Покажем тех, у кого есть хотя бы один выбранный интерес.</p>
         </section>
 
         <button class="filters-save" type="button" id="saveFilters">Сохранить</button>
@@ -327,7 +321,8 @@ export function filtersScreen() {
 
     const syncDistance = () => {
       distance = Number(distInput.value);
-      view.querySelector('#distanceLabel').textContent = distanceLabel(distance);
+      const label = view.querySelector('#distanceLabel');
+      if (label) label.innerHTML = distanceValueHtml(distance);
       const distFill = view.querySelector('#distFill');
       if (distFill) {
         const pct = ((distance - 1) / (50 - 1)) * 100;
