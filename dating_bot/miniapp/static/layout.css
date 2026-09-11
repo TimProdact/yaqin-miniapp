@@ -353,6 +353,7 @@ body[data-route='me'] .view {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-top: 2px;
 }
 
 /* Сетка афиши не сжимать карточки внутри flex-скролла */
