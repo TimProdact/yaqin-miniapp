@@ -343,7 +343,7 @@ export async function meScreen(_id, token) {
         <div class="settings-block me-util-block">
           <label class="settings-row toggle">
             <span class="settings-icon green square"><i class="ti ti-eye"></i></span>
-            <span>Показывать в ленте<br><small>Анкета появляется во вкладке «Люди»</small></span>
+            <span>Показывать в ленте<br><small>Анкета видна другим по всему приложению</small></span>
             <input type="checkbox" id="showInFeed" ${privacy.showInFeed !== false ? 'checked' : ''}>
           </label>
           <button class="settings-row" type="button" data-action="language">
@@ -560,7 +560,7 @@ export function privacyScreen() {
             <input type="checkbox" data-key="showOnline" ${privacy.showOnline ? 'checked' : ''}>
           </label>
           <label class="settings-row toggle stacked">
-            <span>Показывать в ленте<br><small>Анкета появляется во вкладке «Люди»</small></span>
+            <span>Показывать в ленте<br><small>Анкета видна другим по всему приложению</small></span>
             <input type="checkbox" data-key="showInDiscover" ${privacy.showInDiscover ? 'checked' : ''}>
           </label>
         </section>
