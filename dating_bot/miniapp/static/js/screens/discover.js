@@ -26,26 +26,24 @@ function findPerson(id) {
   return getPersonById(id) || lastShown[0];
 }
 
-function peopleHeadHtml() {
+function peopleActionsHtml() {
   const city = getState().filters?.city || 'Ташкент';
   return `
-    <header class="chats-head">
-      <h1>Люди</h1>
-      <div class="events-head-actions people-head-actions">
-        <button type="button" class="people-city-btn" data-action="city">${esc(city)} <i class="ti ti-chevron-down"></i></button>
-        <button type="button" data-action="filters" aria-label="Фильтры"><i class="ti ti-adjustments-horizontal"></i></button>
-      </div>
-    </header>`;
+    <div class="people-float-actions people-head-actions">
+      <button type="button" class="people-city-btn" data-action="city">${esc(city)} <i class="ti ti-chevron-down"></i></button>
+      <button type="button" data-action="filters" aria-label="Фильтры"><i class="ti ti-adjustments-horizontal"></i></button>
+    </div>`;
 }
 
 function peoplePage(inner) {
-  return `<div class="people-page">${peopleHeadHtml()}${inner}</div>`;
+  return `<div class="people-page">${peopleActionsHtml()}${inner}</div>`;
 }
 
 function renderEmptyState(kind = 'exhausted') {
   const isFilters = kind === 'filters';
   view.innerHTML = peoplePage(`
     <div class="discover-empty">
+      <h1 class="people-feed-title">Люди</h1>
       <div class="empty-card">
         <div class="empty-badge"><i class="ti ti-users"></i></div>
         <h2>${isFilters ? 'Никого не нашлось' : 'Вы посмотрели всех новых'}</h2>
@@ -109,6 +107,7 @@ export async function peopleScreen(_id, token) {
   clearHeader();
   view.innerHTML = peoplePage(`
     <div class="swipe-stage discover-loading">
+      <h1 class="people-feed-title">Люди</h1>
       <div class="profile-card skeleton-card">
         <div class="skeleton-top">
           <span class="sk sk-name"></span>
@@ -156,7 +155,8 @@ export async function peopleScreen(_id, token) {
   view.innerHTML = peoplePage(`
     <div class="swipe-stage" role="feed" aria-label="Анкеты">
       ${candidates.map((person, index) => `
-        <article class="profile-card-slot ${index < candidates.length - 1 ? 'has-peek' : ''}" data-index="${index}">
+        <article class="profile-card-slot ${index === 0 ? 'has-title' : ''} ${index < candidates.length - 1 ? 'has-peek' : ''}" data-index="${index}">
+          ${index === 0 ? '<h1 class="people-feed-title">Люди</h1>' : ''}
           ${cardMarkup(person)}
         </article>
       `).join('')}

@@ -168,7 +168,6 @@ body.full-screen .view {
 
 /* Floating action / back — remain under safe area while title scrolls away */
 .events-head-actions,
-.people-head-actions,
 .chats-head > button,
 .me-top > button,
 .me-top > div,
@@ -183,7 +182,6 @@ body.full-screen .view {
 }
 
 .events-head-actions,
-.people-head-actions,
 .chats-head > button,
 .me-top > button,
 .me-top > div,
@@ -209,8 +207,7 @@ body.full-screen .view {
   right: auto;
 }
 
-.events-head-actions,
-.people-head-actions {
+.events-head-actions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -221,8 +218,7 @@ body.full-screen .view {
 .filters-head button,
 .modal-head > button:not(.head-action),
 .sheet-head button,
-.events-head-actions button,
-.people-head-actions button:not(.people-city-btn) {
+.events-head-actions button {
   width: 40px;
   height: 40px;
   border: 0;
@@ -236,15 +232,6 @@ body.full-screen .view {
   display: grid;
   place-items: center;
   flex: 0 0 40px;
-}
-
-.people-head-actions .people-city-btn {
-  background: color-mix(in srgb, var(--yaqin-surface-raised) 88%, transparent) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 0 0 1px var(--yaqin-bg-subtle);
-  color: var(--yaqin-text);
-  border: 0;
 }
 
 .modal-head .head-action {
@@ -290,9 +277,6 @@ body.full-screen .view {
 .chats-head:has(.events-head-actions) h1,
 .me-top h1 {
   padding-right: 52px;
-}
-.chats-head:has(.people-head-actions) h1 {
-  padding-right: min(52vw, 220px);
 }
 .filters-head h1,
 .modal-head h1,
