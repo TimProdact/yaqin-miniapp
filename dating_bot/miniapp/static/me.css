@@ -426,24 +426,30 @@ body.profile-open .view {
   overflow: hidden;
   box-sizing: border-box;
 }
-.me-hub-sheet .sheet-head {
+.me-hub-sheet .me-hub-head.filters-head {
   position: relative !important;
   top: auto !important;
   margin: 0 !important;
+  width: 100%;
   height: auto;
-  min-height: var(--yaqin-header-h);
-  padding: 8px 12px !important;
-  background: transparent !important;
+  min-height: 0;
+  padding: 10px 16px !important;
+  background: var(--yaqin-bg) !important;
   pointer-events: auto;
+  box-sizing: border-box;
 }
-.me-hub-sheet .sheet-head h1 {
-  flex: 1;
+.me-hub-sheet .me-hub-head h1 {
+  flex: 1 1 auto;
+  min-width: 0;
   max-width: none;
-  text-align: center;
+  margin: 0;
+  text-align: left;
   padding: 0;
   background: transparent !important;
   box-shadow: none !important;
-  font-size: var(--yaqin-fs-modal);
+  font-size: var(--yaqin-fs-title-sm);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 .me-hub-sheet-body {
   flex: 1;
@@ -452,6 +458,11 @@ body.profile-open .view {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 4px var(--yaqin-gutter) 16px;
+  display: flex;
+  flex-direction: column;
+}
+.me-hub-sheet-body.is-empty {
+  justify-content: center;
 }
 .me-hub-sheet-cta {
   flex: 0 0 auto;
@@ -485,11 +496,14 @@ body.profile-open .view {
 .me-hub-empty {
   display: grid;
   place-items: center;
+  justify-items: center;
   text-align: center;
   gap: 8px;
-  min-height: 220px;
-  padding: 28px 16px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 16px;
   color: var(--yaqin-text);
+  box-sizing: border-box;
 }
 .me-hub-empty h2 {
   margin: 0;

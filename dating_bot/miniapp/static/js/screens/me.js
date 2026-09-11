@@ -35,6 +35,13 @@ export function closeSettingsOverlay() {
   closeOverlay?.();
 }
 
+/** Telegram Back: сначала закрыть sheet профиля, иначе обычный goBack. */
+export function consumeSettingsOverlayBack() {
+  if (!closeOverlay) return false;
+  closeSettingsOverlay();
+  return true;
+}
+
 function mountSheet(markup, className = 'settings-overlay') {
   closeSettingsOverlay();
   const overlay = document.createElement('div');
@@ -45,12 +52,23 @@ function mountSheet(markup, className = 'settings-overlay') {
   });
   document.body.appendChild(overlay);
   document.body.classList.add('settings-sheet-open');
+  if (hasTelegramBack()) {
+    window.Telegram?.WebApp?.BackButton?.show?.();
+  }
   closeOverlay = () => {
     overlay.remove();
     document.body.classList.remove('settings-sheet-open');
     closeOverlay = null;
+    syncTelegramBackForMe();
   };
   return overlay;
+}
+
+function syncTelegramBackForMe() {
+  const button = window.Telegram?.WebApp?.BackButton;
+  if (!button) return;
+  // Снова на вкладке профиля — системный Back не нужен
+  button.hide();
 }
 
 function hubRow({ hub, icon, tone, title, meta }) {
@@ -150,12 +168,11 @@ function openProfileHub(kind) {
 
   mountSheet(`
     <div class="me-hub-sheet" role="dialog" aria-label="${esc(config.title)}">
-      <header class="sheet-head">
-        <button type="button" data-action="close-sheet" aria-label="Закрыть"><i class="ti ti-x"></i></button>
+      <header class="filters-head me-hub-head">
+        ${backControlHtml('close-sheet')}
         <h1>${esc(config.title)}</h1>
-        <span></span>
       </header>
-      <div class="me-hub-sheet-body">${config.body}</div>
+      <div class="me-hub-sheet-body${config.body.includes('me-hub-empty') ? ' is-empty' : ''}">${config.body}</div>
       <div class="me-hub-sheet-cta">
         <button type="button" class="empty-primary" data-action="${esc(config.ctaAction)}">${esc(config.cta)}</button>
       </div>
