@@ -471,7 +471,20 @@ body[data-route='me'] .view {
   flex: 0 0 auto;
 }
 
-/* Сетка афиши не сжимать карточки внутри flex-скролла */
+/* Списки вкладок не растягивать ряды на всю высоту flex-скролла */
+.groups-tab-page > .groups-tab-list,
+.chats-page > .chat-list {
+  align-content: start;
+  align-self: stretch;
+  height: auto;
+  flex: 1 1 auto;
+}
+.chats-page > .chat-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+/* Сетка афиши */
 .events-feed-page > .events-feed {
   align-content: start;
   height: auto;

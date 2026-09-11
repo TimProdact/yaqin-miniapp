@@ -1546,12 +1546,17 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   display: grid;
   gap: 0;
   margin-top: 0;
+  align-content: start;
+  align-items: stretch;
+  height: auto;
+  min-height: 0;
 }
 .group-tab-row {
   display: grid;
   grid-template-columns: 52px 1fr;
   gap: 12px;
   align-items: center;
+  align-self: start;
   width: 100%;
   border: 0;
   background: none;
@@ -1560,6 +1565,7 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
   color: inherit;
   font: inherit;
   border-bottom: 1px solid var(--yaqin-sep-soft);
+  box-sizing: border-box;
 }
 .group-tab-row:last-child {
   border-bottom: 0;
