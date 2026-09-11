@@ -7,6 +7,12 @@ import { INTEREST_OPTIONS, filterOptions } from '../profile-fields.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { peopleGoingBlockHtml, bindPeopleGoingBlock, closePeopleGoingSheet } from '../people-going.js';
 import {
+  bindComposerAttach,
+  composerShellHtml,
+  hasComposerPayload,
+  shareBubbleHtml
+} from '../chat-composer.js';
+import {
   TASHKENT,
   coordsForPlace,
   formatCoordLabel,
@@ -898,7 +904,13 @@ export function groupChatScreen(id) {
   }
 
   let draft = '';
-  let attachPhoto = null;
+  let attach = {
+    photo: null,
+    share: null,
+    menuOpen: false,
+    pickMode: null,
+    openFile: false
+  };
   let menuOpen = false;
   const messages = [...(group.messages || [])];
 
@@ -911,7 +923,6 @@ export function groupChatScreen(id) {
   };
 
   const render = () => {
-    const hasDraft = Boolean(draft.trim() || attachPhoto);
     view.innerHTML = `
       <div class="chat-page group-chat-lite">
         <header class="chat-top">
@@ -949,32 +960,26 @@ export function groupChatScreen(id) {
                 </div>
                 ${message.text ? `<p>${esc(message.text)}</p>` : ''}
                 ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
+                ${message.share ? shareBubbleHtml(message.share) : ''}
               </div>
             </div>`).join('')}
         </div>
 
-        ${attachPhoto ? `
-          <div class="draft-attach">
-            <img src="${esc(attachPhoto)}" alt="">
-            <button type="button" id="clearGroupAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
-          </div>` : ''}
-        <div class="message-bar">
-          <button class="msg-add" id="groupAttachPhoto" type="button" aria-label="Фото"><i class="ti ti-photo"></i></button>
-          <input type="file" id="groupAttachFile" accept="image/jpeg,image/png,image/webp" hidden>
-          <label class="msg-field">
-            <input id="groupDraft" placeholder="Написать сообщение" value="${esc(draft)}" maxlength="500" autocomplete="off">
-          </label>
-          <button class="msg-send ${hasDraft ? 'on' : ''}" id="groupSendBtn" type="button" aria-label="Отправить" ${hasDraft ? '' : 'disabled'}>
-            <i class="ti ti-arrow-up"></i>
-          </button>
-        </div>
+        ${composerShellHtml({
+          draft,
+          attach,
+          inputId: 'groupDraft',
+          sendId: 'groupSendBtn',
+          fileInputId: 'groupAttachFile',
+          excludeGroupId: group.id
+        })}
       </div>`;
 
     const input = view.querySelector('#groupDraft');
     input?.addEventListener('input', () => {
       draft = input.value;
       const send = view.querySelector('#groupSendBtn');
-      const has = Boolean(draft.trim() || attachPhoto);
+      const has = hasComposerPayload(draft, attach);
       if (send) {
         send.disabled = !has;
         send.classList.toggle('on', has);
@@ -1018,43 +1023,31 @@ export function groupChatScreen(id) {
       if (window.confirm(ask)) doLeave();
       else onCancel();
     });
-    view.querySelector('#groupAttachPhoto')?.addEventListener('click', () => {
-      view.querySelector('#groupAttachFile')?.click();
+
+    const composer = view.querySelector('.chat-composer');
+    bindComposerAttach(composer, {
+      getAttach: () => attach,
+      setAttach: next => {
+        attach = { ...next };
+      },
+      onRerender: render,
+      excludeGroupId: group.id,
+      fileInputId: 'groupAttachFile'
     });
-    view.querySelector('#groupAttachFile')?.addEventListener('change', event => {
-      const file = event.target.files?.[0];
-      event.target.value = '';
-      if (!file) return;
-      const okType = /^(image\/jpeg|image\/png|image\/webp)$/i.test(file.type)
-        || /\.(jpe?g|png|webp)$/i.test(file.name || '');
-      if (!okType) {
-        window.Telegram?.WebApp?.showAlert?.('Можно только фото: JPG, PNG или WebP')
-          || window.alert('Можно только фото: JPG, PNG или WebP');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        attachPhoto = String(reader.result || '');
-        render();
-      };
-      reader.readAsDataURL(file);
-    });
-    view.querySelector('#clearGroupAttach')?.addEventListener('click', () => {
-      attachPhoto = null;
-      render();
-    });
+
     view.querySelector('#groupSendBtn')?.addEventListener('click', () => {
-      if (!draft.trim() && !attachPhoto) return;
+      if (!hasComposerPayload(draft, attach)) return;
       const profile = getState().profile || defaultProfile;
       messages.push({
         from: 'me',
         name: profile.name || 'Вы',
         text: draft.trim(),
-        image: attachPhoto || undefined,
+        image: attach.photo || undefined,
+        share: attach.share || undefined,
         time: 'сейчас'
       });
       draft = '';
-      attachPhoto = null;
+      attach = { photo: null, share: null, menuOpen: false, pickMode: null, openFile: false };
       persist();
       render();
     });

@@ -6,6 +6,12 @@ import { navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
 import { getState } from '../state.js';
 import {
+  bindComposerAttach,
+  composerShellHtml,
+  hasComposerPayload,
+  shareBubbleHtml
+} from '../chat-composer.js';
+import {
   listVisibleChats,
   getChatByIndex,
   chatIndexForPerson,
@@ -343,7 +349,13 @@ export function chatScreen(id) {
   const emptyPills = pills.length ? pills : ['кофе'];
   const empty = messages.length === 0;
   const ui = getChatUi(chatId);
-  const hasDraft = Boolean(ui.draft.trim() || ui.attachPhoto);
+  const attach = {
+    photo: ui.attachPhoto || null,
+    share: ui.attachShare || null,
+    menuOpen: Boolean(ui.attachMenuOpen),
+    pickMode: ui.attachPickMode || null,
+    openFile: Boolean(ui.attachOpenFile)
+  };
 
   const renderMessage = message => {
     const mine = message.from === 'me';
@@ -358,6 +370,7 @@ export function chatScreen(id) {
         ${message.replyTo ? `<div class="bubble-reply"><small>В ответ</small><span>${esc(message.replyTo)}</span></div>` : ''}
         ${message.text ? `<p>${message.text.split('\n').map(line => esc(line)).join('<br>')}</p>` : ''}
         ${message.image ? `<img class="bubble-image" src="${esc(message.image)}" alt="">` : ''}
+        ${message.share ? shareBubbleHtml(message.share) : ''}
         ${message.link ? `
           <a class="link-card" href="${esc(message.link.url)}" target="_blank" rel="noopener">
             ${message.link.image ? `<img src="${esc(message.link.image)}" alt="">` : ''}
@@ -434,28 +447,23 @@ export function chatScreen(id) {
         ${messages.map(renderMessage).join('')}
       </main>
 
-      ${ui.attachPhoto ? `
-        <div class="draft-attach">
-          <img src="${esc(ui.attachPhoto)}" alt="">
-          <button type="button" id="clearAttach" aria-label="Убрать"><i class="ti ti-x"></i></button>
-        </div>` : ''}
-      <div class="message-bar">
-        <button class="msg-add" id="attachPhoto" aria-label="Фото"><i class="ti ti-photo"></i></button>
-        <input type="file" id="attachFile" accept="image/jpeg,image/png,image/webp" hidden>
-        <label class="msg-field">
-          <input id="msgInput" placeholder="Написать сообщение" value="${esc(ui.draft)}" maxlength="500">
-        </label>
-        <button class="msg-send ${hasDraft ? 'on' : ''}" id="sendMsg" aria-label="Отправить" ${hasDraft ? '' : 'disabled'}>
-          <i class="ti ti-arrow-up"></i>
-        </button>
-      </div>
+      ${composerShellHtml({
+        draft: ui.draft,
+        attach,
+        inputId: 'msgInput',
+        sendId: 'sendMsg',
+        fileInputId: 'attachFile'
+      })}
     </div>`;
 
   const input = view.querySelector('#msgInput');
   input?.addEventListener('input', () => {
     ui.draft = input.value;
     setChatUi(chatId, ui);
-    const has = Boolean(ui.draft.trim() || ui.attachPhoto);
+    const has = hasComposerPayload(ui.draft, {
+      photo: ui.attachPhoto,
+      share: ui.attachShare
+    });
     const send = view.querySelector('#sendMsg');
     if (send) {
       send.disabled = !has;
@@ -469,44 +477,42 @@ export function chatScreen(id) {
     chatScreen(chatId);
   });
 
-  view.querySelector('#attachPhoto')?.addEventListener('click', () => {
-    view.querySelector('#attachFile')?.click();
-  });
-  view.querySelector('#attachFile')?.addEventListener('change', event => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    const okType = /^(image\/jpeg|image\/png|image\/webp)$/i.test(file.type)
-      || /\.(jpe?g|png|webp)$/i.test(file.name || '');
-    if (!okType) {
-      window.Telegram?.WebApp?.showAlert?.('Можно только фото: JPG, PNG или WebP')
-        || window.alert('Можно только фото: JPG, PNG или WebP');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      ui.attachPhoto = String(reader.result || '');
+  const composer = view.querySelector('.chat-composer');
+  bindComposerAttach(composer, {
+    getAttach: () => ({
+      photo: ui.attachPhoto || null,
+      share: ui.attachShare || null,
+      menuOpen: Boolean(ui.attachMenuOpen),
+      pickMode: ui.attachPickMode || null,
+      openFile: Boolean(ui.attachOpenFile)
+    }),
+    setAttach: next => {
+      ui.attachPhoto = next.photo || null;
+      ui.attachShare = next.share || null;
+      ui.attachMenuOpen = Boolean(next.menuOpen);
+      ui.attachPickMode = next.pickMode || null;
+      ui.attachOpenFile = Boolean(next.openFile);
       setChatUi(chatId, ui);
-      chatScreen(chatId);
-    };
-    reader.readAsDataURL(file);
+    },
+    onRerender: () => chatScreen(chatId),
+    fileInputId: 'attachFile'
   });
-  view.querySelector('#clearAttach')?.addEventListener('click', () => {
-    ui.attachPhoto = null;
-    setChatUi(chatId, ui);
-    chatScreen(chatId);
-  });
+
   view.querySelector('#sendMsg')?.addEventListener('click', () => {
-    if (!ui.draft.trim() && !ui.attachPhoto) return;
+    if (!hasComposerPayload(ui.draft, { photo: ui.attachPhoto, share: ui.attachShare })) return;
     appendChatMessage(chat.team ? 'team' : chat.personId, {
       from: 'me',
       name: 'Вы',
       text: ui.draft.trim(),
       time: 'сейчас',
-      image: ui.attachPhoto || undefined
+      image: ui.attachPhoto || undefined,
+      share: ui.attachShare || undefined
     });
     ui.draft = '';
     ui.attachPhoto = null;
+    ui.attachShare = null;
+    ui.attachMenuOpen = false;
+    ui.attachPickMode = null;
     setChatUi(chatId, ui);
     chatScreen(chatId);
   });
@@ -523,7 +529,11 @@ function getChatUi(id) {
     chatUiState.set(id, {
       menuOpen: false,
       draft: '',
-      attachPhoto: null
+      attachPhoto: null,
+      attachShare: null,
+      attachMenuOpen: false,
+      attachPickMode: null,
+      attachOpenFile: false
     });
   }
   return { ...chatUiState.get(id) };
