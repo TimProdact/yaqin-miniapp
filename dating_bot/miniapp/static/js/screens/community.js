@@ -201,8 +201,43 @@ function nextCover(index = 0) {
 
 function groupMatchesQuery(group, term) {
   if (!term) return true;
-  const hay = `${group.title || ''} ${group.about || ''} ${group.city || ''}`.toLowerCase();
+  const hay = [
+    group.title,
+    group.about,
+    group.city,
+    group.district,
+    ...(group.tags || [])
+  ].filter(Boolean).join(' ').toLowerCase();
   return hay.includes(term);
+}
+
+function lastGroupMessage(group) {
+  const messages = group?.messages || [];
+  return messages[messages.length - 1] || null;
+}
+
+function markGroupRead(id) {
+  const state = getState();
+  const changed = (state.userGroups || []).some(item =>
+    String(item.id) === String(id) && item.unread
+  );
+  if (!changed) return;
+  saveState({
+    ...state,
+    userGroups: (state.userGroups || []).map(item =>
+      String(item.id) === String(id) ? { ...item, unread: false } : item
+    )
+  });
+}
+
+function groupActivityLabel(group, time) {
+  if (group?.online) return `${group.online} онлайн`;
+  const t = String(time || '').toLowerCase();
+  if (!t) return '';
+  if (t === 'сейчас' || t.includes('мин') || /\d+\s*ч/.test(t) || t.includes('вчера')) {
+    return 'активна сегодня';
+  }
+  return '';
 }
 
 function groupMatchesFilter(group, filter) {
@@ -211,70 +246,182 @@ function groupMatchesFilter(group, filter) {
   return true;
 }
 
-/** Вкладка «Группы» — список + поиск + фильтр открытые/закрытые. */
+/** Вкладка «Группы» — список + поиск + фильтры + рекомендации. */
 export function groupsScreen() {
   clearHeader();
   let query = '';
   let filter = 'all'; // all | open | closed | mine
+  let topic = 'all';
   let searchOpen = false;
 
+  const activityRank = time => {
+    const t = String(time || '').toLowerCase();
+    if (!t) return 0;
+    if (t.includes('только') || t === 'сейчас' || t.includes('мин')) return 100;
+    const hours = t.match(/(\d+)\s*ч/);
+    if (hours) return 80 - Number(hours[1]);
+    if (t.includes('вчера')) return 20;
+    const days = t.match(/(\d+)\s*д/);
+    if (days) return 15 - Number(days[1]);
+    return 5;
+  };
+
   const groupPreview = group => {
-    const messages = group.messages || [];
-    const last = messages[messages.length - 1];
+    const last = lastGroupMessage(group);
+    if (last?.image && !last.text) return last.from === 'me' ? 'Вы: фото' : 'Фото';
     if (last?.text && !/^группа создана/i.test(last.text) && last.from !== 'system') {
       if (last.from === 'me') return `Вы: ${last.text}`;
       return last.name ? `${last.name}: ${last.text}` : last.text;
     }
-    if (group.members) {
-      const online = group.online ? ` · ${group.online} онлайн` : '';
-      return `${group.members} участниц${online}`;
-    }
-    return group.about || 'Напишите первой';
+    const bits = [];
+    if (group.members) bits.push(`${group.members} участниц`);
+    if (group.city) bits.push(group.city);
+    if (bits.length) return bits.join(' · ');
+    return 'Напишите первой';
+  };
+
+  const membershipLabel = group => {
+    if (isGroupOwner(group)) return 'ваша';
+    if (isGroupPending(group)) return 'заявка отправлена';
+    if (isGroupMember(group)) return 'вы внутри';
+    return '';
+  };
+
+  const canOpenChat = group => isGroupOwner(group) || isGroupMember(group);
+
+  const sortGroups = list => [...list].sort((a, b) => {
+    const aMine = isGroupOwner(a) || isGroupMember(a) ? 1 : 0;
+    const bMine = isGroupOwner(b) || isGroupMember(b) ? 1 : 0;
+    if (aMine !== bMine) return bMine - aMine;
+    const aUnread = a.unread ? 1 : 0;
+    const bUnread = b.unread ? 1 : 0;
+    if (aUnread !== bUnread) return bUnread - aUnread;
+    const aReq = isGroupOwner(a) ? (a.joinRequests || []).length : 0;
+    const bReq = isGroupOwner(b) ? (b.joinRequests || []).length : 0;
+    if (aReq !== bReq) return bReq - aReq;
+    const aTime = lastGroupMessage(a)?.time;
+    const bTime = lastGroupMessage(b)?.time;
+    return activityRank(bTime) - activityRank(aTime);
+  });
+
+  const topicChips = () => {
+    const counts = new Map();
+    listAllGroups().forEach(group => {
+      (group.tags || []).forEach(tag => {
+        const key = String(tag);
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      if (group.district) counts.set(group.district, (counts.get(group.district) || 0) + 1);
+      if (group.city && group.city !== 'Ташкент') counts.set(group.city, (counts.get(group.city) || 0) + 1);
+    });
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([label]) => label);
+  };
+
+  const matchesTopic = group => {
+    if (topic === 'all') return true;
+    const needle = topic.toLowerCase();
+    const hay = [
+      ...(group.tags || []),
+      group.district,
+      group.city,
+      group.title,
+      group.about
+    ].filter(Boolean).map(item => String(item).toLowerCase());
+    return hay.some(item => item.includes(needle));
   };
 
   const render = () => {
     const term = query.trim().toLowerCase();
     const all = listAllGroups();
-    const mine = all.filter(group => isGroupOwner(group) || isGroupMember(group));
-    const catalog = all.filter(group => !isGroupOwner(group) && !isGroupMember(group));
-    const source = filter === 'mine' ? mine : all;
-    const groups = source
-      .filter(group => groupMatchesFilter(group, filter === 'mine' ? 'all' : filter))
-      .filter(group => groupMatchesQuery(group, term));
+    const mine = sortGroups(all.filter(group => isGroupOwner(group) || isGroupMember(group) || isGroupPending(group)));
+    const catalog = sortGroups(all.filter(group => !isGroupOwner(group) && !isGroupMember(group) && !isGroupPending(group)));
+    const groups = sortGroups(
+      (filter === 'mine' ? mine : all)
+        .filter(group => filter === 'mine' || groupMatchesFilter(group, filter))
+        .filter(group => groupMatchesQuery(group, term))
+        .filter(matchesTopic)
+    );
+
+    const chips = topicChips();
     const pills = [
       ['all', 'Все'],
       ['mine', 'Мои'],
       ['open', 'Открытые'],
       ['closed', 'Закрытые']
     ];
-    const filterActive = filter !== 'all' || Boolean(term);
+    const filterActive = filter !== 'all' || topic !== 'all' || Boolean(term);
+    const openNearby = catalog.filter(group => isGroupPublic(group));
 
-    const rowHtml = group => {
+    const rowHtml = (group, { showTags = false } = {}) => {
       const open = isGroupPublic(group);
-      const last = group.messages?.[group.messages.length - 1];
+      const last = lastGroupMessage(group);
       const preview = groupPreview(group);
       const time = last?.time || '';
-      const mineRow = isGroupOwner(group) || isGroupMember(group);
+      const activity = groupActivityLabel(group, time);
+      const label = membershipLabel(group);
       const requests = isGroupOwner(group) ? (group.joinRequests || []).length : 0;
+      const unread = Boolean(group.unread) && canOpenChat(group);
+      const chatReady = canOpenChat(group);
+      const tags = showTags ? [...(group.tags || []).slice(0, 2), group.district].filter(Boolean) : [];
       return `
-        <button class="group-tab-row${mineRow ? ' mine' : ''}" type="button" data-open-group="${esc(group.id)}">
-          <div class="group-tab-avatar">
-            <img src="${esc(group.photo)}" alt="">
-            ${open ? '' : '<i class="ti ti-lock group-tab-lock" aria-hidden="true"></i>'}
-          </div>
-          <div class="group-tab-copy">
-            <div class="group-tab-top">
-              <strong>${esc(group.title)}</strong>
-              ${mineRow ? '<em class="group-tab-you">вы внутри</em>' : ''}
+        <div class="group-tab-row-wrap${unread ? ' unread' : ''}${label ? ' member' : ''}${chatReady ? ' with-chat' : ''}">
+          <button class="group-tab-row" type="button" data-open-group="${esc(group.id)}">
+            <div class="group-tab-avatar">
+              <img src="${esc(group.photo)}" alt="">
+              ${open ? '' : '<i class="ti ti-lock group-tab-lock" aria-hidden="true"></i>'}
             </div>
-            <span>${esc(preview)}</span>
-          </div>
-          <div class="group-tab-meta">
-            ${time ? `<time>${esc(time)}</time>` : '<span class="chat-row-meta-spacer"></span>'}
-            ${requests ? `<i class="unread-dot" aria-label="${requests} заявок"></i>` : ''}
-          </div>
-        </button>`;
+            <div class="group-tab-copy">
+              <div class="group-tab-top">
+                <strong>${esc(group.title)}</strong>
+                ${label ? `<em class="group-tab-you${isGroupPending(group) ? ' pending' : ''}">${esc(label)}</em>` : ''}
+              </div>
+              <span>${esc(preview)}</span>
+              ${tags.length ? `
+                <div class="group-tab-tags">
+                  ${tags.map(tag => `<em${String(tag) === String(group.district) ? ' class="district"' : ''}>${esc(tag)}</em>`).join('')}
+                </div>` : ''}
+            </div>
+            <div class="group-tab-meta">
+              ${time ? `<time>${esc(time)}</time>` : '<span class="chat-row-meta-spacer"></span>'}
+              ${activity ? `<small class="group-tab-activity">${esc(activity)}</small>` : ''}
+              <span class="group-tab-flags">
+                ${requests ? `<span class="group-req-badge" aria-label="${requests} заявок">${requests}</span>` : ''}
+                ${unread && !requests ? '<i class="unread-dot" aria-label="Непрочитано"></i>' : ''}
+              </span>
+            </div>
+          </button>
+          ${chatReady ? `
+            <button type="button" class="group-tab-chat" data-open-chat="${esc(group.id)}" aria-label="Открыть чат">
+              <i class="ti ti-message"></i>
+            </button>` : ''}
+        </div>`;
     };
+
+    const hasMainList = groups.length > 0;
+    const listBody = hasMainList
+      ? `<div class="groups-tab-list">${groups.map(group => rowHtml(group, { showTags: filter !== 'mine' })).join('')}</div>`
+      : term || filter !== 'all' || topic !== 'all'
+        ? `<div class="groups-tab-empty compact">
+            <div class="empty-badge"><i class="ti ti-search"></i></div>
+            <h2>${term ? 'Ничего не найдено' : filter === 'closed' ? 'Пока нет закрытых групп' : filter === 'mine' ? 'Пока нет ваших групп' : topic !== 'all' ? 'Пока нет групп по теме' : 'Пока нет открытых групп'}</h2>
+            <p>${term ? 'Попробуйте другое название или интерес.' : 'Смените фильтр или создайте группу.'}</p>
+            <div class="groups-empty-actions">
+              <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
+              ${openNearby.length ? '<button class="empty-secondary" type="button" id="showOpenGroups">Смотреть открытые</button>' : ''}
+            </div>
+          </div>`
+        : `<div class="groups-tab-empty">
+            <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
+            <h2>Пока нет групп</h2>
+            <p>Создайте свою или найдите открытую рядом.</p>
+            <div class="groups-empty-actions">
+              <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
+              ${openNearby.length ? '<button class="empty-secondary" type="button" id="showOpenGroups">Смотреть открытые</button>' : ''}
+            </div>
+          </div>`;
 
     view.innerHTML = `
       <div class="groups-tab-page">
@@ -295,7 +442,7 @@ export function groupsScreen() {
             ${searchOpen ? `
               <div class="search-box groups-search">
                 <i class="ti ti-search"></i>
-                <input id="groupSearch" type="search" placeholder="Поиск групп" value="${esc(query)}" enterkeyhint="search">
+                <input id="groupSearch" type="search" placeholder="Название, интерес, район…" value="${esc(query)}" enterkeyhint="search">
                 ${term ? '<button type="button" id="clearGroupSearch" aria-label="Очистить">×</button>' : ''}
               </div>` : ''}
             <div class="chats-pills groups-pills" role="tablist">
@@ -303,25 +450,19 @@ export function groupsScreen() {
                 <button type="button" class="${filter === id ? 'on' : ''}" data-filter="${id}">${label}</button>
               `).join('')}
             </div>
+            ${chips.length ? `
+              <div class="groups-topic-chips" role="tablist" aria-label="Интересы и районы">
+                <button type="button" class="${topic === 'all' ? 'on' : ''}" data-topic="all">Все темы</button>
+                ${chips.map(label => `
+                  <button type="button" class="${topic === label ? 'on' : ''}" data-topic="${esc(label)}">${esc(label)}</button>
+                `).join('')}
+              </div>` : ''}
           </div>
         </div>
 
-        ${groups.length
-          ? filter === 'all' && !term
-            ? `
-              ${mine.length ? `<section class="chat-section"><h2 class="chat-section-title">Ваши</h2><div class="groups-tab-list">${mine.map(rowHtml).join('')}</div></section>` : ''}
-              ${catalog.length ? `<section class="chat-section"><h2 class="chat-section-title">Открыть рядом</h2><div class="groups-tab-list">${catalog.map(rowHtml).join('')}</div></section>` : ''}
-              ${!mine.length && !catalog.length ? '' : ''}
-            `
-            : `<div class="groups-tab-list">${groups.map(rowHtml).join('')}</div>`
-          : term || filter !== 'all'
-            ? `<p class="search-none">${term ? 'Ничего не найдено' : filter === 'closed' ? 'Пока нет закрытых групп' : filter === 'mine' ? 'Пока нет ваших групп' : 'Пока нет открытых групп'}</p>`
-            : `<div class="groups-tab-empty">
-                <div class="empty-badge yellow"><i class="ti ti-users"></i></div>
-                <h2>Пока нет групп</h2>
-                <p>Создайте свою или найдите открытую рядом.</p>
-                <button class="empty-primary" type="button" data-action="create-group">Создать группу</button>
-              </div>`}
+        <div class="page-scroll groups-scroll">
+          ${listBody}
+        </div>
 
       </div>`;
 
@@ -352,11 +493,33 @@ export function groupsScreen() {
         render();
       };
     });
+    view.querySelectorAll('[data-topic]').forEach(button => {
+      button.onclick = () => {
+        topic = button.dataset.topic || 'all';
+        render();
+      };
+    });
+    view.querySelector('#showOpenGroups')?.addEventListener('click', () => {
+      filter = 'open';
+      topic = 'all';
+      query = '';
+      render();
+    });
     view.querySelectorAll('[data-open-group]').forEach(button => {
       button.onclick = () => {
         const group = peekGroup(button.dataset.openGroup);
         if (group) navigate('group', group.id);
       };
+    });
+    view.querySelectorAll('[data-open-chat]').forEach(button => {
+      button.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const group = peekGroup(button.dataset.openChat);
+        if (!group) return;
+        if (canOpenChat(group)) navigate('group-chat', group.id);
+        else navigate('group', group.id);
+      });
     });
   };
 
@@ -801,13 +964,13 @@ export function groupHubScreen(id) {
           <div class="sticky-page-cta group-hub-cta ${member ? 'two' : 'one'}">
             ${member
               ? `
-                <button type="button" class="taneesh-buy-block" data-action="group-chat" data-id="${esc(group.id)}">Чат</button>
-                <button type="button" class="taneesh-buy-block ghost" id="inviteGroup">Пригласить</button>`
+                <button type="button" class="taneesh-buy-block" data-action="group-chat" data-id="${esc(group.id)}"><span>Чат</span></button>
+                <button type="button" class="taneesh-buy-block ghost" id="inviteGroup"><span>Пригласить</span></button>`
               : pending
-                ? `<button type="button" class="taneesh-buy-block" disabled>Заявка отправлена</button>`
+                ? `<button type="button" class="taneesh-buy-block" disabled><span>Заявка отправлена</span></button>`
                 : open
-                  ? `<button type="button" class="taneesh-buy-block" id="joinOpenGroup">Вступить</button>`
-                  : `<button type="button" class="taneesh-buy-block" id="requestJoin">Подать заявку</button>`}
+                  ? `<button type="button" class="taneesh-buy-block" id="joinOpenGroup"><span>Вступить</span></button>`
+                  : `<button type="button" class="taneesh-buy-block" id="requestJoin"><span>Подать заявку</span></button>`}
           </div>
           ${joinSheet ? `
             <div class="edit-sheet-scrim" id="joinSheetScrim"></div>
@@ -930,10 +1093,12 @@ export function groupChatScreen(id) {
     navigate('groups');
     return;
   }
-  if (!isGroupMember(group)) {
+  if (!isGroupMember(group) && !isGroupOwner(group)) {
     navigate('group', id);
     return;
   }
+
+  markGroupRead(id);
 
   let draft = '';
   let attach = {
@@ -949,7 +1114,9 @@ export function groupChatScreen(id) {
   const persist = () => {
     const state = getState();
     const list = (state.userGroups || []).map(item =>
-      String(item.id) === String(group.id) ? { ...item, messages: [...messages] } : item
+      String(item.id) === String(group.id)
+        ? { ...item, messages: [...messages], unread: false }
+        : item
     );
     saveState({ ...state, userGroups: list });
   };

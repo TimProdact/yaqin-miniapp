@@ -1677,9 +1677,29 @@ body[data-route='group-notifications'] .settings-row.toggle input:checked { back
 }
 .group-hub-cta.two {
   grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 .group-hub-cta.one {
   grid-template-columns: 1fr;
+}
+.group-guest-page.event-detail-view {
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+}
+.group-guest-page.event-detail-view:has(.sticky-page-cta > :nth-child(2)) {
+  padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
+}
+.group-hub-cta .taneesh-buy-block {
+  background: var(--yaqin-yellow) !important;
+  color: var(--yaqin-yellow-ink) !important;
+  -webkit-text-fill-color: var(--yaqin-yellow-ink) !important;
+  font-size: 16px !important;
+  font-weight: 700;
+}
+.group-hub-cta .taneesh-buy-block.ghost {
+  background: var(--yaqin-bg-subtle) !important;
+  color: var(--yaqin-text) !important;
+  -webkit-text-fill-color: var(--yaqin-text) !important;
+  box-shadow: inset 0 0 0 1px var(--yaqin-sep);
 }
 
 body[data-route='group'] .nav {
@@ -1928,8 +1948,146 @@ body[data-route="group-chat"] .view { padding: 0 !important; }
 }
 .group-privacy { display: none; }
 
-/* Chat list v2 */
-.chat-section { margin: 8px 0 18px; }
+.group-tab-row-wrap {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  border-bottom: 1px solid var(--yaqin-sep-soft);
+}
+.group-tab-row-wrap.with-chat {
+  grid-template-columns: minmax(0, 1fr) 36px;
+}
+.group-tab-row-wrap:last-child { border-bottom: 0; }
+.group-tab-row-wrap .group-tab-row {
+  border-bottom: 0;
+  padding-right: 4px;
+}
+.group-tab-row-wrap.unread .group-tab-copy strong {
+  font-weight: 700;
+}
+.group-tab-row-wrap.unread .group-tab-copy > span {
+  color: var(--yaqin-text);
+  font-weight: 500;
+}
+.group-tab-row-wrap.unread .group-tab-meta time {
+  color: var(--yaqin-link);
+  font-weight: 600;
+}
+.group-tab-you.pending {
+  color: var(--yaqin-text-tertiary);
+}
+.group-tab-activity {
+  display: block;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--yaqin-text-tertiary);
+  white-space: nowrap;
+}
+.group-tab-flags {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 14px;
+}
+.group-req-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-style: normal;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}
+.group-tab-chat {
+  border: 0;
+  background: none;
+  color: var(--yaqin-text-tertiary);
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.group-tab-chat:active {
+  color: var(--yaqin-link);
+}
+.group-tab-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.group-tab-tags em {
+  margin: 0;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--yaqin-text-secondary);
+  background: var(--yaqin-bg-subtle);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.group-tab-tags em.district {
+  color: var(--yaqin-link);
+}
+.groups-topic-chips {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.groups-topic-chips::-webkit-scrollbar { display: none; }
+.groups-topic-chips button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--yaqin-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  box-shadow: inset 0 0 0 1px var(--yaqin-sep-soft);
+}
+.groups-topic-chips button.on {
+  background: var(--yaqin-bg-subtle);
+  color: var(--yaqin-text);
+  box-shadow: inset 0 0 0 1px transparent;
+}
+.groups-empty-actions {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  max-width: 280px;
+  margin: 0 auto;
+}
+.groups-tab-empty.compact {
+  padding-top: 48px;
+}
+.empty-secondary {
+  border: 0;
+  background: none;
+  color: var(--yaqin-link);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.chat-requests {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.chat-section { margin: 0 0 12px; }
 .chat-section-title {
   margin: 0 0 8px;
   font-size: 13px;

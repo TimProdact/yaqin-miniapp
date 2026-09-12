@@ -1,6 +1,6 @@
 import { people } from '../data.js';
 import { view, esc, clearHeader } from '../dom.js';
-import { listAllGroups, allEvents, isGroupOwner, isGroupPublic } from './community.js';
+import { listAllGroups, allEvents, isGroupOwner, isGroupPublic, isGroupMember } from './community.js';
 import { interestsOf } from '../profile-fields.js';
 import { navigate } from '../router.js';
 import { backControlHtml, hasTelegramBack } from '../telegram-ui.js';
@@ -60,15 +60,18 @@ function chatPreviewText(chat) {
 function groupListPreview(group) {
   const messages = group.messages || [];
   const last = messages[messages.length - 1];
-  if (!last) return 'Напишите первой';
-  if (last.image && !last.text) return last.from === 'me' ? 'Вы: фото' : 'Фото';
-  if (last.share) return last.from === 'me' ? 'Вы: вложение' : 'Вложение';
-  const text = String(last.text || '').trim();
-  if (!text || /^группа создана/i.test(text)) {
-    return messages.length <= 1 ? 'Напишите первой' : 'Нет текста';
+  if (last?.image && !last.text) return last.from === 'me' ? 'Вы: фото' : 'Фото';
+  if (last?.share) return last.from === 'me' ? 'Вы: вложение' : 'Вложение';
+  const text = String(last?.text || '').trim();
+  if (text && !/^группа создана/i.test(text) && last?.from !== 'system') {
+    if (last.from === 'me') return `Вы: ${text}`;
+    return last.name ? `${last.name}: ${text}` : text;
   }
-  if (last.from === 'me') return `Вы: ${text}`;
-  return last.name ? `${last.name}: ${text}` : text;
+  const bits = [];
+  if (group.members) bits.push(`${group.members} участниц`);
+  if (group.city) bits.push(group.city);
+  if (bits.length) return bits.join(' · ');
+  return 'Напишите первой';
 }
 
 function eventListPreview(event) {
@@ -81,24 +84,27 @@ function groupSearchBlob(group) {
     .map(person => person?.name || '')
     .join(' ');
   const last = group.messages?.[group.messages.length - 1];
-  return `${group.title || ''} ${group.about || ''} ${group.city || ''} ${memberNames} ${last?.text || ''} ${last?.name || ''}`.toLowerCase();
+  const tags = (group.tags || []).join(' ');
+  return `${group.title || ''} ${group.about || ''} ${group.city || ''} ${group.district || ''} ${tags} ${memberNames} ${last?.text || ''} ${last?.name || ''}`.toLowerCase();
 }
 
 function sortChatRows(rows) {
+  const rank = time => {
+    const t = String(time || '').toLowerCase();
+    if (!t) return 0;
+    if (t.includes('только') || t === 'сейчас' || t.includes('мин')) return 100;
+    const hours = t.match(/(\d+)\s*ч/);
+    if (hours) return 80 - Number(hours[1]);
+    if (t.includes('вчера')) return 20;
+    const days = t.match(/(\d+)\s*д/);
+    if (days) return 15 - Number(days[1]);
+    return 5;
+  };
   return [...rows].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     if (a.unread !== b.unread) return a.unread ? -1 : 1;
-    return 0;
+    return rank(b.time) - rank(a.time);
   });
-}
-
-function sectionHtml(title, rows, opts) {
-  if (!rows.length) return '';
-  return `
-    <section class="chat-section">
-      <h2 class="chat-section-title">${esc(title)}</h2>
-      <div class="chat-section-list">${rows.map(row => chatRowHtml(row, opts)).join('')}</div>
-    </section>`;
 }
 
 function chatRowHtml(row, { showKind = false } = {}) {
@@ -188,7 +194,7 @@ export function chatsScreen() {
         time: last?.time || '',
         photo: group.photo,
         pinned: false,
-        unread: Boolean(group.unread),
+        unread: Boolean(group.unread) && (isGroupOwner(group) || isGroupMember(group)),
         searchText: groupSearchBlob(group),
         requests: isGroupOwner(group) ? (group.joinRequests || []).length : 0
       });
@@ -239,34 +245,27 @@ export function chatsScreen() {
       ['archive', 'Архив']
     ];
     const filterActive = segment !== 'all' || Boolean(term);
-    const showKind = false;
 
     let listHtml = '';
     if (segment === 'all') {
       const req = buckets.requestGroups;
+      const allRows = sortChatRows([...buckets.dm, ...buckets.groups, ...buckets.events]);
       listHtml = `
         ${req.length ? `
-          <section class="chat-section chat-section-requests">
-            <h2 class="chat-section-title">Заявки</h2>
-            <div class="chat-section-list">
-              ${req.map(row => `
-                <button class="chat-request-row" type="button" data-action="group" data-id="${esc(row.id)}">
-                  <span class="settings-icon orange square"><i class="ti ti-user-plus"></i></span>
-                  <span>
-                    <strong>${esc(row.name)}</strong>
-                    <small>${row.requests} ${row.requests === 1 ? 'заявка' : row.requests < 5 ? 'заявки' : 'заявок'} в группу</small>
-                  </span>
-                  <i class="ti ti-chevron-right"></i>
-                </button>`).join('')}
-            </div>
-          </section>` : ''}
-        ${sectionHtml('Знакомства', buckets.dm, { showKind })}
-        ${sectionHtml('Группы', buckets.groups, { showKind })}
-        ${sectionHtml('События', buckets.events, { showKind })}
+          <div class="chat-requests">
+            ${req.map(row => `
+              <button class="chat-request-row" type="button" data-action="group" data-id="${esc(row.id)}">
+                <span class="settings-icon orange square"><i class="ti ti-user-plus"></i></span>
+                <span>
+                  <strong>${esc(row.name)}</strong>
+                  <small>${row.requests} ${row.requests === 1 ? 'заявка' : row.requests < 5 ? 'заявки' : 'заявок'} в группу</small>
+                </span>
+                <i class="ti ti-chevron-right"></i>
+              </button>`).join('')}
+          </div>` : ''}
+        ${allRows.length ? `<div class="chat-list">${allRows.map(row => chatRowHtml(row)).join('')}</div>` : ''}
       `;
-      if (!buckets.dm.length && !buckets.groups.length && !buckets.events.length && !req.length) {
-        listHtml = '';
-      }
+      if (!allRows.length && !req.length) listHtml = '';
     } else if (segment === 'dm') listHtml = buckets.dm.length ? `<div class="chat-list">${buckets.dm.map(r => chatRowHtml(r)).join('')}</div>` : '';
     else if (segment === 'groups') listHtml = buckets.groups.length ? `<div class="chat-list">${buckets.groups.map(r => chatRowHtml(r)).join('')}</div>` : '';
     else if (segment === 'events') listHtml = buckets.events.length ? `<div class="chat-list">${buckets.events.map(r => chatRowHtml(r)).join('')}</div>` : '';
@@ -314,23 +313,25 @@ export function chatsScreen() {
           </div>
         </div>
 
-        ${!empty ? listHtml : `
-          <div class="chats-empty compact">
-            <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
-            <h2>${term
-              ? 'Ничего не найдено'
-              : segment === 'events' ? 'Пока нет событий'
-                : segment === 'archive' ? 'Архив пуст'
-                  : 'Пока нет переписок'}</h2>
-            <p>${term
-              ? 'Попробуйте имя, текст сообщения или название группы.'
-              : segment === 'events'
-                ? 'События появятся после интереса на афише.'
-                : segment === 'archive'
-                  ? 'Сюда попадают чаты, которые вы архивировали.'
-                  : 'Чат откроется при взаимном привете.'}</p>
-            ${term || segment === 'archive' ? '' : `<button class="empty-primary" type="button" data-action="${segment === 'events' ? 'events' : 'people'}">${segment === 'events' ? 'К событиям' : 'Смотреть анкеты'}</button>`}
-          </div>`}
+        <div class="page-scroll chats-scroll">
+          ${!empty ? listHtml : `
+            <div class="chats-empty compact">
+              <div class="empty-badge"><i class="ti ti-message-circle"></i></div>
+              <h2>${term
+                ? 'Ничего не найдено'
+                : segment === 'events' ? 'Пока нет событий'
+                  : segment === 'archive' ? 'Архив пуст'
+                    : 'Пока нет переписок'}</h2>
+              <p>${term
+                ? 'Попробуйте имя, текст сообщения или название группы.'
+                : segment === 'events'
+                  ? 'События появятся после интереса на афише.'
+                  : segment === 'archive'
+                    ? 'Сюда попадают чаты, которые вы архивировали.'
+                    : 'Чат откроется при взаимном привете.'}</p>
+              ${term || segment === 'archive' ? '' : `<button class="empty-primary" type="button" data-action="${segment === 'events' ? 'events' : 'people'}">${segment === 'events' ? 'К событиям' : 'Смотреть анкеты'}</button>`}
+            </div>`}
+        </div>
 
         ${menuRow ? `
           <div class="chat-sheet-scrim" id="chatMenuScrim"></div>
@@ -472,7 +473,7 @@ export function searchChatsScreen(queryOrId = '') {
                 time: group.messages?.[group.messages.length - 1]?.time || '',
                 photo: group.photo,
                 pinned: false,
-                unread: Boolean(group.unread)
+                unread: Boolean(group.unread) && (isGroupOwner(group) || isGroupMember(group))
               }, { showKind: true })).join('')}
               ${!dmRows.length && !groupRows.length ? '<p class="search-none">Ничего не найдено</p>' : ''}
             `

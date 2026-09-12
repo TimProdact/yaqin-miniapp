@@ -464,29 +464,32 @@ export function taneeshEventsScreen() {
           <header class="chats-head">
             <h1>События</h1>
             <div class="list-head-actions">
+              <button type="button" data-action="create-event" aria-label="Создать событие">
+                <i class="ti ti-plus"></i>
+              </button>
               <button type="button" id="toggleEventSearch" aria-label="${searchOpen ? 'Закрыть поиск' : 'Поиск'}" aria-expanded="${searchOpen ? 'true' : 'false'}" class="${searchOpen || filterActive ? 'on' : ''}">
                 <i class="ti ${searchOpen ? 'ti-x' : 'ti-search'}"></i>
               </button>
             </div>
           </header>
 
-          ${searchOpen ? `
-            <div class="list-search-panel">
+          <div class="list-search-panel">
+            ${searchOpen ? `
               <div class="search-box chats-search">
                 <i class="ti ti-search"></i>
                 <input id="eventListSearch" type="search" placeholder="Название, место, интерес…" value="${esc(query)}" enterkeyhint="search" autocomplete="off">
                 ${term ? '<button type="button" id="clearEventSearch" aria-label="Очистить">×</button>' : ''}
+              </div>` : ''}
+            <div class="events-date-bar">
+              <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
+                ${filters.map(([id, label]) => `
+                  <button type="button" class="${dateFilter === id ? 'on' : ''}" data-date-filter="${id}">
+                    ${id === 'pick' ? esc(pickLabel) : esc(label)}
+                  </button>`).join('')}
               </div>
-              <div class="events-date-bar">
-                <div class="chats-pills events-date-pills" role="tablist" aria-label="Фильтр по дате">
-                  ${filters.map(([id, label]) => `
-                    <button type="button" class="${dateFilter === id ? 'on' : ''}" data-date-filter="${id}">
-                      ${id === 'pick' ? esc(pickLabel) : esc(label)}
-                    </button>`).join('')}
-                </div>
-                <input type="date" id="eventsPickDate" value="${esc(pickIso)}" hidden>
-              </div>
-            </div>` : ''}
+              <input type="date" id="eventsPickDate" value="${esc(pickIso)}" hidden>
+            </div>
+          </div>
         </div>
 
         <div class="events-feed">
@@ -535,8 +538,6 @@ export function taneeshEventsScreen() {
           query = '';
           dateFilter = 'any';
           pickIso = '';
-          searchOpen = true;
-          restoreFocus = true;
           render();
           return;
         }
@@ -546,7 +547,6 @@ export function taneeshEventsScreen() {
           const onPicked = () => {
             pickIso = dateInput.value || '';
             dateFilter = pickIso ? 'pick' : 'any';
-            searchOpen = true;
             dateInput.removeEventListener('change', onPicked);
             render();
           };
@@ -560,7 +560,6 @@ export function taneeshEventsScreen() {
         }
         dateFilter = next;
         pickIso = '';
-        searchOpen = true;
         render();
       });
     });

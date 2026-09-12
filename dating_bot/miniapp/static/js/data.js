@@ -352,7 +352,10 @@ export const demoGroups = [
     isPublic: true,
     members: 248,
     online: 12,
+    tags: ['кофе', 'прогулки', 'знакомства'],
+    district: 'Центр',
     catalog: true,
+    unread: true,
     messages: [
       { from: 'them', name: 'Малика', text: 'Кто на кофе в Мирабаде в воскресенье?', time: '2 ч' }
     ]
@@ -366,7 +369,10 @@ export const demoGroups = [
     isPublic: true,
     members: 96,
     online: 5,
+    tags: ['йога', 'спорт', 'бег'],
+    district: 'Юнусабад',
     catalog: true,
+    unread: true,
     messages: [
       { from: 'them', name: 'Мила', text: 'Завтра в 7:30 у парка — кто с нами?', time: '5 ч' }
     ]
@@ -380,6 +386,8 @@ export const demoGroups = [
     isPublic: false,
     members: 64,
     online: 3,
+    tags: ['книги', 'кофе'],
+    district: 'Мирабад',
     catalog: true,
     messages: [
       { from: 'them', name: 'Аня', text: 'На этой неделе — «Маленькая жизнь»', time: '1 д' }
@@ -394,9 +402,12 @@ export const demoGroups = [
     isPublic: true,
     members: 132,
     online: 8,
+    tags: ['кофе', 'прогулки'],
+    district: 'Центр',
     catalog: true,
+    unread: true,
     messages: [
-      { from: 'them', name: 'Сара', text: 'Нашла уютное место у площади', time: '3 ч' }
+      { from: 'them', name: 'Сара', text: 'Нашла уютное место у площади', time: 'сейчас' }
     ]
   },
   {
@@ -408,6 +419,8 @@ export const demoGroups = [
     isPublic: false,
     members: 41,
     online: 2,
+    tags: ['прогулки', 'путешествия'],
+    district: 'Регистан',
     catalog: true,
     messages: [
       { from: 'them', name: 'Нилуфар', text: 'В субботу на Регистан?', time: '6 ч' }
@@ -422,6 +435,8 @@ export const demoGroups = [
     isPublic: false,
     members: 78,
     online: 4,
+    tags: ['фотография', 'прогулки', 'искусство'],
+    district: 'Чиланзар',
     catalog: true,
     messages: [
       { from: 'them', name: 'Зарина', text: 'Золотой час у канала — кто в деле?', time: '1 д' }
